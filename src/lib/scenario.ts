@@ -28,10 +28,10 @@ export function computeEffectiveSteps(
 }
 
 // =============================================
-// SCENARIO A,StyleVault AI (1st-party, broad)
+// SCENARIO A - StyleVault AI (1st-party, broad)
 // =============================================
 
-// StyleVault AI steps,used by the floating widget
+// StyleVault AI steps - used by the floating widget
 export const STYLEVAULT_AI_STEPS: DemoStep[] = [
   {
     id: "a-1-connect",
@@ -66,7 +66,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
       scenarioId: "scenario-a",
       businessDescription: "Alex Morgan approved StyleVault AI's request to access their StyleVault account with full shopping permissions.",
       technicalDetail: {
-        protocol: "OAuth 2.1,Authorization Code + PKCE",
+        protocol: "OAuth 2.1: Authorization Code + PKCE",
         request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=read:wishlist read:orders read:products write:preferences execute:purchase\n&client_id=cli_sv_ai_001\n&code_challenge=E9Melhoa2OwvFrEMTJg...\n&code_challenge_method=S256",
         response: "HTTP/1.1 302 Found\nLocation: /callback?code=SplxlOBeZQQYbYS6WxSbIA",
       },
@@ -152,7 +152,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
       scenarioId: "scenario-a",
       businessDescription: "Alex Morgan approved the $79.99 jacket purchase via push notification.",
       technicalDetail: {
-        protocol: "CIBA,Client-Initiated Backchannel Authentication",
+        protocol: "CIBA: Client-Initiated Backchannel Authentication",
         request: "POST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"Purchase: Blue Denim Jacket ($79.99)\",\n  \"scope\": \"execute:purchase\"\n}",
         response: "HTTP/1.1 200 OK\n{\n  \"auth_req_id\": \"ciba-req-001\",\n  \"expires_in\": 300,\n  \"interval\": 5\n}",
       },
@@ -211,7 +211,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
       scenarioId: "scenario-a",
       businessDescription: "StyleVault AI attempted to purchase a $2,400 watch exceeding the $250 per-transaction cap. Auth0 blocked the request.",
       technicalDetail: {
-        protocol: "OAuth 2.1,Bounded Authority Claim",
+        protocol: "OAuth 2.1: Bounded Authority Claim",
         request: "POST /mcp/tools/place_order HTTP/1.1\nAuthorization: Bearer eyJhbG...\n\n{\"item_id\": \"watch_meridian_001\", \"amount\": 2400.00}",
         response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"Value $2,400.00 exceeds max $250.00 per transaction\"\n}",
         tokenClaims: { max_purchase_amount: "$250.00", scope: "execute:purchase" },
@@ -229,10 +229,10 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
 ];
 
 // =============================================
-// SCENARIO B,ChatGPT (3rd-party, full access)
+// SCENARIO B - ChatGPT (3rd-party, full access)
 // =============================================
 
-// Conversation IDs for ChatGPT scenario,each is a separate chat thread
+// Conversation IDs for ChatGPT scenario - each is a separate chat thread
 const CONV_B1 = "Browse my wishlist";
 const CONV_B2 = "Find me a leather bag";
 const CONV_B3 = "Buy the Heritage Duffle";
@@ -249,7 +249,7 @@ export const CHATGPT_CONVERSATIONS = [
 ];
 
 const SCENARIO_B_STEPS: DemoStep[] = [
-  // === CHAT 1: "Browse my wishlist",login + consent + successful wishlist read ===
+  // === CHAT 1: "Browse my wishlist" - login + consent + successful wishlist read ===
   {
     id: "b-1", type: "chat", conversation: CONV_B1,
     chat: { id: "b-1", role: "system", content: "ChatGPT discovered StyleVault MCP server.", timestamp: "10:05:01" },
@@ -284,7 +284,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
       id: "evt-b-consent", timestamp: "10:05:02", type: "consent", result: "granted", scenarioId: "scenario-b",
       businessDescription: "Alex Morgan approved ChatGPT with full access to their StyleVault account, including purchases and preferences.",
       technicalDetail: {
-        protocol: "OAuth 2.1,Authorization Code + PKCE",
+        protocol: "OAuth 2.1: Authorization Code + PKCE",
         request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=read:wishlist read:orders read:products write:preferences execute:purchase\n&client_id=cli_chatgpt_002",
         response: "HTTP/1.1 302 Found\nLocation: /callback?code=Qcb0Orv1zh30vL",
       },
@@ -318,7 +318,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-wishlist", timestamp: "10:05:10", type: "tool-call", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "Read access granted,ChatGPT viewed Alex Morgan's wishlist.",
+      businessDescription: "Read access granted. ChatGPT viewed Alex Morgan's wishlist.",
       technicalDetail: {
         protocol: "Tool Call Flow",
         toolName: "get_wishlist",
@@ -334,7 +334,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
   },
 
-  // === CHAT 2: "Find me a leather bag",product search + order history check ===
+  // === CHAT 2: "Find me a leather bag" - product search + order history check ===
   {
     id: "b-6", type: "chat", conversation: CONV_B2,
     chat: { id: "b-6", role: "user", content: "I saw a Leather Weekender on my wishlist for $425. Can you find something similar but under $300?", timestamp: "10:06:01" },
@@ -398,7 +398,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-orders", timestamp: "10:06:13", type: "tool-call", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "Read access granted,ChatGPT viewed Alex Morgan's order history.",
+      businessDescription: "Read access granted. ChatGPT viewed Alex Morgan's order history.",
       technicalDetail: {
         protocol: "Tool Call Flow",
         toolName: "get_order_history",
@@ -414,7 +414,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
   },
 
-  // === CHAT 3: "Buy the Heritage Duffle",purchase succeeds via CIBA ===
+  // === CHAT 3: "Buy the Heritage Duffle" - purchase succeeds via CIBA ===
   {
     id: "b-10", type: "chat", conversation: CONV_B3,
     chat: { id: "b-10", role: "user", content: "I've decided. Buy me the Heritage Duffle from StyleVault.", timestamp: "10:07:01" },
@@ -431,7 +431,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
       id: "evt-b-ciba", timestamp: "10:07:02", type: "ciba", result: "approved", scenarioId: "scenario-b",
       businessDescription: "Alex Morgan approved the $269.00 Heritage Duffle purchase via push notification.",
       technicalDetail: {
-        protocol: "CIBA,Client-Initiated Backchannel Authentication",
+        protocol: "CIBA: Client-Initiated Backchannel Authentication",
         request: "POST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"Purchase: Heritage Duffle ($269.00)\",\n  \"scope\": \"execute:purchase\"\n}",
         response: "HTTP/1.1 200 OK\n{\n  \"auth_req_id\": \"ciba-req-b01\",\n  \"expires_in\": 300,\n  \"interval\": 5\n}",
       },
@@ -473,7 +473,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
   },
 
-  // === CHAT 4: "Update my style preferences",write succeeds ===
+  // === CHAT 4: "Update my style preferences" - write succeeds ===
   {
     id: "b-13", type: "chat", conversation: CONV_B4,
     chat: { id: "b-13", role: "user", content: "Can you save 'leather bags' and 'weekend travel' as style preferences on my StyleVault profile?", timestamp: "10:08:01" },
@@ -514,7 +514,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
   },
 
-  // === CHAT 5: "Buy the Meridian Watch",bounded authority denial ===
+  // === CHAT 5: "Buy the Meridian Watch" - bounded authority denial ===
   {
     id: "b-15", type: "chat", conversation: CONV_B5,
     chat: { id: "b-15", role: "user", content: "Now buy me the Meridian Automatic Watch from my wishlist.", timestamp: "10:09:01" },
@@ -541,7 +541,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
       id: "evt-b-bounded", timestamp: "10:09:03", type: "bounded-authority", result: "denied", scenarioId: "scenario-b",
       businessDescription: "ChatGPT attempted to purchase a $2,400 watch exceeding the $250 per-transaction cap. Auth0 blocked the request.",
       technicalDetail: {
-        protocol: "OAuth 2.1,Bounded Authority Claim",
+        protocol: "OAuth 2.1: Bounded Authority Claim",
         request: "POST /mcp/tools/place_order HTTP/1.1\nAuthorization: Bearer eyJhbG...\n\n{\"item_id\": \"watch_meridian_001\", \"amount\": 2400.00}",
         response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"Value $2,400.00 exceeds max $250.00 per transaction\"\n}",
         tokenClaims: { max_purchase_amount: "$250.00", scope: "execute:purchase" },
@@ -633,7 +633,7 @@ const CIBA_DENIAL_STEPS_B: Record<string, DemoStep> = {
 };
 
 // =============================================
-// SCENARIO_CONFIGS,exported for DemoContent
+// SCENARIO_CONFIGS - exported for DemoContent
 // =============================================
 
 export const SCENARIO_CONFIGS: ScenarioConfig[] = [
