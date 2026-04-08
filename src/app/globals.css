@@ -1,0 +1,230 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #1a1a2e;
+  --card: rgba(0, 0, 0, 0.02);
+  --card-foreground: #1a1a2e;
+  --primary: #4016A0;
+  --primary-foreground: #ffffff;
+  --secondary: rgba(0, 0, 0, 0.04);
+  --secondary-foreground: #475569;
+  --muted: rgba(0, 0, 0, 0.04);
+  --muted-foreground: #64748b;
+  --accent: rgba(64, 22, 160, 0.06);
+  --accent-foreground: #4016A0;
+  --destructive: #ef4444;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: rgba(0, 0, 0, 0.06);
+  --ring: rgba(64, 22, 160, 0.3);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(64, 22, 160, 0.03), transparent),
+    radial-gradient(ellipse 60% 50% at 80% 60%, rgba(180, 155, 252, 0.03), transparent),
+    var(--background);
+}
+
+/* === Glass effects === */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.02) inset,
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.glass-sm {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+/* === Security event glows === */
+.glow-green {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.15), 0 0 60px rgba(34, 197, 94, 0.05);
+}
+.glow-amber {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15), 0 0 60px rgba(245, 158, 11, 0.05);
+}
+.glow-red {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15), 0 0 60px rgba(239, 68, 68, 0.05);
+}
+.glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 60px rgba(59, 130, 246, 0.05);
+}
+
+/* === Chat client theme overrides === */
+.client-a-light {
+  --client-bg: #ffffff;
+  --client-sidebar: #f9f9f9;
+  --client-input: #f4f4f4;
+  --client-user-bubble: #f0f0f0;
+  --client-text: #1a1a1a;
+  --client-muted: #8e8e8e;
+}
+
+.client-b-chatgpt {
+  --client-bg: #ffffff;
+  --client-sidebar: #f9f9f9;
+  --client-input: #f4f4f4;
+  --client-user-bubble: #f0f0f0;
+  --client-text: #1a1a1a;
+  --client-muted: #8e8e8e;
+  --client-accent: #10a37f;
+}
+
+.client-c-enterprise {
+  --client-bg: #ffffff;
+  --client-sidebar: #f7f7f8;
+  --client-input: #f4f4f4;
+  --client-user-bubble: rgba(0, 0, 0, 0.04);
+  --client-text: #1e293b;
+  --client-muted: #64748b;
+}
+
+/* === Hidden scrollbar utility === */
+.scrollbar-hidden,
+.scrollbar-hidden * {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hidden::-webkit-scrollbar,
+.scrollbar-hidden *::-webkit-scrollbar {
+  display: none;
+}
+
+/* === Scrollbar === */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* === Active event card glow === */
+@keyframes eventGlow {
+  0%, 100% { box-shadow: 0 0 8px 2px rgba(64, 22, 160, 0.15); }
+  50% { box-shadow: 0 0 16px 4px rgba(64, 22, 160, 0.3); }
+}
+
+.event-card-active {
+  animation: eventGlow 2s ease-in-out infinite;
+}
+
+/* === Animations === */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(300px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(300px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes typing {
+  0%, 80%, 100% { opacity: 0.3; }
+  40% { opacity: 1; }
+}
+
+.animate-in { animation: fadeIn 0.15s ease-out; }
+.animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
+.animate-slide-in-right { animation: slideInRight 0.4s ease-out forwards; }
+.animate-slide-out-right { animation: slideOutRight 0.3s ease-in forwards; }
+.animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+
+.typing-dot { animation: typing 1.4s infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* === Overlay panel === */
+.overlay-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 520px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(24px);
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 768px) {
+  .overlay-panel {
+  }
+}
