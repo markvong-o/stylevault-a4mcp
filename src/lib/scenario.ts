@@ -28,10 +28,10 @@ export function computeEffectiveSteps(
 }
 
 // =============================================
-// SCENARIO A — StyleVault AI (1st-party, broad)
+// SCENARIO A,StyleVault AI (1st-party, broad)
 // =============================================
 
-// StyleVault AI steps — used by the floating widget
+// StyleVault AI steps,used by the floating widget
 export const STYLEVAULT_AI_STEPS: DemoStep[] = [
   {
     id: "a-1-connect",
@@ -66,7 +66,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
       scenarioId: "scenario-a",
       businessDescription: "Alex Morgan approved StyleVault AI's request to access their StyleVault account with full shopping permissions.",
       technicalDetail: {
-        protocol: "OAuth 2.1 — Authorization Code + PKCE",
+        protocol: "OAuth 2.1,Authorization Code + PKCE",
         request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=read:wishlist read:orders read:products write:preferences execute:purchase\n&client_id=cli_sv_ai_001\n&code_challenge=E9Melhoa2OwvFrEMTJg...\n&code_challenge_method=S256",
         response: "HTTP/1.1 302 Found\nLocation: /callback?code=SplxlOBeZQQYbYS6WxSbIA",
       },
@@ -95,7 +95,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     type: "chat",
     chat: {
       id: "a-5", role: "assistant",
-      content: "Here's your wishlist! You have 4 saved items:\n\n1. Cashmere Wrap Scarf — $189.00\n2. Blue Denim Jacket (Limited Edition) — $79.99\n3. Leather Weekender Bag — $425.00\n4. Meridian Automatic Watch — $2,400.00\n\nWould you like me to check availability or help with a purchase?",
+      content: "Here's your wishlist! You have 4 saved items:\n\n1. Cashmere Wrap Scarf - $189.00\n2. Blue Denim Jacket (Limited Edition) - $79.99\n3. Leather Weekender Bag - $425.00\n4. Meridian Automatic Watch - $2,400.00\n\nWould you like me to check availability or help with a purchase?",
       timestamp: "10:00:12",
       toolCall: { name: "get_wishlist", status: "success", steps: [
         { label: "MCP Server", description: "get_wishlist called", status: "success" },
@@ -152,7 +152,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
       scenarioId: "scenario-a",
       businessDescription: "Alex Morgan approved the $79.99 jacket purchase via push notification.",
       technicalDetail: {
-        protocol: "CIBA — Client-Initiated Backchannel Authentication",
+        protocol: "CIBA,Client-Initiated Backchannel Authentication",
         request: "POST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"Purchase: Blue Denim Jacket ($79.99)\",\n  \"scope\": \"execute:purchase\"\n}",
         response: "HTTP/1.1 200 OK\n{\n  \"auth_req_id\": \"ciba-req-001\",\n  \"expires_in\": 300,\n  \"interval\": 5\n}",
       },
@@ -192,7 +192,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     type: "chat",
     chat: {
       id: "a-10", role: "assistant",
-      content: "I'd love to help, but the Meridian Automatic Watch is $2,400.00 — which exceeds my $250 purchase authorization limit. For premium items like this, you can complete the purchase directly on StyleVault where additional verification protects high-value transactions.",
+      content: "I'd love to help, but the Meridian Automatic Watch is $2,400.00, which exceeds my $250 purchase authorization limit. For premium items like this, you can complete the purchase directly on StyleVault where additional verification protects high-value transactions.",
       timestamp: "10:00:42",
       toolCall: { name: "place_order", status: "denied", detail: "bounded_authority_exceeded: $250", steps: [
         { label: "MCP Server", description: "place_order called", status: "success" },
@@ -211,7 +211,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
       scenarioId: "scenario-a",
       businessDescription: "StyleVault AI attempted to purchase a $2,400 watch exceeding the $250 per-transaction cap. Auth0 blocked the request.",
       technicalDetail: {
-        protocol: "OAuth 2.1 — Bounded Authority Claim",
+        protocol: "OAuth 2.1,Bounded Authority Claim",
         request: "POST /mcp/tools/place_order HTTP/1.1\nAuthorization: Bearer eyJhbG...\n\n{\"item_id\": \"watch_meridian_001\", \"amount\": 2400.00}",
         response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"Value $2,400.00 exceeds max $250.00 per transaction\"\n}",
         tokenClaims: { max_purchase_amount: "$250.00", scope: "execute:purchase" },
@@ -229,10 +229,10 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
 ];
 
 // =============================================
-// SCENARIO B — ChatGPT (3rd-party, full access)
+// SCENARIO B,ChatGPT (3rd-party, full access)
 // =============================================
 
-// Conversation IDs for ChatGPT scenario — each is a separate chat thread
+// Conversation IDs for ChatGPT scenario,each is a separate chat thread
 const CONV_B1 = "Browse my wishlist";
 const CONV_B2 = "Find me a leather bag";
 const CONV_B3 = "Buy the Heritage Duffle";
@@ -249,7 +249,7 @@ export const CHATGPT_CONVERSATIONS = [
 ];
 
 const SCENARIO_B_STEPS: DemoStep[] = [
-  // === CHAT 1: "Browse my wishlist" — login + consent + successful wishlist read ===
+  // === CHAT 1: "Browse my wishlist",login + consent + successful wishlist read ===
   {
     id: "b-1", type: "chat", conversation: CONV_B1,
     chat: { id: "b-1", role: "system", content: "ChatGPT discovered StyleVault MCP server.", timestamp: "10:05:01" },
@@ -282,9 +282,9 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-consent", timestamp: "10:05:02", type: "consent", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "Alex Morgan approved ChatGPT with full access to their StyleVault account — including purchases and preferences.",
+      businessDescription: "Alex Morgan approved ChatGPT with full access to their StyleVault account, including purchases and preferences.",
       technicalDetail: {
-        protocol: "OAuth 2.1 — Authorization Code + PKCE",
+        protocol: "OAuth 2.1,Authorization Code + PKCE",
         request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=read:wishlist read:orders read:products write:preferences execute:purchase\n&client_id=cli_chatgpt_002",
         response: "HTTP/1.1 302 Found\nLocation: /callback?code=Qcb0Orv1zh30vL",
       },
@@ -302,7 +302,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     id: "b-5", type: "chat", conversation: CONV_B1,
     chat: {
       id: "b-5", role: "assistant",
-      content: "Here's your StyleVault wishlist:\n\n1. Cashmere Wrap Scarf — $189.00\n2. Blue Denim Jacket (Limited Edition) — $79.99\n3. Leather Weekender Bag — $425.00\n4. Meridian Automatic Watch — $2,400.00\n\nNice collection! The Denim Jacket is a limited edition — want me to check if it's still in stock?",
+      content: "Here's your StyleVault wishlist:\n\n1. Cashmere Wrap Scarf - $189.00\n2. Blue Denim Jacket (Limited Edition) - $79.99\n3. Leather Weekender Bag - $425.00\n4. Meridian Automatic Watch - $2,400.00\n\nNice collection! The Denim Jacket is a limited edition. Want me to check if it's still in stock?",
       timestamp: "10:05:10",
       toolCall: { name: "get_wishlist", status: "success", steps: [
         { label: "MCP Server", description: "get_wishlist called", status: "success" },
@@ -318,7 +318,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-wishlist", timestamp: "10:05:10", type: "tool-call", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "Read access granted — ChatGPT viewed Alex Morgan's wishlist.",
+      businessDescription: "Read access granted,ChatGPT viewed Alex Morgan's wishlist.",
       technicalDetail: {
         protocol: "Tool Call Flow",
         toolName: "get_wishlist",
@@ -334,7 +334,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
   },
 
-  // === CHAT 2: "Find me a leather bag" — product search + order history check ===
+  // === CHAT 2: "Find me a leather bag",product search + order history check ===
   {
     id: "b-6", type: "chat", conversation: CONV_B2,
     chat: { id: "b-6", role: "user", content: "I saw a Leather Weekender on my wishlist for $425. Can you find something similar but under $300?", timestamp: "10:06:01" },
@@ -343,7 +343,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     id: "b-7", type: "chat", conversation: CONV_B2,
     chat: {
       id: "b-7", role: "assistant",
-      content: "I found 3 leather bags under $300 on StyleVault:\n\n1. Heritage Duffle — $269.00 (4.7 stars, 93 reviews)\n2. City Tote — $199.00 (4.5 stars, 156 reviews)\n3. Compact Travel Satchel — $149.00 (4.8 stars, 72 reviews)\n\nThe Heritage Duffle is the closest match in style and capacity. Want me to compare them in detail?",
+      content: "I found 3 leather bags under $300 on StyleVault:\n\n1. Heritage Duffle - $269.00 (4.7 stars, 93 reviews)\n2. City Tote - $199.00 (4.5 stars, 156 reviews)\n3. Compact Travel Satchel - $149.00 (4.8 stars, 72 reviews)\n\nThe Heritage Duffle is the closest match in style and capacity. Want me to compare them in detail?",
       timestamp: "10:06:04",
       toolCall: { name: "search_products", status: "success", steps: [
         { label: "MCP Server", description: "search_products called", status: "success" },
@@ -376,13 +376,13 @@ const SCENARIO_B_STEPS: DemoStep[] = [
   },
   {
     id: "b-8", type: "chat", conversation: CONV_B2,
-    chat: { id: "b-8", role: "user", content: "Good options. Let me check my recent orders first — I don't want to buy a bag I already have coming.", timestamp: "10:06:10" },
+    chat: { id: "b-8", role: "user", content: "Good options. Let me check my recent orders first,I don't want to buy a bag I already have coming.", timestamp: "10:06:10" },
   },
   {
     id: "b-9", type: "chat", conversation: CONV_B2,
     chat: {
       id: "b-9", role: "assistant",
-      content: "Here are your recent StyleVault orders:\n\n1. Silk Blend Blazer — $299.00 (Delivered Mar 15)\n2. Canvas Sneakers — $89.00 (Delivered Mar 8)\n3. Linen Shirt Set — $145.00 (Delivered Feb 28)\n\nNo bags in your recent orders — you're clear! The Heritage Duffle would pair well with that Blazer, by the way.",
+      content: "Here are your recent StyleVault orders:\n\n1. Silk Blend Blazer - $299.00 (Delivered Mar 15)\n2. Canvas Sneakers - $89.00 (Delivered Mar 8)\n3. Linen Shirt Set - $145.00 (Delivered Feb 28)\n\nNo bags in your recent orders, you're clear! The Heritage Duffle would pair well with that Blazer, by the way.",
       timestamp: "10:06:13",
       toolCall: { name: "get_order_history", status: "success", steps: [
         { label: "MCP Server", description: "get_order_history called", status: "success" },
@@ -398,7 +398,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-orders", timestamp: "10:06:13", type: "tool-call", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "Read access granted — ChatGPT viewed Alex Morgan's order history.",
+      businessDescription: "Read access granted,ChatGPT viewed Alex Morgan's order history.",
       technicalDetail: {
         protocol: "Tool Call Flow",
         toolName: "get_order_history",
@@ -414,10 +414,10 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
   },
 
-  // === CHAT 3: "Buy the Heritage Duffle" — purchase succeeds via CIBA ===
+  // === CHAT 3: "Buy the Heritage Duffle",purchase succeeds via CIBA ===
   {
     id: "b-10", type: "chat", conversation: CONV_B3,
-    chat: { id: "b-10", role: "user", content: "I've decided — buy me the Heritage Duffle from StyleVault.", timestamp: "10:07:01" },
+    chat: { id: "b-10", role: "user", content: "I've decided. Buy me the Heritage Duffle from StyleVault.", timestamp: "10:07:01" },
   },
   {
     id: "b-11-ciba", type: "security-moment", gate: "ciba", gateId: "ciba-b", conversation: CONV_B3,
@@ -431,7 +431,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
       id: "evt-b-ciba", timestamp: "10:07:02", type: "ciba", result: "approved", scenarioId: "scenario-b",
       businessDescription: "Alex Morgan approved the $269.00 Heritage Duffle purchase via push notification.",
       technicalDetail: {
-        protocol: "CIBA — Client-Initiated Backchannel Authentication",
+        protocol: "CIBA,Client-Initiated Backchannel Authentication",
         request: "POST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"Purchase: Heritage Duffle ($269.00)\",\n  \"scope\": \"execute:purchase\"\n}",
         response: "HTTP/1.1 200 OK\n{\n  \"auth_req_id\": \"ciba-req-b01\",\n  \"expires_in\": 300,\n  \"interval\": 5\n}",
       },
@@ -441,7 +441,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     id: "b-12", type: "chat", conversation: CONV_B3,
     chat: {
       id: "b-12", role: "assistant",
-      content: "Done! I've placed the order for the Heritage Duffle ($269.00). You'll receive a confirmation email at alex@example.com shortly. Expected delivery is 3-5 business days.\n\nGreat choice — it'll pair perfectly with that Silk Blend Blazer you ordered last month!",
+      content: "Done! I've placed the order for the Heritage Duffle ($269.00). You'll receive a confirmation email at alex@example.com shortly. Expected delivery is 3-5 business days.\n\nGreat choice. It'll pair perfectly with that Silk Blend Blazer you ordered last month!",
       timestamp: "10:07:08",
       toolCall: { name: "place_order", status: "success", steps: [
         { label: "MCP Server", description: "place_order called", status: "success" },
@@ -473,7 +473,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
   },
 
-  // === CHAT 4: "Update my style preferences" — write succeeds ===
+  // === CHAT 4: "Update my style preferences",write succeeds ===
   {
     id: "b-13", type: "chat", conversation: CONV_B4,
     chat: { id: "b-13", role: "user", content: "Can you save 'leather bags' and 'weekend travel' as style preferences on my StyleVault profile?", timestamp: "10:08:01" },
@@ -514,7 +514,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
   },
 
-  // === CHAT 5: "Buy the Meridian Watch" — bounded authority denial ===
+  // === CHAT 5: "Buy the Meridian Watch",bounded authority denial ===
   {
     id: "b-15", type: "chat", conversation: CONV_B5,
     chat: { id: "b-15", role: "user", content: "Now buy me the Meridian Automatic Watch from my wishlist.", timestamp: "10:09:01" },
@@ -523,7 +523,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     id: "b-16", type: "chat", conversation: CONV_B5,
     chat: {
       id: "b-16", role: "assistant",
-      content: "I'd love to help, but the Meridian Automatic Watch is $2,400.00 — which exceeds my $250 purchase authorization limit. For premium items like this, you can complete the purchase directly on StyleVault where additional verification protects high-value transactions.",
+      content: "I'd love to help, but the Meridian Automatic Watch is $2,400.00, which exceeds my $250 purchase authorization limit. For premium items like this, you can complete the purchase directly on StyleVault where additional verification protects high-value transactions.",
       timestamp: "10:09:03",
       toolCall: { name: "place_order", status: "denied", detail: "bounded_authority_exceeded: $250", steps: [
         { label: "MCP Server", description: "place_order called", status: "success" },
@@ -541,7 +541,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
       id: "evt-b-bounded", timestamp: "10:09:03", type: "bounded-authority", result: "denied", scenarioId: "scenario-b",
       businessDescription: "ChatGPT attempted to purchase a $2,400 watch exceeding the $250 per-transaction cap. Auth0 blocked the request.",
       technicalDetail: {
-        protocol: "OAuth 2.1 — Bounded Authority Claim",
+        protocol: "OAuth 2.1,Bounded Authority Claim",
         request: "POST /mcp/tools/place_order HTTP/1.1\nAuthorization: Bearer eyJhbG...\n\n{\"item_id\": \"watch_meridian_001\", \"amount\": 2400.00}",
         response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"Value $2,400.00 exceeds max $250.00 per transaction\"\n}",
         tokenClaims: { max_purchase_amount: "$250.00", scope: "execute:purchase" },
@@ -568,7 +568,7 @@ export const CONSENT_DENIED_STEPS_A: DemoStep[] = [
     chat: { id: "cd-a", role: "system", content: "Connection declined. StyleVault AI did not receive any access to your account.", timestamp: "10:00:04" },
     securityEvent: {
       id: "evt-consent-denied-a", timestamp: "10:00:04", type: "consent", result: "denied", scenarioId: "scenario-a",
-      businessDescription: "Alex Morgan denied StyleVault AI access. No token was issued — zero data exposure.",
+      businessDescription: "Alex Morgan denied StyleVault AI access. No token was issued. Zero data exposure.",
       technicalDetail: { protocol: "OAuth 2.1", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"access_denied\",\n  \"error_description\": \"User denied the consent request\"\n}" },
     },
   },
@@ -591,7 +591,7 @@ export const CIBA_DENIAL_STEPS_A: Record<string, DemoStep> = {
     id: "ciba-denied-a", type: "chat",
     chat: {
       id: "ciba-d-a", role: "assistant",
-      content: "The purchase wasn't completed — you declined the approval request. No charges were made. Let me know if you'd like to try again or look at other items instead.",
+      content: "The purchase wasn't completed. You declined the approval request. No charges were made. Let me know if you'd like to try again or look at other items instead.",
       timestamp: "10:00:25",
       toolCall: { name: "place_order", status: "denied", detail: "ciba_denied", steps: [
         { label: "MCP Server", description: "place_order called", status: "success" },
@@ -614,7 +614,7 @@ const CIBA_DENIAL_STEPS_B: Record<string, DemoStep> = {
     id: "ciba-denied-b", type: "chat", conversation: CONV_B3,
     chat: {
       id: "ciba-d-b", role: "assistant",
-      content: "The purchase wasn't completed — you declined the approval request. No charges were made. Let me know if you'd like to try again or look at other items instead.",
+      content: "The purchase wasn't completed. You declined the approval request. No charges were made. Let me know if you'd like to try again or look at other items instead.",
       timestamp: "10:07:05",
       toolCall: { name: "place_order", status: "denied", detail: "ciba_denied", steps: [
         { label: "MCP Server", description: "place_order called", status: "success" },
@@ -633,7 +633,7 @@ const CIBA_DENIAL_STEPS_B: Record<string, DemoStep> = {
 };
 
 // =============================================
-// SCENARIO_CONFIGS — exported for DemoContent
+// SCENARIO_CONFIGS,exported for DemoContent
 // =============================================
 
 export const SCENARIO_CONFIGS: ScenarioConfig[] = [
@@ -643,7 +643,7 @@ export const SCENARIO_CONFIGS: ScenarioConfig[] = [
     clientName: "ChatGPT",
     clientType: "3rd-party",
     clientTheme: "chatgpt",
-    description: "3rd-party AI assistant with full access — can browse, purchase, and update preferences on your behalf.",
+    description: "3rd-party AI assistant with full access. Can browse, purchase, and update preferences on your behalf.",
     scopes: ["read:wishlist", "read:orders", "read:products", "write:preferences", "execute:purchase"],
     steps: SCENARIO_B_STEPS,
     cibaDenialSteps: CIBA_DENIAL_STEPS_B,

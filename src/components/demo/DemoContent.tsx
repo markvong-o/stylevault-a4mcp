@@ -130,7 +130,7 @@ export function DemoContent() {
         isLastConversation={currentAct !== 1 || activeConversation === CHATGPT_CONVERSATIONS[CHATGPT_CONVERSATIONS.length - 1]?.id}
       />
 
-      {/* StyleVault AI floating widget — visible during ChatGPT scenario */}
+      {/* StyleVault AI floating widget -visible during ChatGPT scenario */}
       {currentAct === 1 && (
         <StyleVaultWidget onAddSecurityEvent={addSecurityEvent} />
       )}

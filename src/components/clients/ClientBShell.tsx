@@ -42,7 +42,7 @@ export function ClientBShell({ messages, visibleCount, typing, inputValue, activ
           </div>
         </div>
 
-        {/* Conversation list — dynamic from scenario data */}
+        {/* Conversation list -dynamic from scenario data */}
         <div className="flex-1 overflow-y-auto px-2">
           {/* StyleVault chats */}
           <div className="px-2 py-1.5 text-xs font-medium text-[var(--client-muted)] uppercase tracking-wider">Today</div>
@@ -95,7 +95,7 @@ export function ClientBShell({ messages, visibleCount, typing, inputValue, activ
 
       {/* Main chat area */}
       <div className="flex-1 flex flex-col bg-[var(--client-bg)] min-h-0">
-        {/* Top bar — model selector + connected apps */}
+        {/* Top bar -model selector + connected apps */}
         <div className="flex items-center justify-between px-4 py-2.5 border-b">
           <div className="flex items-center gap-3">
             {/* Model selector */}
@@ -162,7 +162,7 @@ export function ClientBShell({ messages, visibleCount, typing, inputValue, activ
       <div className="absolute top-2.5 right-3 z-10">
         <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-50 border border-amber-200 text-[10px] font-medium text-amber-600">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          SIMULATED UI — NOT ACTUAL CHATGPT
+          SIMULATED UI / NOT ACTUAL CHATGPT
         </div>
       </div>
     </div>

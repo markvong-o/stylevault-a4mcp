@@ -102,7 +102,7 @@ export function ClosingStep({ securityEvents, onRestart }: ClosingStepProps) {
 
       <div className="max-w-2xl text-center">
         <p className="text-sm text-muted-foreground leading-relaxed">
-          By securing its MCP server with Auth0, StyleVault entered the agentic commerce era as a serious contender — enabling 1st-party and 3rd-party AI clients to serve customers while maintaining complete security and user control. Faster time to market. Lower operational costs. Zero compromises on trust.
+          By securing its MCP server with Auth0, StyleVault entered the agentic commerce era as a serious contender, enabling 1st-party and 3rd-party AI clients to serve customers while maintaining complete security and user control. Faster time to market. Lower operational costs. Zero compromises on trust.
         </p>
       </div>
 

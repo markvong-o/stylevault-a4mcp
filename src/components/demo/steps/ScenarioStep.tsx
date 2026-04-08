@@ -32,7 +32,7 @@ export function ScenarioStep({
 
   const currentStepData = steps[currentStep];
 
-  // Collect chat messages — filter by active conversation if steps use conversations
+  // Collect chat messages -filter by active conversation if steps use conversations
   const { chatMessages, visibleCount } = useMemo(() => {
     const hasConversations = steps.some(s => s.conversation);
     const msgs: ChatMessage[] = [];
@@ -130,7 +130,7 @@ export function ScenarioStep({
         <span className="text-sm text-muted-foreground">{config.description}</span>
       </div>
 
-      {/* Client shell — fixed height container */}
+      {/* Client shell -fixed height container */}
       <div className="h-[600px] shrink-0">
         {renderClientShell()}
       </div>
