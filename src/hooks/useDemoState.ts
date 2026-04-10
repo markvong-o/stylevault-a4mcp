@@ -18,12 +18,13 @@ export function useDemoState() {
   const setOverlayTab = useCallback((tab: "business" | "technical") => dispatch({ type: "SET_OVERLAY_TAB", payload: tab }), [dispatch]);
   const gateDecision = useCallback((gateId: string, decision: "approved" | "denied") => dispatch({ type: "GATE_DECISION", payload: { gateId, decision } }), [dispatch]);
   const addSecurityEvent = useCallback((event: SecurityEvent) => dispatch({ type: "ADD_SECURITY_EVENT", payload: event }), [dispatch]);
+  const syncSecurityEvents = useCallback((events: SecurityEvent[]) => dispatch({ type: "SYNC_SECURITY_EVENTS", payload: events }), [dispatch]);
   const reset = useCallback(() => dispatch({ type: "RESET" }), [dispatch]);
 
   return {
     ...state,
     nextStep, prevStep, goToAct, goToStep,
     setScenario, setConversation, toggleOverlay, setOverlayTab,
-    gateDecision, addSecurityEvent, reset,
+    gateDecision, addSecurityEvent, syncSecurityEvents, reset,
   };
 }

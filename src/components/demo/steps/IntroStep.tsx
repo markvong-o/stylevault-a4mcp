@@ -45,7 +45,7 @@ export function IntroStep({ onStart }: IntroStepProps) {
 
       <div className={`max-w-xl text-center transition-all duration-700 delay-300 ${phase >= 3 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
         <p className="text-sm text-muted-foreground leading-relaxed mb-2">
-          By securing its MCP server with Auth0, StyleVault became a serious contender in the new agentic era of commerce, accelerating time to market while reducing operational costs.
+          By securing both MCP and Universal Commerce Protocol endpoints with Auth0, StyleVault became a serious contender in the new agentic era of commerce, accelerating time to market while reducing operational costs.
         </p>
         <p className="text-base text-foreground/60 mt-4">
           Every connection. Every action. Every limit.<br />

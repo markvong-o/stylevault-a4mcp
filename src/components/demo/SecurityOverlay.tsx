@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import type { SecurityEvent } from "@/lib/types";
 import { SecurityEventCard } from "./SecurityEventCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -14,6 +14,14 @@ interface SecurityOverlayProps {
 }
 
 export function SecurityOverlay({ open, tab, events, onToggle, onSetTab }: SecurityOverlayProps) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (open && bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [events.length, open]);
+
   if (!open) return null;
 
   return (
@@ -49,7 +57,7 @@ export function SecurityOverlay({ open, tab, events, onToggle, onSetTab }: Secur
         </button>
       </div>
 
-      <ScrollArea className="flex-1 px-4 py-4 h-[calc(100vh-120px)]">
+      <ScrollArea className="flex-1 px-4 py-4">
         {events.length === 0 ? (
           <div className="text-center text-foreground/30 py-12">
             <p className="text-sm">Security events will appear here as you step through the demo.</p>
@@ -59,6 +67,7 @@ export function SecurityOverlay({ open, tab, events, onToggle, onSetTab }: Secur
             {events.map((event, i) => (
               <SecurityEventCard key={event.id} event={event} view={tab} isCurrent={i === events.length - 1} />
             ))}
+            <div ref={bottomRef} />
           </div>
         )}
       </ScrollArea>

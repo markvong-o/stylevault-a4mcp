@@ -89,34 +89,85 @@ function ToolCallBadge({ toolCall }: { toolCall: NonNullable<ChatMessage["toolCa
   );
 }
 
+function useStreamingText(text: string, active: boolean, speed: number = 18) {
+  const [displayed, setDisplayed] = useState("");
+  const [done, setDone] = useState(false);
+  const idRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!active) {
+      setDisplayed(text);
+      setDone(true);
+      return;
+    }
+
+    // Reset for new message
+    const msgId = text.slice(0, 40);
+    if (idRef.current === msgId) return;
+    idRef.current = msgId;
+    setDisplayed("");
+    setDone(false);
+
+    let i = 0;
+    const interval = setInterval(() => {
+      i++;
+      // Stream faster through whitespace/punctuation for natural pacing
+      const char = text[i - 1];
+      if (char === "\n") {
+        i = Math.min(i + 1, text.length);
+      }
+      setDisplayed(text.slice(0, i));
+      if (i >= text.length) {
+        clearInterval(interval);
+        setDone(true);
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, text]);
+
+  return { displayed, done };
+}
+
 function MessageBubble({ message, theme, isLatest }: { message: ChatMessage; theme: string; isLatest: boolean }) {
   const isUser = message.role === "user";
   const isSystem = message.role === "system";
+  const isAssistant = message.role === "assistant";
 
-  const isThinking = useThinkingDelay(isLatest && message.role === "assistant");
+  const isThinking = useThinkingDelay(isLatest && isAssistant);
+  const shouldStream = isLatest && isAssistant && !isThinking;
+  const { displayed, done } = useStreamingText(message.content, shouldStream);
 
-  const content = message.content;
+  const content = shouldStream ? displayed : message.content;
+  const showToolCall = !shouldStream || done;
 
   if (isSystem) {
     return (
       <div className="flex justify-center my-3 animate-in">
-        <span className="text-xs italic px-3 py-1 rounded-full bg-black/[0.04] text-black/40">{content}</span>
+        <span className="text-xs italic px-3 py-1 rounded-full bg-black/[0.04] text-black/40">{message.content}</span>
+      </div>
+    );
+  }
+
+  if (isUser) {
+    return (
+      <div className="flex justify-end my-2 animate-in">
+        <div className="max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed bg-[var(--client-user-bubble)] text-[var(--client-text)]">
+          <span className="whitespace-pre-line">{message.content}</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"} my-2 animate-in`}>
-      <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-        isUser
-          ? "bg-[var(--client-user-bubble)] text-[var(--client-text)]"
-          : "bg-black/[0.04] text-[var(--client-text)]"
-      }`}>
+    <div className="flex justify-start my-2 animate-in">
+      <div className="max-w-[85%] px-1 py-1 text-sm leading-relaxed text-[var(--client-text)]">
         {isThinking ? (
           <TypingIndicator theme={theme} />
         ) : (
           <>
-            {message.toolCall && <ToolCallBadge toolCall={message.toolCall} />}
+            {showToolCall && message.toolCall && <ToolCallBadge toolCall={message.toolCall} />}
             <span className="whitespace-pre-line">{content}</span>
           </>
         )}

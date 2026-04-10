@@ -16,9 +16,12 @@ export function ClosingStep({ securityEvents, onRestart }: ClosingStepProps) {
   const cibaEvents = securityEvents.filter(e => e.type === "ciba");
   const denialEvents = securityEvents.filter(e => e.type === "scope-denial");
   const boundedEvents = securityEvents.filter(e => e.type === "bounded-authority");
-  const toolCallEvents = securityEvents.filter(e => e.type === "tool-call" || e.type === "fga-check");
+  const toolCallEvents = securityEvents.filter(e => e.type === "tool-call" || e.type === "fga-check" || e.type === "ucp-payment-auth");
   const grantedCount = securityEvents.filter(e => e.result === "granted" || e.result === "approved").length;
   const deniedCount = securityEvents.filter(e => e.result === "denied").length;
+
+  const ucpDiscoveryEvents = securityEvents.filter(e => e.type === "ucp-discovery");
+  const ucpCheckoutEvents = securityEvents.filter(e => e.type === "ucp-checkout-state");
 
   const layers = [
     {
@@ -37,7 +40,7 @@ export function ClosingStep({ securityEvents, onRestart }: ClosingStepProps) {
     },
     {
       title: "Token Exchange",
-      description: "MCP server exchanges user tokens for scoped API tokens via Auth0",
+      description: "MCP and UCP servers exchange user tokens for scoped API tokens via Auth0",
       count: toolCallEvents.length,
       color: "text-[#4016A0]",
       border: "border-[#4016A0]/20",
@@ -49,6 +52,20 @@ export function ClosingStep({ securityEvents, onRestart }: ClosingStepProps) {
       color: "text-red-600",
       border: "border-red-200",
     },
+    ...(ucpDiscoveryEvents.length > 0 ? [{
+      title: "UCP Discovery",
+      description: "Agents discover merchant capabilities via /.well-known/ucp before transacting",
+      count: ucpDiscoveryEvents.length,
+      color: "text-blue-600",
+      border: "border-blue-200",
+    }] : []),
+    ...(ucpCheckoutEvents.length > 0 ? [{
+      title: "UCP Checkout States",
+      description: "Checkout sessions follow a secure state machine with escalation for high-value purchases",
+      count: ucpCheckoutEvents.length,
+      color: "text-orange-600",
+      border: "border-orange-200",
+    }] : []),
   ];
 
   return (
@@ -102,7 +119,7 @@ export function ClosingStep({ securityEvents, onRestart }: ClosingStepProps) {
 
       <div className="max-w-2xl text-center">
         <p className="text-sm text-muted-foreground leading-relaxed">
-          By securing its MCP server with Auth0, StyleVault entered the agentic commerce era as a serious contender, enabling 1st-party and 3rd-party AI clients to serve customers while maintaining complete security and user control. Faster time to market. Lower operational costs. Zero compromises on trust.
+          By securing both its MCP server and UCP merchant endpoints with Auth0, StyleVault entered the agentic commerce era as a serious contender. Whether customers shop through ChatGPT via MCP or Gemini via the Universal Commerce Protocol, Auth0 provides the same identity, consent, and authorization guarantees. One platform, two protocols, zero compromises on trust. Faster time to market. Lower operational costs.
         </p>
       </div>
 

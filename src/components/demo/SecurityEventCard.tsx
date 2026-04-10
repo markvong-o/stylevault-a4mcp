@@ -19,6 +19,9 @@ const EVENT_ICONS: Record<string, string> = {
   "token-issued": "\uD83C\uDFAB",
   "fga-check": "\uD83D\uDD0D",
   "tool-call": "\u2699\uFE0F",
+  "ucp-discovery": "\uD83C\uDF10",
+  "ucp-checkout-state": "\uD83D\uDED2",
+  "ucp-payment-auth": "\uD83D\uDCB3",
 };
 
 // Lightweight syntax highlighter for HTTP + JSON snippets
@@ -282,17 +285,18 @@ function ToolCallTechnicalView({ event }: { event: SecurityEvent }) {
 
   const pages: CarouselPage[] = [];
 
+  const isUcp = event.type === "ucp-payment-auth" || td.protocol?.includes("UCP");
   pages.push({
-    label: "MCP",
+    label: isUcp ? "UCP" : "MCP",
     content: (
       <div className="flex items-start gap-2.5">
         <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
           <span className="text-[10px] font-bold text-primary">1</span>
         </div>
         <div>
-          <span className="text-xs font-medium text-foreground/60">MCP Server receives tool call</span>
+          <span className="text-xs font-medium text-foreground/60">{isUcp ? "UCP Agent initiates commerce action" : "MCP Server receives tool call"}</span>
           <p className="text-xs text-foreground/40 mt-0.5">
-            Client invokes <span className="font-mono text-foreground/60">{td.toolName}</span> on StyleVault MCP server
+            {isUcp ? "Gemini invokes " : "Client invokes "}<span className="font-mono text-foreground/60">{td.toolName}</span>{isUcp ? " via Universal Commerce Protocol" : " on StyleVault MCP server"}
           </p>
         </div>
       </div>
@@ -461,7 +465,7 @@ export function SecurityEventCard({ event, view, isCurrent }: SecurityEventCardP
 
           {view === "business" ? (
             <p className="text-sm text-foreground/80">{event.businessDescription}</p>
-          ) : event.type === "tool-call" ? (
+          ) : event.type === "tool-call" || event.type === "ucp-payment-auth" ? (
             <ToolCallTechnicalView event={event} />
           ) : (
             <DefaultTechnicalView event={event} />

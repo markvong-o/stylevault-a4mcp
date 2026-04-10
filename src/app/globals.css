@@ -125,6 +125,16 @@ body::before {
   --client-muted: #64748b;
 }
 
+.client-gemini {
+  --client-bg: #ffffff;
+  --client-sidebar: #f8f9fa;
+  --client-input: #f1f3f4;
+  --client-user-bubble: #e8f0fe;
+  --client-text: #202124;
+  --client-muted: #5f6368;
+  --client-accent: #4285f4;
+}
+
 /* === Hidden scrollbar utility === */
 .scrollbar-hidden,
 .scrollbar-hidden * {
@@ -213,7 +223,7 @@ body::before {
   position: fixed;
   top: 0;
   right: 0;
-  bottom: 0;
+  bottom: var(--footer-height, 150px);
   width: 520px;
   z-index: 50;
   display: flex;

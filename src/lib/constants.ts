@@ -1,15 +1,17 @@
 export const ACT_LABELS = [
   "Intro",
   "ChatGPT",
+  "Gemini",
   "Closing",
 ];
 
-export const TOTAL_ACTS = 3;
+export const TOTAL_ACTS = 4;
 
 export const ACT_PATHS: Record<number, string> = {
   0: "/",
   1: "/demo/chatgpt",
-  2: "/demo/closing",
+  2: "/demo/gemini",
+  3: "/demo/closing",
 };
 
 export const PATH_TO_ACT: Record<string, number> = Object.fromEntries(

@@ -3,9 +3,11 @@
 import React, { useMemo, useEffect, useRef, useState } from "react";
 import type { ScenarioConfig, DemoStep, ChatMessage, SecurityEvent } from "@/lib/types";
 import { ClientBShell } from "@/components/clients/ClientBShell";
+import { ClientGeminiShell } from "@/components/clients/ClientGeminiShell";
 import { ConsentScreen } from "@/components/security/ConsentScreen";
 import { CIBANotification } from "@/components/security/CIBANotification";
 import { UniversalLoginScreen } from "@/components/security/UniversalLoginScreen";
+import { UcpDiscoveryScreen } from "@/components/security/UcpDiscoveryScreen";
 import { Badge } from "@/components/ui/badge";
 
 interface ScenarioStepProps {
@@ -15,7 +17,7 @@ interface ScenarioStepProps {
   onNextStep: () => void;
   onPrevStep: () => void;
   onGateDecision: (gateId: string, decision: "approved" | "denied") => void;
-  onAddSecurityEvent: (event: SecurityEvent) => void;
+  onSyncSecurityEvents: (events: SecurityEvent[]) => void;
   onComplete: () => void;
   activeConversation?: string;
   onConversationClick?: (id: string) => void;
@@ -24,10 +26,12 @@ interface ScenarioStepProps {
 export function ScenarioStep({
   config, steps, currentStep,
   onNextStep, onPrevStep,
-  onGateDecision, onAddSecurityEvent, onComplete,
+  onGateDecision, onSyncSecurityEvents, onComplete,
   activeConversation, onConversationClick,
 }: ScenarioStepProps) {
-  const addedEventsRef = useRef<Set<string>>(new Set());
+  const prevEventsRef = useRef<string[]>([]);
+  const pendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [revealedStep, setRevealedStep] = useState(-1);
   const [cibaApproved, setCibaApproved] = useState<Record<string, boolean>>({});
 
   const currentStepData = steps[currentStep];
@@ -56,20 +60,71 @@ export function ScenarioStep({
     return { chatMessages: msgs, visibleCount: msgs.length };
   }, [steps, currentStep, activeConversation]);
 
-  // Add security events as steps are revealed
+  // Delay revealing current step's event until after animations finish
   useEffect(() => {
-    if (!currentStepData?.securityEvent) return;
-    const evtId = currentStepData.securityEvent.id;
-    if (!addedEventsRef.current.has(evtId)) {
-      addedEventsRef.current.add(evtId);
-      onAddSecurityEvent(currentStepData.securityEvent);
+    if (pendingTimerRef.current) {
+      clearTimeout(pendingTimerRef.current);
+      pendingTimerRef.current = null;
     }
-  }, [currentStep, currentStepData, onAddSecurityEvent]);
+
+    const step = steps[currentStep];
+    if (!step?.securityEvent) {
+      // No event on this step -- reveal immediately
+      setRevealedStep(currentStep);
+      return;
+    }
+
+    if (step.gate) {
+      // Gate steps (consent/CIBA/login/UCP discovery): don't reveal event yet.
+      // It'll be revealed when the user acts and moves to the next step.
+      // For now, only mark past steps as revealed.
+      setRevealedStep(currentStep - 1);
+      return;
+    }
+
+    if (step.chat?.role === "assistant") {
+      // Assistant response: delay by thinking (1.5s) + streaming (~content.length * 18ms) + buffer
+      const thinkingMs = 1500;
+      const streamingMs = (step.chat.content?.length ?? 100) * 18;
+      const delay = thinkingMs + streamingMs + 300;
+      pendingTimerRef.current = setTimeout(() => {
+        setRevealedStep(currentStep);
+      }, delay);
+      // Show previous steps' events immediately
+      setRevealedStep(currentStep - 1);
+      return;
+    }
+
+    // Other steps (system messages, etc.): reveal immediately
+    setRevealedStep(currentStep);
+  }, [currentStep, steps]);
+
+  // Sync security events based on revealed step
+  useEffect(() => {
+    const upTo = Math.min(revealedStep + 1, steps.length);
+    const visibleSteps = steps.slice(0, upTo);
+    const currentEventIds = visibleSteps
+      .filter(s => s.securityEvent)
+      .map(s => s.securityEvent!.id);
+
+    const prevIds = prevEventsRef.current;
+    const isSame = currentEventIds.length === prevIds.length &&
+      currentEventIds.every((id, i) => id === prevIds[i]);
+
+    if (!isSame) {
+      prevEventsRef.current = currentEventIds;
+      const events = visibleSteps
+        .filter(s => s.securityEvent)
+        .map(s => s.securityEvent!);
+      onSyncSecurityEvents(events);
+    }
+  }, [revealedStep, steps, onSyncSecurityEvents]);
 
   // Gate handling
   const isConsentGate = currentStepData?.gate === "consent" && currentStepData.securityMoment?.kind === "consent";
   const isCibaGate = currentStepData?.gate === "ciba" && currentStepData.securityMoment?.kind === "ciba";
   const isLoginGate = currentStepData?.gate === "login" && currentStepData.securityMoment?.kind === "login";
+  const isUcpDiscoveryGate = currentStepData?.gate === "ucp-discovery" && currentStepData.securityMoment?.kind === "ucp-discovery";
 
   const handleConsentApprove = () => {
     if (currentStepData?.gateId) {
@@ -107,8 +162,25 @@ export function ScenarioStep({
     }
   };
 
+  const handleUcpDiscoveryAuthorize = () => {
+    if (currentStepData?.gateId) {
+      onGateDecision(currentStepData.gateId, "approved");
+      onNextStep();
+    }
+  };
+
+  const handleUcpDiscoveryDeny = () => {
+    if (currentStepData?.gateId) {
+      onGateDecision(currentStepData.gateId, "denied");
+      onNextStep();
+    }
+  };
+
   // Render the appropriate client shell
   const renderClientShell = () => {
+    if (config.clientTheme === "enterprise") {
+      return <ClientGeminiShell messages={chatMessages} visibleCount={visibleCount} activeConversation={activeConversation} onConversationClick={onConversationClick} />;
+    }
     return <ClientBShell messages={chatMessages} visibleCount={visibleCount} activeConversation={activeConversation} onConversationClick={onConversationClick} />;
   };
 
@@ -164,6 +236,18 @@ export function ScenarioStep({
       {isLoginGate && (
         <UniversalLoginScreen
           onLogin={handleLogin}
+          visible={true}
+        />
+      )}
+
+      {/* UCP Discovery */}
+      {isUcpDiscoveryGate && currentStepData.securityMoment?.kind === "ucp-discovery" && (
+        <UcpDiscoveryScreen
+          merchantName={currentStepData.securityMoment.merchantName}
+          capabilities={currentStepData.securityMoment.capabilities}
+          manifestUrl={currentStepData.securityMoment.manifestUrl}
+          onAuthorize={handleUcpDiscoveryAuthorize}
+          onDeny={handleUcpDiscoveryDeny}
           visible={true}
         />
       )}

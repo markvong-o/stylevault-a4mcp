@@ -37,6 +37,8 @@ function demoReducer(state: DemoState, action: DemoAction): DemoState {
       return { ...state, gateDecisions: { ...state.gateDecisions, [action.payload.gateId]: action.payload.decision } };
     case "ADD_SECURITY_EVENT":
       return { ...state, securityEvents: [...state.securityEvents, action.payload] };
+    case "SYNC_SECURITY_EVENTS":
+      return { ...state, securityEvents: action.payload };
     case "RESET":
       return initialState;
     default:

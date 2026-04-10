@@ -22,6 +22,7 @@ export type DemoAction =
   | { type: "SET_OVERLAY_TAB"; payload: "business" | "technical" }
   | { type: "GATE_DECISION"; payload: { gateId: string; decision: "approved" | "denied" } }
   | { type: "ADD_SECURITY_EVENT"; payload: SecurityEvent }
+  | { type: "SYNC_SECURITY_EVENTS"; payload: SecurityEvent[] }
   | { type: "RESET" };
 
 // === Scenario & Steps ===
@@ -30,7 +31,7 @@ export interface DemoStep {
   type: "chat" | "security-moment" | "system";
   chat?: ChatMessage;
   securityMoment?: SecurityMomentType;
-  gate?: "ciba" | "consent" | "login";
+  gate?: "ciba" | "consent" | "login" | "ucp-discovery" | "ucp-checkout";
   gateId?: string;
   securityEvent?: SecurityEvent;
   conversation?: string; // Groups steps into separate chat threads (used by ChatGPT scenario)
@@ -41,7 +42,9 @@ export type SecurityMomentType =
   | { kind: "ciba"; action: string; description: string; approverName: string }
   | { kind: "denial"; reason: string; aiExplanation: string }
   | { kind: "bounded-authority"; limit: string; requested: string; aiExplanation: string }
-  | { kind: "login"; method: "passkey" | "sms" };
+  | { kind: "login"; method: "passkey" | "sms" }
+  | { kind: "ucp-discovery"; merchantName: string; capabilities: string[]; manifestUrl: string }
+  | { kind: "ucp-checkout"; checkoutState: "incomplete" | "requires_escalation" | "ready_for_complete" | "complete_in_progress" | "completed" | "canceled"; stateDescription: string; continueUrl?: string };
 
 export interface ScopeDescription {
   scope: string;
@@ -86,7 +89,7 @@ export interface ChatMessage {
 export interface SecurityEvent {
   id: string;
   timestamp: string;
-  type: "consent" | "ciba" | "scope-denial" | "bounded-authority" | "token-issued" | "fga-check" | "tool-call";
+  type: "consent" | "ciba" | "scope-denial" | "bounded-authority" | "token-issued" | "fga-check" | "tool-call" | "ucp-discovery" | "ucp-checkout-state" | "ucp-payment-auth";
   result: "granted" | "denied" | "pending" | "approved";
   scenarioId: string;
   businessDescription: string;
