@@ -25,6 +25,14 @@ interface CheckoutSession {
 
 const sessions = new Map<string, CheckoutSession>();
 
+/**
+ * Merchant-configured agent transaction policy.
+ * This is NOT a token claim -- it's a server-side limit that StyleVault
+ * enforces on all agent-initiated checkouts. When the total exceeds this
+ * limit, the checkout enters "requires_escalation" state and UCP returns
+ * a continue_url for buyer approval. StyleVault implements buyer approval
+ * via Auth0 CIBA behind that continue_url.
+ */
 const MAX_AGENT_PURCHASE = 250;
 
 const CreateSessionSchema = z.object({
@@ -145,7 +153,9 @@ app.post("/ucp/v1/checkout/sessions/:id/complete", (c) => {
         403
       );
     }
-    // In production, validate the escalation token via Auth0 CIBA
+    // In production: validate the escalation token.
+    // StyleVault uses Auth0 CIBA behind the continue_url to obtain buyer approval.
+    // The escalation token proves the buyer approved this specific checkout session.
   }
 
   session.status = "complete_in_progress";

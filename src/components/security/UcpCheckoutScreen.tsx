@@ -95,7 +95,7 @@ export function UcpCheckoutScreen({ currentState, stateDescription, continueUrl,
 
           {currentState === "requires_escalation" && (
             <p className="text-xs text-gray-500 mb-4">
-              The checkout session requires buyer approval. Auth0 CIBA will send a push notification for step-up authentication.
+              The checkout redirects to StyleVault's buyer approval flow via continue_url. StyleVault uses Auth0 CIBA to verify the buyer's identity and authorize the purchase.
             </p>
           )}
         </div>

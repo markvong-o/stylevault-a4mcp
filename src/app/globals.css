@@ -125,11 +125,21 @@ body::before {
   --client-muted: #64748b;
 }
 
+.client-stylevault {
+  --client-bg: #ffffff;
+  --client-sidebar: #f9f9f9;
+  --client-input: #f4f4f4;
+  --client-user-bubble: rgba(64, 22, 160, 0.1);
+  --client-text: #1a1a1a;
+  --client-muted: #8e8e8e;
+  --client-accent: #4016A0;
+}
+
 .client-gemini {
   --client-bg: #ffffff;
-  --client-sidebar: #f8f9fa;
-  --client-input: #f1f3f4;
-  --client-user-bubble: #e8f0fe;
+  --client-sidebar: #f8f9fb;
+  --client-input: #eef2f7;
+  --client-user-bubble: #d2e3fc;
   --client-text: #202124;
   --client-muted: #5f6368;
   --client-accent: #4285f4;

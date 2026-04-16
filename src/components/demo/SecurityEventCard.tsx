@@ -22,6 +22,8 @@ const EVENT_ICONS: Record<string, string> = {
   "ucp-discovery": "\uD83C\uDF10",
   "ucp-checkout-state": "\uD83D\uDED2",
   "ucp-payment-auth": "\uD83D\uDCB3",
+  "mcp-discovery": "\uD83D\uDD0E",
+  "mcp-dcr": "\uD83D\uDCDD",
 };
 
 // Lightweight syntax highlighter for HTTP + JSON snippets
@@ -340,11 +342,23 @@ function ToolCallTechnicalView({ event }: { event: SecurityEvent }) {
 
   if (td.tokenClaims) {
     pages.push({
-      label: "Claims",
+      label: td.idTokenClaims ? "Access Token" : "Claims",
       content: (
         <div>
-          <span className="text-xs text-foreground/40">Token Claims:</span>
+          <span className="text-xs text-foreground/40">{td.idTokenClaims ? "Access Token Claims:" : "Token Claims:"}</span>
           <CodeBlock code={JSON.stringify(td.tokenClaims, null, 2)} />
+        </div>
+      ),
+    });
+  }
+
+  if (td.idTokenClaims) {
+    pages.push({
+      label: "ID Token",
+      content: (
+        <div>
+          <span className="text-xs text-foreground/40">ID Token Claims:</span>
+          <CodeBlock code={JSON.stringify(td.idTokenClaims, null, 2)} />
         </div>
       ),
     });
@@ -389,11 +403,23 @@ function DefaultTechnicalView({ event }: { event: SecurityEvent }) {
 
   if (td.tokenClaims) {
     pages.push({
-      label: "Claims",
+      label: td.idTokenClaims ? "Access Token" : "Claims",
       content: (
         <div>
-          <span className="text-xs text-foreground/40">Token Claims:</span>
+          <span className="text-xs text-foreground/40">{td.idTokenClaims ? "Access Token Claims:" : "Token Claims:"}</span>
           <CodeBlock code={JSON.stringify(td.tokenClaims, null, 2)} />
+        </div>
+      ),
+    });
+  }
+
+  if (td.idTokenClaims) {
+    pages.push({
+      label: "ID Token",
+      content: (
+        <div>
+          <span className="text-xs text-foreground/40">ID Token Claims:</span>
+          <CodeBlock code={JSON.stringify(td.idTokenClaims, null, 2)} />
         </div>
       ),
     });

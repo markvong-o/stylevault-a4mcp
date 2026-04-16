@@ -99,6 +99,47 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     },
   },
   {
+    id: "a-2.5-token-exchange",
+    type: "chat",
+    chat: {
+      id: "a-2.5", role: "system",
+      content: "Exchanging authorization code for tokens...",
+      timestamp: "10:00:03",
+    },
+    securityEvent: {
+      id: "evt-a-token-exchange", timestamp: "10:00:03", type: "token-issued", result: "granted",
+      scenarioId: "scenario-a",
+      businessDescription: "Auth0 exchanged the authorization code for access and ID tokens. The access token is scoped to only the permissions Alex Morgan approved, and the ID token confirms the user's identity.",
+      technicalDetail: {
+        protocol: "OAuth 2.1: Authorization Code Exchange (RFC 6749 Section 4.1.3)",
+        request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=authorization_code\n&code=SplxlOBeZQQYbYS6WxSbIA\n&redirect_uri=https://ai.stylevault.com/callback\n&client_id=cli_sv_ai_001\n&code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+        response: "HTTP/1.1 200 OK\nContent-Type: application/json\n\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN2LWtleS0wMDEifQ.eyJpc3MiOiJodHRwczovL3N0eWxldmF1bHQudXMuYXV0aDAuY29tIiwic3ViIjoiYXV0aDB8YWxleF9tb3JnYW4iLCJhdWQiOiJodHRwczovL2FwaS5zdHlsZXZhdWx0LmNvbSIsImlhdCI6MTcxODI0MDAwMCwiZXhwIjoxNzE4MjQzNjAwLCJzY29wZSI6InJlYWQ6d2lzaGxpc3QgcmVhZDpvcmRlcnMgcmVhZDpwcm9kdWN0cyB3cml0ZTpwcmVmZXJlbmNlcyBleGVjdXRlOnB1cmNoYXNlIiwiYXpwIjoiY2xpX3N2X2FpXzAwMSJ9.signature\",\n  \"id_token\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3N0eWxldmF1bHQudXMuYXV0aDAuY29tIiwic3ViIjoiYXV0aDB8YWxleF9tb3JnYW4iLCJhdWQiOiJjbGlfc3ZfYWlfMDAxIiwibmFtZSI6IkFsZXggTW9yZ2FuIiwiZW1haWwiOiJhbGV4QGV4YW1wbGUuY29tIn0.signature\",\n  \"refresh_token\": \"v1.MRjNB4s8v9b3nKqwYktlOGhGX2...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 3600,\n  \"scope\": \"read:wishlist read:orders read:products write:preferences execute:purchase\"\n}",
+        tokenClaims: {
+          iss: "https://stylevault.us.auth0.com",
+          sub: "auth0|alex_morgan",
+          aud: "https://api.stylevault.com",
+          iat: 1718240000,
+          exp: 1718243600,
+          scope: "read:wishlist read:orders read:products write:preferences execute:purchase",
+          azp: "cli_sv_ai_001",
+          "auth_time": 1718240000,
+        },
+        idTokenClaims: {
+          iss: "https://stylevault.us.auth0.com",
+          sub: "auth0|alex_morgan",
+          aud: "cli_sv_ai_001",
+          iat: 1718240000,
+          exp: 1718243600,
+          name: "Alex Morgan",
+          email: "alex@example.com",
+          email_verified: true,
+          "auth_time": 1718240000,
+          nonce: "n-0S6_WzA2Mj",
+        },
+      },
+    },
+  },
+  {
     id: "a-3-connected",
     type: "chat",
     chat: {
@@ -275,10 +316,36 @@ export const CHATGPT_CONVERSATIONS = [
 ];
 
 const SCENARIO_B_STEPS: DemoStep[] = [
-  // === CHAT 1: "Browse my wishlist" - login + consent + successful wishlist read ===
+  // === CHAT 1: "Browse my wishlist" - discovery + DCR + login + consent + successful wishlist read ===
+  {
+    id: "b-0.1-discovery", type: "chat", conversation: CONV_B1,
+    chat: { id: "b-0.1", role: "system", content: "Discovering StyleVault MCP server and authorization requirements...", timestamp: "10:04:59" },
+    securityEvent: {
+      id: "evt-b-discovery", timestamp: "10:04:59", type: "mcp-discovery", result: "granted", scenarioId: "scenario-b",
+      businessDescription: "ChatGPT queried StyleVault's MCP server to discover authorization requirements, then fetched Auth0's authorization server metadata. This two-step discovery tells the client where to authenticate, what scopes are available, and how to register.",
+      technicalDetail: {
+        protocol: "Protected Resource Metadata (RFC 9728) + Authorization Server Metadata (RFC 8414)",
+        request: "// Step 1: Discover authorization server from resource\nGET /.well-known/oauth-protected-resource HTTP/1.1\nHost: mcp.stylevault.com\n\n// Step 2: Discover authorization server capabilities\nGET /.well-known/oauth-authorization-server HTTP/1.1\nHost: stylevault.us.auth0.com",
+        response: "// Step 1: Protected Resource Metadata\nHTTP/1.1 200 OK\n{\n  \"resource\": \"https://mcp.stylevault.com\",\n  \"authorization_servers\": [\n    \"https://stylevault.us.auth0.com\"\n  ],\n  \"scopes_supported\": [\n    \"read:wishlist\", \"read:orders\",\n    \"read:products\", \"write:preferences\",\n    \"execute:purchase\"\n  ],\n  \"bearer_methods_supported\": [\"header\"]\n}\n\n// Step 2: Authorization Server Metadata\nHTTP/1.1 200 OK\n{\n  \"issuer\": \"https://stylevault.us.auth0.com\",\n  \"authorization_endpoint\": \"https://stylevault.us.auth0.com/authorize\",\n  \"token_endpoint\": \"https://stylevault.us.auth0.com/oauth/token\",\n  \"registration_endpoint\": \"https://stylevault.us.auth0.com/oidc/register\",\n  \"scopes_supported\": [\"openid\", \"profile\", \"read:wishlist\", \"read:orders\", \"read:products\", \"write:preferences\", \"execute:purchase\"],\n  \"grant_types_supported\": [\"authorization_code\", \"refresh_token\"],\n  \"code_challenge_methods_supported\": [\"S256\"],\n  \"response_types_supported\": [\"code\"]\n}",
+      },
+    },
+  },
+  {
+    id: "b-0.2-dcr", type: "chat", conversation: CONV_B1,
+    chat: { id: "b-0.2", role: "system", content: "Registering client with Auth0 via Dynamic Client Registration...", timestamp: "10:05:00" },
+    securityEvent: {
+      id: "evt-b-dcr", timestamp: "10:05:00", type: "mcp-dcr", result: "granted", scenarioId: "scenario-b",
+      businessDescription: "ChatGPT dynamically registered as a client with Auth0. New AI agents onboard without pre-configuration -- Auth0 issues a client_id and credentials on the fly via Dynamic Client Registration (RFC 7591).",
+      technicalDetail: {
+        protocol: "Dynamic Client Registration (RFC 7591)",
+        request: "POST /oidc/register HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/json\n\n{\n  \"client_name\": \"ChatGPT\",\n  \"redirect_uris\": [\"https://chatgpt.com/callback\"],\n  \"grant_types\": [\"authorization_code\", \"refresh_token\"],\n  \"response_types\": [\"code\"],\n  \"token_endpoint_auth_method\": \"none\",\n  \"scope\": \"read:wishlist read:orders read:products write:preferences execute:purchase\"\n}",
+        response: "HTTP/1.1 201 Created\n{\n  \"client_id\": \"cli_chatgpt_002\",\n  \"client_name\": \"ChatGPT\",\n  \"registration_access_token\": \"reg_tok_Xk9pLm3v...\",\n  \"grant_types\": [\"authorization_code\", \"refresh_token\"],\n  \"redirect_uris\": [\"https://chatgpt.com/callback\"]\n}",
+      },
+    },
+  },
   {
     id: "b-1", type: "chat", conversation: CONV_B1,
-    chat: { id: "b-1", role: "system", content: "ChatGPT discovered StyleVault MCP server.", timestamp: "10:05:01" },
+    chat: { id: "b-1", role: "system", content: "ChatGPT connected to StyleVault MCP server.", timestamp: "10:05:01" },
   },
   {
     id: "b-1.5-login", type: "security-moment", gate: "login", gateId: "login-b", conversation: CONV_B1,
@@ -313,6 +380,41 @@ const SCENARIO_B_STEPS: DemoStep[] = [
         protocol: "OAuth 2.1: Authorization Code + PKCE",
         request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=read:wishlist read:orders read:products write:preferences execute:purchase\n&client_id=cli_chatgpt_002",
         response: "HTTP/1.1 302 Found\nLocation: /callback?code=Qcb0Orv1zh30vL",
+      },
+    },
+  },
+  {
+    id: "b-2.5-token-exchange", type: "chat", conversation: CONV_B1,
+    chat: { id: "b-2.5", role: "system", content: "Exchanging authorization code for tokens...", timestamp: "10:05:03" },
+    securityEvent: {
+      id: "evt-b-token-exchange", timestamp: "10:05:03", type: "token-issued", result: "granted", scenarioId: "scenario-b",
+      businessDescription: "Auth0 exchanged the authorization code for access and ID tokens. The access token is scoped to only the permissions Alex Morgan approved, and the ID token confirms the user's identity.",
+      technicalDetail: {
+        protocol: "OAuth 2.1: Authorization Code Exchange (RFC 6749 Section 4.1.3)",
+        request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=authorization_code\n&code=Qcb0Orv1zh30vL\n&redirect_uri=https://chatgpt.com/callback\n&client_id=cli_chatgpt_002\n&code_verifier=y3kTR8G7xQz1mN5vJ2wL9pS4bF0hD6aE8cU",
+        response: "HTTP/1.1 200 OK\nContent-Type: application/json\n\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN2LWtleS0wMDEifQ.eyJpc3MiOiJodHRwczovL3N0eWxldmF1bHQudXMuYXV0aDAuY29tIiwic3ViIjoiYXV0aDB8YWxleF9tb3JnYW4iLCJhdWQiOiJodHRwczovL2FwaS5zdHlsZXZhdWx0LmNvbSIsImlhdCI6MTcxODI0MDMwMCwiZXhwIjoxNzE4MjQzOTAwLCJzY29wZSI6InJlYWQ6d2lzaGxpc3QgcmVhZDpvcmRlcnMgcmVhZDpwcm9kdWN0cyB3cml0ZTpwcmVmZXJlbmNlcyBleGVjdXRlOnB1cmNoYXNlIiwiYXpwIjoiY2xpX2NoYXRncHRfMDAyIn0.signature\",\n  \"id_token\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3N0eWxldmF1bHQudXMuYXV0aDAuY29tIiwic3ViIjoiYXV0aDB8YWxleF9tb3JnYW4iLCJhdWQiOiJjbGlfY2hhdGdwdF8wMDIiLCJuYW1lIjoiQWxleCBNb3JnYW4iLCJlbWFpbCI6ImFsZXhAZXhhbXBsZS5jb20ifQ.signature\",\n  \"refresh_token\": \"v1.Qx8mNp3kR7tW2vL5jS9bF4hY...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 3600,\n  \"scope\": \"read:wishlist read:orders read:products write:preferences execute:purchase\"\n}",
+        tokenClaims: {
+          iss: "https://stylevault.us.auth0.com",
+          sub: "auth0|alex_morgan",
+          aud: "https://api.stylevault.com",
+          iat: 1718240300,
+          exp: 1718243900,
+          scope: "read:wishlist read:orders read:products write:preferences execute:purchase",
+          azp: "cli_chatgpt_002",
+          "auth_time": 1718240300,
+        },
+        idTokenClaims: {
+          iss: "https://stylevault.us.auth0.com",
+          sub: "auth0|alex_morgan",
+          aud: "cli_chatgpt_002",
+          iat: 1718240300,
+          exp: 1718243900,
+          name: "Alex Morgan",
+          email: "alex@example.com",
+          email_verified: true,
+          "auth_time": 1718240300,
+          nonce: "q-7T4_XyB3Nk",
+        },
       },
     },
   },
@@ -603,10 +705,36 @@ export const GEMINI_CONVERSATIONS = [
 ];
 
 const SCENARIO_C_STEPS: DemoStep[] = [
-  // === CHAT 1: "Discover StyleVault store" - login + UCP discovery + consent ===
+  // === CHAT 1: "Discover StyleVault store" - UCP discovery + login + consent ===
+  {
+    id: "c-0.1-manifest", type: "chat", conversation: CONV_C1,
+    chat: { id: "c-0.1", role: "system", content: "Resolving StyleVault UCP merchant manifest...", timestamp: "10:59:58" },
+    securityEvent: {
+      id: "evt-c-manifest", timestamp: "10:59:58", type: "ucp-discovery", result: "granted", scenarioId: "scenario-c",
+      businessDescription: "Gemini fetched StyleVault's UCP merchant manifest to discover available commerce capabilities, endpoints, and supported payment methods. The manifest is publicly accessible at /.well-known/ucp.",
+      technicalDetail: {
+        protocol: "UCP: Merchant Manifest Discovery (/.well-known/ucp)",
+        request: "GET /.well-known/ucp HTTP/1.1\nHost: stylevault.com",
+        response: "HTTP/1.1 200 OK\n{\n  \"ucp\": { \"version\": \"2026-04-08\" },\n  \"name\": \"StyleVault\",\n  \"capabilities\": {\n    \"dev.ucp.shopping.checkout\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.catalog\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.orders\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.identity\": {\n      \"versions\": [\"1.0.0\"],\n      \"auth\": {\n        \"type\": \"oauth2\",\n        \"issuer\": \"https://stylevault.us.auth0.com\"\n      }\n    }\n  },\n  \"payment\": {\n    \"handlers\": [\n      { \"id\": \"com.stripe\", \"display_name\": \"Stripe\" },\n      { \"id\": \"com.google.pay\", \"display_name\": \"Google Pay\" }\n    ]\n  },\n  \"signing_keys\": [{ \"kid\": \"sv-ucp-key-001\", \"kty\": \"RSA\" }]\n}",
+      },
+    },
+  },
+  {
+    id: "c-0.2-profile", type: "chat", conversation: CONV_C1,
+    chat: { id: "c-0.2", role: "system", content: "Negotiating capabilities with StyleVault...", timestamp: "10:59:59" },
+    securityEvent: {
+      id: "evt-c-profile", timestamp: "10:59:59", type: "ucp-discovery", result: "granted", scenarioId: "scenario-c",
+      businessDescription: "Gemini and StyleVault exchanged capability profiles and signing keys. The merchant verified Gemini's identity via HTTP Message Signatures (RFC 9421) and computed the intersection of supported capabilities.",
+      technicalDetail: {
+        protocol: "UCP: Agent Profile Exchange + Capability Negotiation (RFC 9421)",
+        request: "// Gemini sends its profile URL and signs all requests:\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(\"@method\" \"@target-uri\"); keyid=\"gemini-key-001\"; alg=\"rsa-v1_5-sha256\"\nrequest-id: req-c02-001\n\n// StyleVault fetches Gemini's profile:\nGET /.well-known/ucp HTTP/1.1\nHost: gemini.google.com",
+        response: "HTTP/1.1 200 OK\n{\n  \"name\": \"Gemini Shopping\",\n  \"ucp\": { \"version\": \"2026-04-08\" },\n  \"capabilities\": {\n    \"dev.ucp.shopping.checkout\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.catalog\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.orders\": { \"versions\": [\"1.0.0\"] }\n  },\n  \"payment\": {\n    \"handlers\": [{ \"id\": \"com.google.pay\" }]\n  },\n  \"signing_keys\": [{ \"kid\": \"gemini-key-001\", \"kty\": \"RSA\" }]\n}\n\n// Negotiated intersection:\n// Capabilities: checkout, catalog, orders\n// Payment: com.google.pay",
+      },
+    },
+  },
   {
     id: "c-1", type: "chat", conversation: CONV_C1,
-    chat: { id: "c-1", role: "system", content: "Gemini discovered StyleVault UCP merchant endpoint.", timestamp: "11:00:01" },
+    chat: { id: "c-1", role: "system", content: "Gemini connected to StyleVault via Universal Commerce Protocol.", timestamp: "11:00:01" },
   },
   {
     id: "c-1.5-login", type: "security-moment", gate: "login", gateId: "login-c", conversation: CONV_C1,
@@ -631,11 +759,11 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-discovery", timestamp: "11:00:03", type: "ucp-discovery", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Gemini discovered StyleVault's UCP capabilities. Auth0 validated the agent's identity before exposing merchant endpoints.",
+      businessDescription: "Gemini discovered StyleVault's UCP capabilities. StyleVault verified Gemini's request signature against the agent's published public key before exposing merchant endpoints.",
       technicalDetail: {
-        protocol: "UCP: Capability Discovery via /.well-known/ucp",
-        request: "GET /.well-known/ucp HTTP/1.1\nHost: stylevault.com\nUCP-Agent: gemini-shopping/1.0\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...",
-        response: "HTTP/1.1 200 OK\n{\n  \"name\": \"StyleVault\",\n  \"ucp_version\": \"2026-04-08\",\n  \"capabilities\": [\n    \"dev.ucp.shopping.checkout\",\n    \"dev.ucp.shopping.catalog\",\n    \"dev.ucp.shopping.orders\",\n    \"dev.ucp.shopping.identity\"\n  ],\n  \"endpoints\": {\n    \"checkout\": \"/ucp/v1/checkout\",\n    \"catalog\": \"/ucp/v1/catalog\",\n    \"orders\": \"/ucp/v1/orders\"\n  },\n  \"payment_handlers\": [\"stripe\", \"google_pay\"],\n  \"auth\": {\n    \"type\": \"oauth2\",\n    \"issuer\": \"https://stylevault.us.auth0.com\"\n  }\n}",
+        protocol: "UCP: Capability Discovery via /.well-known/ucp (RFC 9421)",
+        request: "GET /.well-known/ucp HTTP/1.1\nHost: stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(\"@method\" \"@target-uri\"); keyid=\"gemini-key-001\"\nrequest-id: req-c03-001",
+        response: "HTTP/1.1 200 OK\n{\n  \"ucp\": { \"version\": \"2026-04-08\" },\n  \"name\": \"StyleVault\",\n  \"capabilities\": {\n    \"dev.ucp.shopping.checkout\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.catalog\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.orders\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.identity\": {\n      \"auth\": { \"type\": \"oauth2\", \"issuer\": \"https://stylevault.us.auth0.com\" }\n    }\n  },\n  \"payment\": { \"handlers\": [{ \"id\": \"com.stripe\" }, { \"id\": \"com.google.pay\" }] },\n  \"signing_keys\": [{ \"kid\": \"sv-ucp-key-001\" }]\n}",
       },
     },
   },
@@ -644,20 +772,55 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     securityMoment: {
       kind: "consent", clientName: "Gemini", productName: "StyleVault",
       scopes: [
-        { scope: "ucp:catalog:read", label: "Browse product catalog", icon: "search" },
-        { scope: "ucp:checkout:session", label: "Create checkout sessions", icon: "shopping-cart" },
-        { scope: "ucp:orders:read", label: "View order status", icon: "package" },
-        { scope: "ucp:identity:link", label: "Link your account", icon: "user" },
+        { scope: "openid", label: "Verify your identity", icon: "user" },
+        { scope: "profile", label: "Access your profile", icon: "user" },
+        { scope: "email", label: "Read your email address", icon: "package" },
+        { scope: "offline_access", label: "Stay signed in", icon: "search" },
       ],
       onApprove: "consent-c-approved", onDeny: "consent-c-denied",
     },
     securityEvent: {
       id: "evt-c-consent", timestamp: "11:00:05", type: "consent", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Alex Morgan authorized Gemini to access StyleVault via UCP with catalog, checkout, orders, and identity linking permissions.",
+      businessDescription: "Alex Morgan authorized Identity Linking between Gemini and StyleVault via Auth0. This connects Alex's account so Gemini can access user-specific data like order history. Commerce capabilities (catalog, checkout) are authorized separately through UCP capability negotiation.",
       technicalDetail: {
-        protocol: "OAuth 2.1: Authorization Code + PKCE (UCP Identity Linking)",
-        request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=ucp:catalog:read ucp:checkout:session ucp:orders:read ucp:identity:link\n&client_id=cli_gemini_003",
+        protocol: "OAuth 2.0: Identity Linking (dev.ucp.shopping.identity)",
+        request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=openid profile email offline_access\n&client_id=cli_gemini_003",
         response: "HTTP/1.1 302 Found\nLocation: /callback?code=Xk9pLm3vRt7wYz",
+      },
+    },
+  },
+  {
+    id: "c-3.5-token-exchange", type: "chat", conversation: CONV_C1,
+    chat: { id: "c-3.5", role: "system", content: "Exchanging authorization code for tokens...", timestamp: "11:00:06" },
+    securityEvent: {
+      id: "evt-c-token-exchange", timestamp: "11:00:06", type: "token-issued", result: "granted", scenarioId: "scenario-c",
+      businessDescription: "Auth0 exchanged the authorization code for access and ID tokens for Identity Linking. The access token grants Gemini access to Alex's account data (orders, profile). Commerce capabilities (catalog, checkout) are authorized separately through UCP's HTTP Message Signatures.",
+      technicalDetail: {
+        protocol: "OAuth 2.0: Identity Linking Token Exchange (RFC 6749 Section 4.1.3)",
+        request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=authorization_code\n&code=Xk9pLm3vRt7wYz\n&redirect_uri=https://gemini.google.com/callback\n&client_id=cli_gemini_003\n&code_verifier=pZ8xR3mK7tQ1wN5vJ9yL2sB4fH6gD0aE",
+        response: "HTTP/1.1 200 OK\nContent-Type: application/json\n\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"id_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"refresh_token\": \"v1.Tk7nWp2xR9mK3vL6jS1bH4qY...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 3600,\n  \"scope\": \"openid profile email offline_access\"\n}",
+        tokenClaims: {
+          iss: "https://stylevault.us.auth0.com",
+          sub: "auth0|alex_morgan",
+          aud: "https://api.stylevault.com",
+          iat: 1718240600,
+          exp: 1718244200,
+          scope: "openid profile email offline_access",
+          azp: "cli_gemini_003",
+          "auth_time": 1718240600,
+        },
+        idTokenClaims: {
+          iss: "https://stylevault.us.auth0.com",
+          sub: "auth0|alex_morgan",
+          aud: "cli_gemini_003",
+          iat: 1718240600,
+          exp: 1718244200,
+          name: "Alex Morgan",
+          email: "alex@example.com",
+          email_verified: true,
+          "auth_time": 1718240600,
+          nonce: "r-2V8_ZwC5Pk",
+        },
       },
     },
   },
@@ -691,28 +854,28 @@ const SCENARIO_C_STEPS: DemoStep[] = [
       timestamp: "11:01:04",
       toolCall: { name: "ucp_catalog_search", status: "success", steps: [
         { label: "UCP Catalog", description: "dev.ucp.shopping.catalog query", status: "success" },
-        { label: "Auth0 Token Exchange", description: "Scoped token for ucp:catalog:read", status: "success",
-          request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&subject_token_type=urn:ietf:params:oauth:token-type:access_token\n&audience=https://api.stylevault.com\n&scope=ucp:catalog:read\n&client_id=mcp_server_sv_001",
-          response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"ucp:catalog:read\"\n}",
+        { label: "HTTP Message Signature", description: "Agent signs request with private key (RFC 9421)", status: "success",
+          request: "// Gemini signs the request using its private key.\n// StyleVault verifies against Gemini's published\n// signing_keys from the agent profile.\n\nkeyid: gemini-key-001\nalg: rsa-v1_5-sha256\ncovered-components: \"@method\" \"@target-uri\" \"ucp-agent\"",
+          response: "// Signature verified against agent's public key.\n// No OAuth token needed for catalog access --\n// catalog is a UCP capability authorized via\n// capability negotiation, not Identity Linking.",
         },
         { label: "StyleVault UCP API", description: "GET /ucp/v1/catalog/search?q=leather+bag&max_price=300", status: "success",
-          request: "GET /ucp/v1/catalog/search?q=leather+bag&max_price=300 HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: gemini-shopping/1.0\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nrequest-signature: sha256=Kf8x...\nidempotency-key: idk-c8-001",
+          request: "GET /ucp/v1/catalog/search?q=leather+bag&max_price=300 HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(\"@method\" \"@target-uri\" \"ucp-agent\"); keyid=\"gemini-key-001\"\nidempotency-key: idk-c8-001\nrequest-id: req-c08-001",
           response: "HTTP/1.1 200 OK\n{\n  \"results\": [\n    {\"name\": \"Heritage Duffle\", \"price\": 269.00, \"id\": \"bag_heritage_001\"},\n    {\"name\": \"City Tote\", \"price\": 199.00, \"id\": \"bag_city_001\"},\n    {\"name\": \"Compact Travel Satchel\", \"price\": 149.00, \"id\": \"bag_satchel_001\"}\n  ]\n}",
         },
       ] },
     },
     securityEvent: {
       id: "evt-c-search", timestamp: "11:01:04", type: "tool-call", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Gemini searched StyleVault's product catalog via UCP. Auth0 issued a scoped token for catalog access.",
+      businessDescription: "Gemini searched StyleVault's product catalog via UCP. Catalog access is authorized through UCP capability negotiation and verified via HTTP Message Signatures -- no OAuth token is needed for this operation.",
       technicalDetail: {
-        protocol: "UCP: Catalog Search via dev.ucp.shopping.catalog",
+        protocol: "UCP: Catalog Search via dev.ucp.shopping.catalog (RFC 9421)",
         toolName: "ucp_catalog_search",
         tokenExchange: {
-          request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&audience=https://api.stylevault.com\n&scope=ucp:catalog:read\n&client_id=mcp_server_sv_001",
-          response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"ucp:catalog:read\"\n}",
+          request: "// No OAuth token exchange for catalog access.\n// Gemini authenticates via HTTP Message Signature:\n\nrequest-signature: sig1=(\"@method\" \"@target-uri\" \"ucp-agent\");\n  keyid=\"gemini-key-001\";\n  alg=\"rsa-v1_5-sha256\"",
+          response: "// StyleVault verifies signature against Gemini's\n// published public key from the agent profile.\n// Capability was authorized during negotiation.",
         },
         downstreamApi: {
-          request: "GET /ucp/v1/catalog/search?q=leather+bag&max_price=300 HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: gemini-shopping/1.0\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nrequest-signature: sha256=Kf8x...\nidempotency-key: idk-c8-001",
+          request: "GET /ucp/v1/catalog/search?q=leather+bag&max_price=300 HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(\"@method\" \"@target-uri\" \"ucp-agent\"); keyid=\"gemini-key-001\"\nidempotency-key: idk-c8-001",
           response: "HTTP/1.1 200 OK\n{\n  \"results\": [\n    {\"name\": \"Heritage Duffle\", \"price\": 269.00},\n    {\"name\": \"City Tote\", \"price\": 199.00},\n    {\"name\": \"Compact Travel Satchel\", \"price\": 149.00}\n  ]\n}",
         },
       },
@@ -732,9 +895,9 @@ const SCENARIO_C_STEPS: DemoStep[] = [
       timestamp: "11:02:03",
       toolCall: { name: "ucp_create_checkout", status: "success", steps: [
         { label: "UCP Checkout", description: "dev.ucp.shopping.checkout session created", status: "success" },
-        { label: "Auth0 Token Exchange", description: "Scoped token for ucp:checkout:session", status: "success",
-          request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&audience=https://api.stylevault.com\n&scope=ucp:checkout:session\n&client_id=mcp_server_sv_001",
-          response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"ucp:checkout:session\",\n  \"max_purchase_amount\": 250.00\n}",
+        { label: "HTTP Message Signature", description: "Agent signs checkout request (RFC 9421)", status: "success",
+          request: "// Gemini signs the checkout request with its private key.\n// Identity Linking token attached for buyer association.\n\nkeyid: gemini-key-001\nalg: rsa-v1_5-sha256\ncovered-components: \"@method\" \"@target-uri\" \"content-type\" \"ucp-agent\"",
+          response: "// Signature verified. Buyer identity confirmed\n// via Identity Linking token (Auth0).\n// Merchant policy: $250 agent transaction limit.",
         },
         { label: "StyleVault UCP API", description: "POST /ucp/v1/checkout/sessions", status: "success",
           request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: gemini-shopping/1.0\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nidempotency-key: idk-c10-001\n\n{\n  \"line_items\": [{\"product_id\": \"bag_heritage_001\", \"quantity\": 1}],\n  \"buyer\": {\"email\": \"alex@example.com\"}\n}",
@@ -744,12 +907,12 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-checkout", timestamp: "11:02:03", type: "ucp-checkout-state", result: "pending", scenarioId: "scenario-c",
-      businessDescription: "Gemini created a UCP checkout session. The $269 total exceeds the agent's $250 payment authorization limit, triggering escalation to the buyer.",
+      businessDescription: "Gemini created a UCP checkout session. The $269 total exceeds StyleVault's $250 merchant policy limit for agent transactions, triggering escalation to the buyer via continue_url.",
       technicalDetail: {
-        protocol: "UCP: Checkout Session (requires_escalation)",
-        request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: gemini-shopping/1.0\n\n{\n  \"line_items\": [{\"product_id\": \"bag_heritage_001\", \"quantity\": 1}]\n}",
+        protocol: "UCP: Checkout Session (requires_escalation + continue_url)",
+        request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\n\n{\n  \"line_items\": [{\"product_id\": \"bag_heritage_001\", \"quantity\": 1}]\n}",
         response: "HTTP/1.1 201 Created\n{\n  \"session_id\": \"ucp_sess_7k2m9\",\n  \"status\": \"requires_escalation\",\n  \"total\": 269.00,\n  \"continue_url\": \"https://stylevault.com/ucp/escalate/7k2m9\"\n}",
-        tokenClaims: { max_purchase_amount: "$250.00", scope: "ucp:checkout:session" },
+        tokenClaims: { merchant_agent_limit: "$250.00", enforcement: "server-side policy" },
       },
     },
   },
@@ -758,15 +921,15 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     securityMoment: {
       kind: "ciba",
       action: "Approve UCP checkout: Heritage Duffle ($269.00)",
-      description: "Gemini wants to complete a Universal Commerce Protocol purchase on your behalf via StyleVault.",
+      description: "UCP returned a continue_url for buyer approval. StyleVault uses Auth0 CIBA behind this URL to verify your identity and authorize the purchase.",
       approverName: "Alex Morgan",
     },
     securityEvent: {
       id: "evt-c-ciba", timestamp: "11:02:05", type: "ciba", result: "approved", scenarioId: "scenario-c",
-      businessDescription: "Alex Morgan approved the $269.00 Heritage Duffle purchase via push notification. UCP checkout session moved from requires_escalation to completed.",
+      businessDescription: "Alex Morgan approved the $269.00 Heritage Duffle purchase via push notification. UCP's checkout session moved from requires_escalation to completed. StyleVault uses Auth0 CIBA behind the continue_url to handle buyer approval.",
       technicalDetail: {
-        protocol: "CIBA: Client-Initiated Backchannel Authentication (UCP Escalation)",
-        request: "POST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"UCP Purchase: Heritage Duffle ($269.00) via Gemini\",\n  \"scope\": \"ucp:checkout:complete\"\n}",
+        protocol: "Auth0 CIBA: Buyer Approval via continue_url",
+        request: "// UCP returned continue_url: https://stylevault.com/ucp/escalate/7k2m9\n// StyleVault handles buyer approval via Auth0 CIBA:\n\nPOST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"UCP Purchase: Heritage Duffle ($269.00) via Gemini\",\n  \"scope\": \"openid\"\n}",
         response: "HTTP/1.1 200 OK\n{\n  \"auth_req_id\": \"ciba-req-c01\",\n  \"expires_in\": 300,\n  \"interval\": 5\n}",
       },
     },
@@ -779,28 +942,28 @@ const SCENARIO_C_STEPS: DemoStep[] = [
       timestamp: "11:02:12",
       toolCall: { name: "ucp_complete_checkout", status: "success", steps: [
         { label: "UCP Checkout", description: "Session completed after buyer approval", status: "success" },
-        { label: "Auth0 CIBA", description: "Buyer approval verified via backchannel", status: "success",
-          request: "GET /oauth/token?auth_req_id=ciba-req-c01 HTTP/1.1\nHost: stylevault.us.auth0.com",
-          response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"scope\": \"ucp:checkout:complete\"\n}",
+        { label: "Buyer Approval (continue_url)", description: "StyleVault verified approval via Auth0 CIBA", status: "success",
+          request: "// StyleVault's continue_url flow completed.\n// Auth0 CIBA confirmed buyer identity.\n\nGET /oauth/token?auth_req_id=ciba-req-c01 HTTP/1.1\nHost: stylevault.us.auth0.com",
+          response: "HTTP/1.1 200 OK\n// StyleVault issues escalation token after\n// Auth0 CIBA confirms buyer approval.\n{\n  \"escalation_token\": \"esc_7k2m9_approved\"\n}",
         },
         { label: "StyleVault UCP API", description: "POST /ucp/v1/checkout/sessions/ucp_sess_7k2m9/complete", status: "success",
-          request: "POST /ucp/v1/checkout/sessions/ucp_sess_7k2m9/complete HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: gemini-shopping/1.0\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nidempotency-key: idk-c12-001",
+          request: "POST /ucp/v1/checkout/sessions/ucp_sess_7k2m9/complete HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\nX-UCP-Escalation-Token: esc_7k2m9_approved\nidempotency-key: idk-c12-001",
           response: "HTTP/1.1 200 OK\n{\n  \"session_id\": \"ucp_sess_7k2m9\",\n  \"status\": \"completed\",\n  \"order_id\": \"ucp_ord_9x7m1\",\n  \"total\": 269.00\n}",
         },
       ] },
     },
     securityEvent: {
       id: "evt-c-purchase", timestamp: "11:02:12", type: "ucp-payment-auth", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Gemini completed the Heritage Duffle purchase via UCP after CIBA approval. Checkout session transitioned from requires_escalation to completed.",
+      businessDescription: "Gemini completed the Heritage Duffle purchase via UCP after buyer approval through StyleVault's continue_url (powered by Auth0 CIBA). Checkout session transitioned from requires_escalation to completed.",
       technicalDetail: {
-        protocol: "UCP: Checkout Completion + AP2 Payment Authorization",
+        protocol: "UCP: Checkout Completion (continue_url + Auth0 CIBA)",
         toolName: "ucp_complete_checkout",
         tokenExchange: {
-          request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&scope=ucp:checkout:complete\n&client_id=mcp_server_sv_001",
-          response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"scope\": \"ucp:checkout:complete\"\n}",
+          request: "// Buyer approval obtained via continue_url flow.\n// StyleVault verified identity via Auth0 CIBA.\n// Escalation token issued to confirm approval.\n\nX-UCP-Escalation-Token: esc_7k2m9_approved",
+          response: "// Escalation token validated. Checkout session\n// transitions: requires_escalation -> completed",
         },
         downstreamApi: {
-          request: "POST /ucp/v1/checkout/sessions/ucp_sess_7k2m9/complete HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: gemini-shopping/1.0\nidempotency-key: idk-c12-001",
+          request: "POST /ucp/v1/checkout/sessions/ucp_sess_7k2m9/complete HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\nX-UCP-Escalation-Token: esc_7k2m9_approved\nidempotency-key: idk-c12-001",
           response: "HTTP/1.1 200 OK\n{\n  \"status\": \"completed\",\n  \"order_id\": \"ucp_ord_9x7m1\"\n}",
         },
       },
@@ -820,28 +983,28 @@ const SCENARIO_C_STEPS: DemoStep[] = [
       timestamp: "11:03:04",
       toolCall: { name: "ucp_get_order", status: "success", steps: [
         { label: "UCP Orders", description: "dev.ucp.shopping.orders query", status: "success" },
-        { label: "Auth0 Token Exchange", description: "Scoped token for ucp:orders:read", status: "success",
-          request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&audience=https://api.stylevault.com\n&scope=ucp:orders:read\n&client_id=mcp_server_sv_001",
-          response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"ucp:orders:read\"\n}",
+        { label: "Auth0 Identity Linking", description: "Bearer token for user-specific order data", status: "success",
+          request: "// Order data is user-specific, so this request\n// requires the Identity Linking token from Auth0.\n// HTTP Message Signature also included.\n\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\n(scope: openid profile email offline_access)",
+          response: "// Auth0 token validated. User identity confirmed.\n// Order data scoped to auth0|alex_morgan.",
         },
         { label: "StyleVault UCP API", description: "GET /ucp/v1/orders/ucp_ord_9x7m1", status: "success",
-          request: "GET /ucp/v1/orders/ucp_ord_9x7m1 HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: gemini-shopping/1.0\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...",
+          request: "GET /ucp/v1/orders/ucp_ord_9x7m1 HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...",
           response: "HTTP/1.1 200 OK\n{\n  \"order_id\": \"ucp_ord_9x7m1\",\n  \"status\": \"processing\",\n  \"items\": [{\"name\": \"Heritage Duffle\", \"price\": 269.00}],\n  \"shipment\": {\n    \"status\": \"label_created\",\n    \"estimated_delivery\": \"2026-04-14\"\n  }\n}",
         },
       ] },
     },
     securityEvent: {
       id: "evt-c-orders", timestamp: "11:03:04", type: "tool-call", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Gemini retrieved order status via UCP. Auth0 issued a read-only scoped token for order access.",
+      businessDescription: "Gemini retrieved order status via UCP. Because order data is user-specific, Auth0's Identity Linking token authenticates the request alongside the agent's HTTP Message Signature.",
       technicalDetail: {
-        protocol: "UCP: Order Management via dev.ucp.shopping.orders",
+        protocol: "UCP: Order Management via dev.ucp.shopping.orders (Identity Linking)",
         toolName: "ucp_get_order",
         tokenExchange: {
-          request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&scope=ucp:orders:read\n&client_id=mcp_server_sv_001",
-          response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"scope\": \"ucp:orders:read\"\n}",
+          request: "// Order data requires Identity Linking (user-specific).\n// Auth0 Bearer token proves Gemini is acting for Alex.\n// HTTP Message Signature proves Gemini's agent identity.\n\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"",
+          response: "// Both authentication layers validated.\n// Agent identity: gemini-shopping/1.0 (signature)\n// User identity: auth0|alex_morgan (OAuth token)",
         },
         downstreamApi: {
-          request: "GET /ucp/v1/orders/ucp_ord_9x7m1 HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: gemini-shopping/1.0",
+          request: "GET /ucp/v1/orders/ucp_ord_9x7m1 HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...",
           response: "HTTP/1.1 200 OK\n{\n  \"order_id\": \"ucp_ord_9x7m1\",\n  \"status\": \"processing\",\n  \"shipment\": {\"status\": \"label_created\"}\n}",
         },
       },
@@ -859,33 +1022,33 @@ const SCENARIO_C_STEPS: DemoStep[] = [
       id: "c-16", role: "assistant",
       content: "I can't complete that purchase. The Meridian Automatic Watch is $2,400.00, which exceeds my $250 payment authorization limit through UCP. Even with buyer escalation, this amount falls outside the bounded authority configured for AI agents.\n\nFor premium purchases like this, you can buy directly on StyleVault where additional identity verification protects high-value transactions.",
       timestamp: "11:04:03",
-      toolCall: { name: "ucp_create_checkout", status: "denied", detail: "bounded_authority_exceeded: $250 (AP2)", steps: [
+      toolCall: { name: "ucp_create_checkout", status: "denied", detail: "bounded_authority_exceeded: $250 merchant policy", steps: [
         { label: "UCP Checkout", description: "dev.ucp.shopping.checkout session attempted", status: "success" },
-        { label: "Auth0 Token Exchange", description: "Scoped token for ucp:checkout:session", status: "success",
-          request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&audience=https://api.stylevault.com\n&scope=ucp:checkout:session\n&client_id=mcp_server_sv_001",
-          response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"scope\": \"ucp:checkout:session\",\n  \"max_purchase_amount\": 250.00\n}",
+        { label: "HTTP Message Signature", description: "Agent signs checkout request (RFC 9421)", status: "success",
+          request: "// Gemini signs the checkout request.\n\nkeyid: gemini-key-001\nalg: rsa-v1_5-sha256\ncovered-components: \"@method\" \"@target-uri\" \"content-type\" \"ucp-agent\"",
+          response: "// Signature verified. Request authenticated.\n// Merchant policy evaluation follows.",
         },
-        { label: "StyleVault UCP API", description: "Rejected: $2,400 exceeds $250 AP2 bound", status: "denied",
-          request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: gemini-shopping/1.0\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nidempotency-key: idk-c16-001\n\n{\n  \"line_items\": [{\"product_id\": \"watch_meridian_001\", \"quantity\": 1}]\n}",
-          response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"$2,400.00 exceeds AP2 max $250.00 per agent transaction\",\n  \"messages\": [{\n    \"severity\": \"unrecoverable\",\n    \"text\": \"Transaction amount exceeds agent payment authorization bounds.\"\n  }]\n}",
+        { label: "StyleVault UCP API", description: "Rejected: $2,400 exceeds $250 merchant policy", status: "denied",
+          request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\nidempotency-key: idk-c16-001\n\n{\n  \"line_items\": [{\"product_id\": \"watch_meridian_001\", \"quantity\": 1}]\n}",
+          response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"$2,400.00 exceeds merchant agent policy limit of $250.00\",\n  \"messages\": [{\n    \"severity\": \"unrecoverable\",\n    \"text\": \"Transaction amount exceeds merchant-configured agent transaction limit.\"\n  }]\n}",
         },
       ] },
     },
     securityEvent: {
       id: "evt-c-bounded", timestamp: "11:04:03", type: "bounded-authority", result: "denied", scenarioId: "scenario-c",
-      businessDescription: "Gemini attempted to purchase a $2,400 watch via UCP. Auth0's bounded authority claim in the AP2 token blocked the transaction at $250.",
+      businessDescription: "Gemini attempted to purchase a $2,400 watch via UCP. StyleVault's merchant-configured agent transaction policy ($250 limit) blocked the request before it reached the checkout engine.",
       technicalDetail: {
-        protocol: "UCP: AP2 Bounded Authority",
-        request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nUCP-Agent: gemini-shopping/1.0\n\n{\"line_items\": [{\"product_id\": \"watch_meridian_001\", \"quantity\": 1}]}",
-        response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"$2,400.00 exceeds AP2 max $250.00\"\n}",
-        tokenClaims: { max_purchase_amount: "$250.00", scope: "ucp:checkout:session" },
+        protocol: "UCP: Merchant Agent Policy Enforcement",
+        request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\n\n{\"line_items\": [{\"product_id\": \"watch_meridian_001\", \"quantity\": 1}]}",
+        response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"$2,400.00 exceeds merchant agent policy limit of $250.00\"\n}",
+        tokenClaims: { merchant_agent_limit: "$250.00", enforcement: "server-side policy" },
         tokenExchange: {
-          request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&scope=ucp:checkout:session\n&client_id=mcp_server_sv_001",
-          response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"scope\": \"ucp:checkout:session\",\n  \"max_purchase_amount\": 250.00\n}",
+          request: "// No OAuth token exchange for checkout.\n// Agent authenticates via HTTP Message Signature.\n// Merchant policy enforced server-side.\n\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"",
+          response: "// Signature verified. Merchant policy evaluated:\n// $2,400.00 > $250.00 agent limit = DENIED",
         },
         downstreamApi: {
-          request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nHost: api.stylevault.com\n\n{\"line_items\": [{\"product_id\": \"watch_meridian_001\"}]}",
-          response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"$2,400.00 exceeds AP2 max $250.00\"\n}",
+          request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\n\n{\"line_items\": [{\"product_id\": \"watch_meridian_001\"}]}",
+          response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"$2,400.00 exceeds merchant agent policy limit of $250.00\"\n}",
         },
       },
     },
@@ -973,7 +1136,7 @@ const CONSENT_DENIED_STEPS_C: DemoStep[] = [
     securityEvent: {
       id: "evt-consent-denied-c", timestamp: "11:00:07", type: "consent", result: "denied", scenarioId: "scenario-c",
       businessDescription: "Alex Morgan denied Gemini UCP access. No token was issued.",
-      technicalDetail: { protocol: "OAuth 2.1 (UCP Identity Linking)", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"access_denied\"\n}" },
+      technicalDetail: { protocol: "OAuth 2.0 (Identity Linking)", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"access_denied\"\n}" },
     },
   },
 ];
@@ -988,7 +1151,7 @@ const CIBA_DENIAL_STEPS_C: Record<string, DemoStep> = {
       toolCall: { name: "ucp_complete_checkout", status: "denied", detail: "ciba_denied", steps: [
         { label: "UCP Checkout", description: "Completion attempted", status: "success" },
         { label: "Auth0 CIBA", description: "User denied the authorization request", status: "denied",
-          request: "POST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"UCP Purchase: Heritage Duffle ($269.00)\",\n  \"scope\": \"ucp:checkout:complete\"\n}",
+          request: "// StyleVault's continue_url buyer approval:\nPOST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"UCP Purchase: Heritage Duffle ($269.00)\",\n  \"scope\": \"openid\"\n}",
           response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"authorization_declined\"\n}",
         },
       ] },
@@ -996,7 +1159,7 @@ const CIBA_DENIAL_STEPS_C: Record<string, DemoStep> = {
     securityEvent: {
       id: "evt-ciba-denied-c", timestamp: "11:02:08", type: "ciba", result: "denied", scenarioId: "scenario-c",
       businessDescription: "Alex Morgan denied the CIBA approval. The UCP checkout session was canceled.",
-      technicalDetail: { protocol: "CIBA (UCP Escalation)", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"authorization_declined\"\n}" },
+      technicalDetail: { protocol: "Auth0 CIBA (StyleVault Buyer Approval)", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"authorization_declined\"\n}" },
     },
   },
 };
@@ -1025,7 +1188,7 @@ export const SCENARIO_CONFIGS: ScenarioConfig[] = [
     clientType: "3rd-party",
     clientTheme: "enterprise",
     description: "3rd-party AI assistant using Universal Commerce Protocol. Discovers merchant capabilities, initiates checkout, and handles payments via UCP.",
-    scopes: ["ucp:catalog:read", "ucp:checkout:session", "ucp:orders:read", "ucp:identity:link"],
+    scopes: ["openid", "profile", "email", "offline_access"],
     steps: SCENARIO_C_STEPS,
     cibaDenialSteps: CIBA_DENIAL_STEPS_C,
     consentDeniedSteps: CONSENT_DENIED_STEPS_C,

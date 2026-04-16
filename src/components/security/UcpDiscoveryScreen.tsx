@@ -66,15 +66,13 @@ export function UcpDiscoveryScreen({ merchantName, capabilities, manifestUrl, on
           <div className="bg-gray-50 rounded-lg border p-4 mb-4">
             <pre className="text-xs font-mono text-gray-700 leading-relaxed overflow-x-auto">
 {`{
+  "ucp": { "version": "2026-04-08" },
   "name": "${merchantName}",
-  "ucp_version": "2026-04-08",
-  "capabilities": [
-${capabilities.map(c => `    "${c}"`).join(",\n")}
-  ],
-  "auth": {
-    "type": "oauth2",
-    "issuer": "https://stylevault.us.auth0.com"
-  }
+  "capabilities": {
+${capabilities.map(c => `    "${c}": { "versions": ["1.0.0"] }`).join(",\n")}
+  },
+  "payment": { "handlers": ["com.stripe", "com.google.pay"] },
+  "signing_keys": [{ "kid": "sv-ucp-key-001" }]
 }`}
             </pre>
           </div>
@@ -99,7 +97,7 @@ ${capabilities.map(c => `    "${c}"`).join(",\n")}
           </div>
 
           <p className="text-xs text-gray-400 mb-4">
-            Auth0 will validate the agent's identity and issue scoped tokens for each capability. The merchant's Auth0 tenant controls access policies.
+            StyleVault verifies the agent's identity via HTTP Message Signatures (RFC 9421). Auth0 handles Identity Linking when the user connects their account.
           </p>
         </div>
 

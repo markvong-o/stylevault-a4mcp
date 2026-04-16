@@ -91,7 +91,7 @@ export function StyleVaultWidget({ onAddSecurityEvent }: StyleVaultWidgetProps) 
   }
 
   return (
-    <div className="fixed bottom-[164px] left-6 z-30 w-[648px] h-[580px] rounded-2xl bg-white border shadow-2xl flex flex-col overflow-hidden animate-slide-up scrollbar-hidden">
+    <div className="client-stylevault fixed bottom-[164px] left-6 z-30 w-[648px] h-[580px] rounded-2xl bg-white border shadow-2xl flex flex-col overflow-hidden animate-slide-up scrollbar-hidden">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b bg-[#4016A0]/5 shrink-0">
         <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#4016A0] to-[#B49BFC] flex items-center justify-center">

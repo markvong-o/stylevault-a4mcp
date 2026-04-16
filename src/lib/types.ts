@@ -89,7 +89,7 @@ export interface ChatMessage {
 export interface SecurityEvent {
   id: string;
   timestamp: string;
-  type: "consent" | "ciba" | "scope-denial" | "bounded-authority" | "token-issued" | "fga-check" | "tool-call" | "ucp-discovery" | "ucp-checkout-state" | "ucp-payment-auth";
+  type: "consent" | "ciba" | "scope-denial" | "bounded-authority" | "token-issued" | "fga-check" | "tool-call" | "ucp-discovery" | "ucp-checkout-state" | "ucp-payment-auth" | "mcp-discovery" | "mcp-dcr";
   result: "granted" | "denied" | "pending" | "approved";
   scenarioId: string;
   businessDescription: string;
@@ -101,6 +101,7 @@ export interface TechnicalDetail {
   request?: string;
   response?: string;
   tokenClaims?: Record<string, unknown>;
+  idTokenClaims?: Record<string, unknown>;
   fgaTuple?: { user: string; relation: string; object: string; allowed: boolean };
   toolName?: string;
   tokenExchange?: {

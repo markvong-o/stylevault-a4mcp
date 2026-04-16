@@ -20,6 +20,7 @@ export function ClosingStep({ securityEvents, onRestart }: ClosingStepProps) {
   const grantedCount = securityEvents.filter(e => e.result === "granted" || e.result === "approved").length;
   const deniedCount = securityEvents.filter(e => e.result === "denied").length;
 
+  const mcpDiscoveryEvents = securityEvents.filter(e => e.type === "mcp-discovery" || e.type === "mcp-dcr");
   const ucpDiscoveryEvents = securityEvents.filter(e => e.type === "ucp-discovery");
   const ucpCheckoutEvents = securityEvents.filter(e => e.type === "ucp-checkout-state");
 
@@ -52,9 +53,16 @@ export function ClosingStep({ securityEvents, onRestart }: ClosingStepProps) {
       color: "text-red-600",
       border: "border-red-200",
     },
+    ...(mcpDiscoveryEvents.length > 0 ? [{
+      title: "MCP Discovery + DCR",
+      description: "Agents discover server metadata, authorization requirements, and register dynamically via Auth0",
+      count: mcpDiscoveryEvents.length,
+      color: "text-indigo-600",
+      border: "border-indigo-200",
+    }] : []),
     ...(ucpDiscoveryEvents.length > 0 ? [{
       title: "UCP Discovery",
-      description: "Agents discover merchant capabilities via /.well-known/ucp before transacting",
+      description: "Agents discover merchant capabilities via /.well-known/ucp and negotiate supported features",
       count: ucpDiscoveryEvents.length,
       color: "text-blue-600",
       border: "border-blue-200",
