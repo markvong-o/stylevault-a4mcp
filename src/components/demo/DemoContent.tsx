@@ -13,10 +13,10 @@ import { StyleVaultWidget } from "@/components/clients/StyleVaultWidget";
 
 export function DemoContent() {
   const {
-    currentAct, currentStep, overlayOpen, overlayTab,
+    currentAct, currentStep, overlayOpen,
     activeConversation, gateDecisions, securityEvents,
     nextStep, prevStep, goToAct,
-    setConversation, toggleOverlay, setOverlayTab,
+    setConversation, toggleOverlay,
     gateDecision, addSecurityEvent, syncSecurityEvents, reset,
   } = useDemoState();
 
@@ -114,7 +114,7 @@ export function DemoContent() {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* App area (header + main content) -- shifts when overlay opens */}
-      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${overlayOpen ? "mr-[520px]" : ""}`}>
+      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${overlayOpen ? "mr-[416px]" : ""}`}>
         {/* Header */}
         <div className="w-full px-6 py-3 flex items-center justify-between border-b shrink-0">
           <button onClick={handleReset} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
@@ -176,10 +176,8 @@ export function DemoContent() {
       {/* Security overlay -- sits above footer */}
       <SecurityOverlay
         open={overlayOpen}
-        tab={overlayTab}
         events={securityEvents}
         onToggle={toggleOverlay}
-        onSetTab={setOverlayTab}
       />
     </div>
   );

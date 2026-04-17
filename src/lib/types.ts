@@ -3,7 +3,6 @@ export interface DemoState {
   currentAct: number;        // 0=intro, 1-3=scenarios, 4=closing
   currentStep: number;       // step within current act
   overlayOpen: boolean;
-  overlayTab: "business" | "technical";
   activeScenario: string;    // scenario ID
   activeConversation: string; // active conversation ID (for multi-chat scenarios like ChatGPT)
   conversationSteps: Record<string, number>; // per-conversation step tracking
@@ -19,7 +18,6 @@ export type DemoAction =
   | { type: "SET_SCENARIO"; payload: string }
   | { type: "SET_CONVERSATION"; payload: string }
   | { type: "TOGGLE_OVERLAY" }
-  | { type: "SET_OVERLAY_TAB"; payload: "business" | "technical" }
   | { type: "GATE_DECISION"; payload: { gateId: string; decision: "approved" | "denied" } }
   | { type: "ADD_SECURITY_EVENT"; payload: SecurityEvent }
   | { type: "SYNC_SECURITY_EVENTS"; payload: SecurityEvent[] }
@@ -92,6 +90,7 @@ export interface SecurityEvent {
   type: "consent" | "ciba" | "scope-denial" | "bounded-authority" | "token-issued" | "fga-check" | "tool-call" | "ucp-discovery" | "ucp-checkout-state" | "ucp-payment-auth" | "mcp-discovery" | "mcp-dcr";
   result: "granted" | "denied" | "pending" | "approved";
   scenarioId: string;
+  shortDescription: string;
   businessDescription: string;
   technicalDetail: TechnicalDetail;
 }

@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 
 interface SecurityEventCardProps {
   event: SecurityEvent;
-  view: "business" | "technical";
   isCurrent?: boolean;
 }
 
@@ -470,7 +469,7 @@ function DefaultTechnicalView({ event }: { event: SecurityEvent }) {
   );
 }
 
-export function SecurityEventCard({ event, view, isCurrent }: SecurityEventCardProps) {
+export function SecurityEventCard({ event, isCurrent }: SecurityEventCardProps) {
   const colors = SECURITY_EVENT_COLORS[event.result] ?? SECURITY_EVENT_COLORS.pending;
   const badge = RESULT_BADGES[event.result] ?? RESULT_BADGES.pending;
 
@@ -489,9 +488,7 @@ export function SecurityEventCard({ event, view, isCurrent }: SecurityEventCardP
             <Badge variant={badge.variant}>{badge.label}</Badge>
           </div>
 
-          {view === "business" ? (
-            <p className="text-sm text-foreground/80">{event.businessDescription}</p>
-          ) : event.type === "tool-call" || event.type === "ucp-payment-auth" ? (
+          {event.type === "tool-call" || event.type === "ucp-payment-auth" ? (
             <ToolCallTechnicalView event={event} />
           ) : (
             <DefaultTechnicalView event={event} />

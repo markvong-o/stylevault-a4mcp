@@ -90,7 +90,8 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     securityEvent: {
       id: "evt-a-consent", timestamp: "10:00:02", type: "consent", result: "granted",
       scenarioId: "scenario-a",
-      businessDescription: "Alex Morgan approved StyleVault AI's request to access their StyleVault account with full shopping permissions.",
+      shortDescription: "Alex Morgan approved StyleVault AI to access their account with full shopping permissions.",
+      businessDescription: "Alex Morgan approved StyleVault AI to access their account with full shopping permissions. Auth0 captures this consent in the audit trail, giving you proof of authorization if disputes arise.",
       technicalDetail: {
         protocol: "OAuth 2.1: Authorization Code + PKCE",
         request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=read:wishlist read:orders read:products write:preferences execute:purchase\n&client_id=cli_sv_ai_001\n&code_challenge=E9Melhoa2OwvFrEMTJg...\n&code_challenge_method=S256",
@@ -109,7 +110,8 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     securityEvent: {
       id: "evt-a-token-exchange", timestamp: "10:00:03", type: "token-issued", result: "granted",
       scenarioId: "scenario-a",
-      businessDescription: "Auth0 exchanged the authorization code for access and ID tokens. The access token is scoped to only the permissions Alex Morgan approved, and the ID token confirms the user's identity.",
+      shortDescription: "Auth0 issued scoped tokens confirming Alex Morgan's identity and permissions.",
+      businessDescription: "Auth0 issued scoped tokens confirming Alex Morgan's identity and permissions. The access token is restricted to only what Alex approved, ensuring the AI agent operates only within authorized boundaries.",
       technicalDetail: {
         protocol: "OAuth 2.1: Authorization Code Exchange (RFC 6749 Section 4.1.3)",
         request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=authorization_code\n&code=SplxlOBeZQQYbYS6WxSbIA\n&redirect_uri=https://ai.stylevault.com/callback\n&client_id=cli_sv_ai_001\n&code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
@@ -179,7 +181,8 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     securityEvent: {
       id: "evt-a-read", timestamp: "10:00:12", type: "tool-call", result: "granted",
       scenarioId: "scenario-a",
-      businessDescription: "Auth0 verified StyleVault AI has permission to view Alex Morgan's wishlist.",
+      shortDescription: "Auth0 verified StyleVault AI has permission to view Alex Morgan's wishlist.",
+      businessDescription: "Auth0 verified StyleVault AI has permission to view Alex Morgan's wishlist. Permission checks happen at runtime, so if a customer revokes access later, the agent immediately loses capability.",
       technicalDetail: {
         protocol: "Tool Call Flow",
         toolName: "get_wishlist",
@@ -217,7 +220,8 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     securityEvent: {
       id: "evt-a-ciba", timestamp: "10:00:22", type: "ciba", result: "approved",
       scenarioId: "scenario-a",
-      businessDescription: "Alex Morgan approved the $79.99 jacket purchase via push notification.",
+      shortDescription: "Alex Morgan approved the $79.99 jacket purchase via push notification.",
+      businessDescription: "Alex Morgan approved the $79.99 jacket purchase via push notification. Every approval is logged and tied to the customer's identity, protecting you from repudiation claims.",
       technicalDetail: {
         protocol: "CIBA: Client-Initiated Backchannel Authentication",
         request: "POST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"Purchase: Blue Denim Jacket ($79.99)\",\n  \"scope\": \"execute:purchase\"\n}",
@@ -276,7 +280,8 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     securityEvent: {
       id: "evt-a-bounded", timestamp: "10:00:42", type: "bounded-authority", result: "denied",
       scenarioId: "scenario-a",
-      businessDescription: "StyleVault AI attempted to purchase a $2,400 watch exceeding the $250 per-transaction cap. Auth0 blocked the request.",
+      shortDescription: "Auth0 blocked a $2,400 watch purchase that exceeded StyleVault's $250 per-transaction policy.",
+      businessDescription: "Auth0 blocked a $2,400 watch purchase that exceeded StyleVault's $250 per-transaction policy. Policy enforcement at the security layer prevents unauthorized transactions from reaching your payment processor, reducing fraud losses and chargeback costs.",
       technicalDetail: {
         protocol: "OAuth 2.1: Bounded Authority Claim",
         request: "POST /mcp/tools/place_order HTTP/1.1\nAuthorization: Bearer eyJhbG...\n\n{\"item_id\": \"watch_meridian_001\", \"amount\": 2400.00}",
@@ -322,7 +327,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     chat: { id: "b-0.1", role: "system", content: "Discovering StyleVault MCP server and authorization requirements...", timestamp: "10:04:59" },
     securityEvent: {
       id: "evt-b-discovery", timestamp: "10:04:59", type: "mcp-discovery", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "ChatGPT queried StyleVault's MCP server to discover authorization requirements, then fetched Auth0's authorization server metadata. This two-step discovery tells the client where to authenticate, what scopes are available, and how to register.",
+      shortDescription: "ChatGPT discovered Auth0's authorization endpoints and available scopes via StyleVault's MCP metadata.",
+      businessDescription: "ChatGPT discovered Auth0's authorization endpoints and available scopes via StyleVault's MCP metadata. Standardized discovery eliminates manual per-agent configuration, accelerating new AI partnerships without security compromise.",
       technicalDetail: {
         protocol: "Protected Resource Metadata (RFC 9728) + Authorization Server Metadata (RFC 8414)",
         request: "// Step 1: Discover authorization server from resource\nGET /.well-known/oauth-protected-resource HTTP/1.1\nHost: mcp.stylevault.com\n\n// Step 2: Discover authorization server capabilities\nGET /.well-known/oauth-authorization-server HTTP/1.1\nHost: stylevault.us.auth0.com",
@@ -335,7 +341,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     chat: { id: "b-0.2", role: "system", content: "Registering client with Auth0 via Dynamic Client Registration...", timestamp: "10:05:00" },
     securityEvent: {
       id: "evt-b-dcr", timestamp: "10:05:00", type: "mcp-dcr", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "ChatGPT dynamically registered as a client with Auth0. New AI agents onboard without pre-configuration -- Auth0 issues a client_id and credentials on the fly via Dynamic Client Registration (RFC 7591).",
+      shortDescription: "ChatGPT automatically registered as a client with Auth0 without pre-configuration.",
+      businessDescription: "ChatGPT automatically registered as a client with Auth0 without pre-configuration. New AI agents onboard instantly with their own credentials via Dynamic Client Registration, reducing integration overhead while maintaining isolation and auditability.",
       technicalDetail: {
         protocol: "Dynamic Client Registration (RFC 7591)",
         request: "POST /oidc/register HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/json\n\n{\n  \"client_name\": \"ChatGPT\",\n  \"redirect_uris\": [\"https://chatgpt.com/callback\"],\n  \"grant_types\": [\"authorization_code\", \"refresh_token\"],\n  \"response_types\": [\"code\"],\n  \"token_endpoint_auth_method\": \"none\",\n  \"scope\": \"read:wishlist read:orders read:products write:preferences execute:purchase\"\n}",
@@ -352,7 +359,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     securityMoment: { kind: "login", method: "passkey" },
     securityEvent: {
       id: "evt-b-login", timestamp: "10:05:01", type: "token-issued", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "Alex Morgan authenticated via passkey through Auth0 Universal Login.",
+      shortDescription: "Alex Morgan authenticated via passkey through Auth0 Universal Login.",
+      businessDescription: "Alex Morgan authenticated via passkey through Auth0 Universal Login. Passkeys eliminate passwords, reducing support overhead and phishing exposure while delivering a frictionless checkout experience.",
       technicalDetail: {
         protocol: "WebAuthn / Passkeys via Auth0 Universal Login",
         request: "GET /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&client_id=cli_chatgpt_002\n&prompt=login",
@@ -375,7 +383,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-consent", timestamp: "10:05:02", type: "consent", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "Alex Morgan approved ChatGPT with full access to their StyleVault account, including purchases and preferences.",
+      shortDescription: "Alex Morgan granted ChatGPT full access to their account, including purchase capability.",
+      businessDescription: "Alex Morgan granted ChatGPT full access to their account, including purchase capability. Auth0 logs this delegation event, creating an auditable record that protects both your brand and the customer.",
       technicalDetail: {
         protocol: "OAuth 2.1: Authorization Code + PKCE",
         request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=read:wishlist read:orders read:products write:preferences execute:purchase\n&client_id=cli_chatgpt_002",
@@ -388,7 +397,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     chat: { id: "b-2.5", role: "system", content: "Exchanging authorization code for tokens...", timestamp: "10:05:03" },
     securityEvent: {
       id: "evt-b-token-exchange", timestamp: "10:05:03", type: "token-issued", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "Auth0 exchanged the authorization code for access and ID tokens. The access token is scoped to only the permissions Alex Morgan approved, and the ID token confirms the user's identity.",
+      shortDescription: "Auth0 issued scoped tokens confirming Alex Morgan's identity and permissions.",
+      businessDescription: "Auth0 issued scoped tokens confirming Alex Morgan's identity and permissions. The access token is restricted to only what Alex approved, ensuring the AI agent operates only within authorized boundaries.",
       technicalDetail: {
         protocol: "OAuth 2.1: Authorization Code Exchange (RFC 6749 Section 4.1.3)",
         request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=authorization_code\n&code=Qcb0Orv1zh30vL\n&redirect_uri=https://chatgpt.com/callback\n&client_id=cli_chatgpt_002\n&code_verifier=y3kTR8G7xQz1mN5vJ2wL9pS4bF0hD6aE8cU",
@@ -446,7 +456,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-wishlist", timestamp: "10:05:10", type: "tool-call", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "Read access granted. ChatGPT viewed Alex Morgan's wishlist.",
+      shortDescription: "ChatGPT read Alex Morgan's wishlist with verified permission.",
+      businessDescription: "ChatGPT read Alex Morgan's wishlist with verified permission. Every data access is gated by Auth0, so you have complete visibility into which AI agents touched which customer data.",
       technicalDetail: {
         protocol: "Tool Call Flow",
         toolName: "get_wishlist",
@@ -487,7 +498,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-search", timestamp: "10:06:04", type: "tool-call", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "ChatGPT searched the StyleVault product catalog on Alex's behalf.",
+      shortDescription: "ChatGPT searched the product catalog on Alex Morgan's behalf.",
+      businessDescription: "ChatGPT searched the product catalog on Alex Morgan's behalf. Catalog queries are logged and attributed to the specific customer and agent, giving you behavioral data to optimize recommendations.",
       technicalDetail: {
         protocol: "Tool Call Flow",
         toolName: "search_products",
@@ -526,7 +538,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-orders", timestamp: "10:06:13", type: "tool-call", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "Read access granted. ChatGPT viewed Alex Morgan's order history.",
+      shortDescription: "ChatGPT read Alex Morgan's order history with verified permission.",
+      businessDescription: "ChatGPT read Alex Morgan's order history with verified permission. Historical data access is controlled and logged, so you can prove to auditors that customer information was accessed only by authorized agents.",
       technicalDetail: {
         protocol: "Tool Call Flow",
         toolName: "get_order_history",
@@ -557,7 +570,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-ciba", timestamp: "10:07:02", type: "ciba", result: "approved", scenarioId: "scenario-b",
-      businessDescription: "Alex Morgan approved the $269.00 Heritage Duffle purchase via push notification.",
+      shortDescription: "Alex Morgan approved the $269.00 Heritage Duffle purchase via push notification.",
+      businessDescription: "Alex Morgan approved the $269.00 Heritage Duffle purchase via push notification. Each approval generates a cryptographic record tied to the customer's identity, providing legal defensibility against disputes.",
       technicalDetail: {
         protocol: "CIBA: Client-Initiated Backchannel Authentication",
         request: "POST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"Purchase: Heritage Duffle ($269.00)\",\n  \"scope\": \"execute:purchase\"\n}",
@@ -585,7 +599,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-purchase", timestamp: "10:07:08", type: "tool-call", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "ChatGPT successfully placed the Heritage Duffle order after CIBA approval.",
+      shortDescription: "ChatGPT successfully placed the Heritage Duffle order after customer approval.",
+      businessDescription: "ChatGPT successfully placed the Heritage Duffle order after customer approval. The approval flow is audited end-to-end, providing proof the customer authorized the transaction.",
       technicalDetail: {
         protocol: "Tool Call Flow",
         toolName: "place_order",
@@ -626,7 +641,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-prefs", timestamp: "10:08:04", type: "tool-call", result: "granted", scenarioId: "scenario-b",
-      businessDescription: "ChatGPT updated Alex Morgan's style preferences with write:preferences scope.",
+      shortDescription: "ChatGPT updated Alex Morgan's style preferences within authorized scope.",
+      businessDescription: "ChatGPT updated Alex Morgan's style preferences within authorized scope. Write permissions are scoped and logged, so modifications to customer data are traceable to a specific AI agent and point in time.",
       technicalDetail: {
         protocol: "Tool Call Flow",
         toolName: "update_preferences",
@@ -667,7 +683,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-bounded", timestamp: "10:09:03", type: "bounded-authority", result: "denied", scenarioId: "scenario-b",
-      businessDescription: "ChatGPT attempted to purchase a $2,400 watch exceeding the $250 per-transaction cap. Auth0 blocked the request.",
+      shortDescription: "Auth0 blocked a $2,400 watch purchase that exceeded StyleVault's $250 per-transaction policy.",
+      businessDescription: "Auth0 blocked a $2,400 watch purchase that exceeded StyleVault's $250 per-transaction policy. Policy enforcement at the security layer prevents unauthorized transactions from reaching your payment processor, reducing fraud losses and chargeback costs.",
       technicalDetail: {
         protocol: "OAuth 2.1: Bounded Authority Claim",
         request: "POST /mcp/tools/place_order HTTP/1.1\nAuthorization: Bearer eyJhbG...\n\n{\"item_id\": \"watch_meridian_001\", \"amount\": 2400.00}",
@@ -711,7 +728,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     chat: { id: "c-0.1", role: "system", content: "Resolving StyleVault UCP merchant manifest...", timestamp: "10:59:58" },
     securityEvent: {
       id: "evt-c-manifest", timestamp: "10:59:58", type: "ucp-discovery", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Gemini fetched StyleVault's UCP merchant manifest to discover available commerce capabilities, endpoints, and supported payment methods. The manifest is publicly accessible at /.well-known/ucp.",
+      shortDescription: "Gemini fetched StyleVault's UCP merchant manifest to discover commerce capabilities and payment methods.",
+      businessDescription: "Gemini fetched StyleVault's UCP merchant manifest to discover commerce capabilities and payment methods. Standardized discovery eliminates custom integration work, letting you enable new AI partners in days instead of weeks.",
       technicalDetail: {
         protocol: "UCP: Merchant Manifest Discovery (/.well-known/ucp)",
         request: "GET /.well-known/ucp HTTP/1.1\nHost: stylevault.com",
@@ -724,7 +742,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     chat: { id: "c-0.2", role: "system", content: "Negotiating capabilities with StyleVault...", timestamp: "10:59:59" },
     securityEvent: {
       id: "evt-c-profile", timestamp: "10:59:59", type: "ucp-discovery", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Gemini and StyleVault exchanged capability profiles and signing keys. The merchant verified Gemini's identity via HTTP Message Signatures (RFC 9421) and computed the intersection of supported capabilities.",
+      shortDescription: "Gemini and StyleVault exchanged capability profiles and verified identities via HTTP Message Signatures.",
+      businessDescription: "Gemini and StyleVault exchanged capability profiles and verified identities via HTTP Message Signatures. Mutual authentication ensures only trusted agents access your commerce APIs, and capability intersection guarantees the agent can only use what you support.",
       technicalDetail: {
         protocol: "UCP: Agent Profile Exchange + Capability Negotiation (RFC 9421)",
         request: "// Gemini sends its profile URL and signs all requests:\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(\"@method\" \"@target-uri\"); keyid=\"gemini-key-001\"; alg=\"rsa-v1_5-sha256\"\nrequest-id: req-c02-001\n\n// StyleVault fetches Gemini's profile:\nGET /.well-known/ucp HTTP/1.1\nHost: gemini.google.com",
@@ -741,7 +760,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     securityMoment: { kind: "login", method: "passkey" },
     securityEvent: {
       id: "evt-c-login", timestamp: "11:00:01", type: "token-issued", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Alex Morgan authenticated via passkey through Auth0 Universal Login.",
+      shortDescription: "Alex Morgan authenticated via passkey through Auth0 Universal Login.",
+      businessDescription: "Alex Morgan authenticated via passkey through Auth0 Universal Login. Passkeys eliminate passwords, reducing support overhead and phishing exposure while delivering a frictionless checkout experience.",
       technicalDetail: {
         protocol: "WebAuthn / Passkeys via Auth0 Universal Login",
         request: "GET /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&client_id=cli_gemini_003\n&prompt=login",
@@ -759,7 +779,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-discovery", timestamp: "11:00:03", type: "ucp-discovery", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Gemini discovered StyleVault's UCP capabilities. StyleVault verified Gemini's request signature against the agent's published public key before exposing merchant endpoints.",
+      shortDescription: "Gemini accessed StyleVault's UCP capabilities after Auth0 verified its request signature.",
+      businessDescription: "Gemini accessed StyleVault's UCP capabilities after Auth0 verified its request signature. Cryptographic verification ensures only the legitimate agent can invoke your commerce endpoints, eliminating the risk of impersonation.",
       technicalDetail: {
         protocol: "UCP: Capability Discovery via /.well-known/ucp (RFC 9421)",
         request: "GET /.well-known/ucp HTTP/1.1\nHost: stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(\"@method\" \"@target-uri\"); keyid=\"gemini-key-001\"\nrequest-id: req-c03-001",
@@ -781,7 +802,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-consent", timestamp: "11:00:05", type: "consent", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Alex Morgan authorized Identity Linking between Gemini and StyleVault via Auth0. This connects Alex's account so Gemini can access user-specific data like order history. Commerce capabilities (catalog, checkout) are authorized separately through UCP capability negotiation.",
+      shortDescription: "Alex Morgan linked their identity with Gemini through Auth0, enabling access to account-specific data.",
+      businessDescription: "Alex Morgan linked their identity with Gemini through Auth0, enabling access to account-specific data. This delegated access is auditable and revocable, giving customers control while keeping your compliance posture intact.",
       technicalDetail: {
         protocol: "OAuth 2.0: Identity Linking (dev.ucp.shopping.identity)",
         request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=openid profile email offline_access\n&client_id=cli_gemini_003",
@@ -794,7 +816,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     chat: { id: "c-3.5", role: "system", content: "Exchanging authorization code for tokens...", timestamp: "11:00:06" },
     securityEvent: {
       id: "evt-c-token-exchange", timestamp: "11:00:06", type: "token-issued", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Auth0 exchanged the authorization code for access and ID tokens for Identity Linking. The access token grants Gemini access to Alex's account data (orders, profile). Commerce capabilities (catalog, checkout) are authorized separately through UCP's HTTP Message Signatures.",
+      shortDescription: "Auth0 issued tokens for identity linking, scoping Gemini to Alex Morgan's account data.",
+      businessDescription: "Auth0 issued tokens for identity linking, scoping Gemini to Alex Morgan's account data. Commerce operations are further authenticated via UCP's HTTP Message Signatures, layering security so no single point of compromise exposes your business.",
       technicalDetail: {
         protocol: "OAuth 2.0: Identity Linking Token Exchange (RFC 6749 Section 4.1.3)",
         request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=authorization_code\n&code=Xk9pLm3vRt7wYz\n&redirect_uri=https://gemini.google.com/callback\n&client_id=cli_gemini_003\n&code_verifier=pZ8xR3mK7tQ1wN5vJ9yL2sB4fH6gD0aE",
@@ -866,7 +889,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-search", timestamp: "11:01:04", type: "tool-call", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Gemini searched StyleVault's product catalog via UCP. Catalog access is authorized through UCP capability negotiation and verified via HTTP Message Signatures -- no OAuth token is needed for this operation.",
+      shortDescription: "Gemini searched StyleVault's product catalog via UCP, with access verified through request signatures.",
+      businessDescription: "Gemini searched StyleVault's product catalog via UCP, with access verified through request signatures. Catalog queries are authenticated independently of OAuth tokens, giving you flexibility to run commerce operations without consuming session state.",
       technicalDetail: {
         protocol: "UCP: Catalog Search via dev.ucp.shopping.catalog (RFC 9421)",
         toolName: "ucp_catalog_search",
@@ -907,7 +931,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-checkout", timestamp: "11:02:03", type: "ucp-checkout-state", result: "pending", scenarioId: "scenario-c",
-      businessDescription: "Gemini created a UCP checkout session. The $269 total exceeds StyleVault's $250 merchant policy limit for agent transactions, triggering escalation to the buyer via continue_url.",
+      shortDescription: "Gemini created a checkout session for $269, triggering escalation past StyleVault's $250 agent limit.",
+      businessDescription: "Gemini created a checkout session for $269, triggering escalation past StyleVault's $250 agent limit. Policy-driven escalation prevents high-value transactions from executing without human approval, protecting your brand from unexpected liability.",
       technicalDetail: {
         protocol: "UCP: Checkout Session (requires_escalation + continue_url)",
         request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\n\n{\n  \"line_items\": [{\"product_id\": \"bag_heritage_001\", \"quantity\": 1}]\n}",
@@ -926,7 +951,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-ciba", timestamp: "11:02:05", type: "ciba", result: "approved", scenarioId: "scenario-c",
-      businessDescription: "Alex Morgan approved the $269.00 Heritage Duffle purchase via push notification. UCP's checkout session moved from requires_escalation to completed. StyleVault uses Auth0 CIBA behind the continue_url to handle buyer approval.",
+      shortDescription: "Alex Morgan approved the $269.00 Heritage Duffle purchase, and the UCP checkout session completed.",
+      businessDescription: "Alex Morgan approved the $269.00 Heritage Duffle purchase, and the UCP checkout session completed. Auth0 CIBA powers the approval flow, so every transaction above your threshold has an auditable record of customer consent.",
       technicalDetail: {
         protocol: "Auth0 CIBA: Buyer Approval via continue_url",
         request: "// UCP returned continue_url: https://stylevault.com/ucp/escalate/7k2m9\n// StyleVault handles buyer approval via Auth0 CIBA:\n\nPOST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"UCP Purchase: Heritage Duffle ($269.00) via Gemini\",\n  \"scope\": \"openid\"\n}",
@@ -954,7 +980,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-purchase", timestamp: "11:02:12", type: "ucp-payment-auth", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Gemini completed the Heritage Duffle purchase via UCP after buyer approval through StyleVault's continue_url (powered by Auth0 CIBA). Checkout session transitioned from requires_escalation to completed.",
+      shortDescription: "Gemini completed the Heritage Duffle purchase after Alex Morgan's approval through UCP.",
+      businessDescription: "Gemini completed the Heritage Duffle purchase after Alex Morgan's approval through UCP. End-to-end audit trails show the agent requested, the policy evaluated, the customer approved, and the system executed.",
       technicalDetail: {
         protocol: "UCP: Checkout Completion (continue_url + Auth0 CIBA)",
         toolName: "ucp_complete_checkout",
@@ -995,7 +1022,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-orders", timestamp: "11:03:04", type: "tool-call", result: "granted", scenarioId: "scenario-c",
-      businessDescription: "Gemini retrieved order status via UCP. Because order data is user-specific, Auth0's Identity Linking token authenticates the request alongside the agent's HTTP Message Signature.",
+      shortDescription: "Gemini retrieved order status via UCP, authenticated using identity tokens and request signatures.",
+      businessDescription: "Gemini retrieved order status via UCP, authenticated using identity tokens and request signatures. Layered authentication ensures only the customer's linked agent can view their orders, and every query is logged for compliance.",
       technicalDetail: {
         protocol: "UCP: Order Management via dev.ucp.shopping.orders (Identity Linking)",
         toolName: "ucp_get_order",
@@ -1036,7 +1064,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-bounded", timestamp: "11:04:03", type: "bounded-authority", result: "denied", scenarioId: "scenario-c",
-      businessDescription: "Gemini attempted to purchase a $2,400 watch via UCP. StyleVault's merchant-configured agent transaction policy ($250 limit) blocked the request before it reached the checkout engine.",
+      shortDescription: "Auth0 blocked a $2,400 watch purchase that exceeded StyleVault's $250 agent transaction policy.",
+      businessDescription: "Auth0 blocked a $2,400 watch purchase that exceeded StyleVault's $250 agent transaction policy. Policy enforcement at the security layer prevents unauthorized transactions from reaching your payment processor, reducing fraud losses and chargeback costs.",
       technicalDetail: {
         protocol: "UCP: Merchant Agent Policy Enforcement",
         request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\n\n{\"line_items\": [{\"product_id\": \"watch_meridian_001\", \"quantity\": 1}]}",
@@ -1065,7 +1094,8 @@ export const CONSENT_DENIED_STEPS_A: DemoStep[] = [
     chat: { id: "cd-a", role: "system", content: "Connection declined. StyleVault AI did not receive any access to your account.", timestamp: "10:00:04" },
     securityEvent: {
       id: "evt-consent-denied-a", timestamp: "10:00:04", type: "consent", result: "denied", scenarioId: "scenario-a",
-      businessDescription: "Alex Morgan denied StyleVault AI access. No token was issued. Zero data exposure.",
+      shortDescription: "Alex Morgan denied StyleVault AI access. No token was issued, and no data was exposed.",
+      businessDescription: "Alex Morgan denied StyleVault AI access. No token was issued, and no data was exposed. Consent-first architecture means agents can only act when customers explicitly approve, giving you zero-risk deny paths.",
       technicalDetail: { protocol: "OAuth 2.1", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"access_denied\",\n  \"error_description\": \"User denied the consent request\"\n}" },
     },
   },
@@ -1077,7 +1107,8 @@ const CONSENT_DENIED_STEPS_B: DemoStep[] = [
     chat: { id: "cd-b", role: "system", content: "Connection declined. ChatGPT did not receive any access to your account.", timestamp: "10:05:04" },
     securityEvent: {
       id: "evt-consent-denied-b", timestamp: "10:05:04", type: "consent", result: "denied", scenarioId: "scenario-b",
-      businessDescription: "Alex Morgan denied ChatGPT access. No token was issued.",
+      shortDescription: "Alex Morgan denied ChatGPT access. No token was issued.",
+      businessDescription: "Alex Morgan denied ChatGPT access. No token was issued. Rejection is immediate and complete, leaving no partial permissions or data leaks.",
       technicalDetail: { protocol: "OAuth 2.1", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"access_denied\"\n}" },
     },
   },
@@ -1100,7 +1131,8 @@ export const CIBA_DENIAL_STEPS_A: Record<string, DemoStep> = {
     },
     securityEvent: {
       id: "evt-ciba-denied-a", timestamp: "10:00:25", type: "ciba", result: "denied", scenarioId: "scenario-a",
-      businessDescription: "Alex Morgan denied the CIBA approval. The jacket purchase was not executed.",
+      shortDescription: "Alex Morgan denied the approval. The jacket purchase was not executed.",
+      businessDescription: "Alex Morgan denied the approval. The jacket purchase was not executed. Failed approvals create audit records too, so you have proof disputes were handled correctly.",
       technicalDetail: { protocol: "CIBA", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"authorization_declined\",\n  \"error_description\": \"End-user denied the authorization request\"\n}" },
     },
   },
@@ -1123,7 +1155,8 @@ const CIBA_DENIAL_STEPS_B: Record<string, DemoStep> = {
     },
     securityEvent: {
       id: "evt-ciba-denied-b", timestamp: "10:07:05", type: "ciba", result: "denied", scenarioId: "scenario-b",
-      businessDescription: "Alex Morgan denied the CIBA approval. The Heritage Duffle purchase was not executed.",
+      shortDescription: "Alex Morgan denied the approval. The Heritage Duffle purchase was not executed.",
+      businessDescription: "Alex Morgan denied the approval. The Heritage Duffle purchase was not executed. Failed approvals create audit records too, so you have proof disputes were handled correctly.",
       technicalDetail: { protocol: "CIBA", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"authorization_declined\",\n  \"error_description\": \"End-user denied the authorization request\"\n}" },
     },
   },
@@ -1135,7 +1168,8 @@ const CONSENT_DENIED_STEPS_C: DemoStep[] = [
     chat: { id: "cd-c", role: "system", content: "Connection declined. Gemini did not receive any access to your StyleVault account via UCP.", timestamp: "11:00:07" },
     securityEvent: {
       id: "evt-consent-denied-c", timestamp: "11:00:07", type: "consent", result: "denied", scenarioId: "scenario-c",
-      businessDescription: "Alex Morgan denied Gemini UCP access. No token was issued.",
+      shortDescription: "Alex Morgan denied Gemini UCP access. No token was issued.",
+      businessDescription: "Alex Morgan denied Gemini UCP access. No token was issued. Rejection is immediate and complete, leaving no partial permissions or data leaks.",
       technicalDetail: { protocol: "OAuth 2.0 (Identity Linking)", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"access_denied\"\n}" },
     },
   },
@@ -1158,7 +1192,8 @@ const CIBA_DENIAL_STEPS_C: Record<string, DemoStep> = {
     },
     securityEvent: {
       id: "evt-ciba-denied-c", timestamp: "11:02:08", type: "ciba", result: "denied", scenarioId: "scenario-c",
-      businessDescription: "Alex Morgan denied the CIBA approval. The UCP checkout session was canceled.",
+      shortDescription: "Alex Morgan denied the approval. The UCP checkout session was canceled.",
+      businessDescription: "Alex Morgan denied the approval. The UCP checkout session was canceled. Canceled transactions are audited the same as completed ones, creating a complete record for compliance and dispute resolution.",
       technicalDetail: { protocol: "Auth0 CIBA (StyleVault Buyer Approval)", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"authorization_declined\"\n}" },
     },
   },

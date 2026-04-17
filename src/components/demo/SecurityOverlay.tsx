@@ -7,13 +7,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SecurityOverlayProps {
   open: boolean;
-  tab: "business" | "technical";
   events: SecurityEvent[];
   onToggle: () => void;
-  onSetTab: (tab: "business" | "technical") => void;
 }
 
-export function SecurityOverlay({ open, tab, events, onToggle, onSetTab }: SecurityOverlayProps) {
+export function SecurityOverlay({ open, events, onToggle }: SecurityOverlayProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,25 +36,6 @@ export function SecurityOverlay({ open, tab, events, onToggle, onSetTab }: Secur
         </button>
       </div>
 
-      <div className="flex border-b">
-        <button
-          onClick={() => onSetTab("business")}
-          className={`flex-1 py-3 text-sm font-medium transition-colors cursor-pointer ${
-            tab === "business" ? "text-primary border-b-2 border-primary" : "text-foreground/30 hover:text-foreground/50"
-          }`}
-        >
-          Business View
-        </button>
-        <button
-          onClick={() => onSetTab("technical")}
-          className={`flex-1 py-3 text-sm font-medium transition-colors cursor-pointer ${
-            tab === "technical" ? "text-primary border-b-2 border-primary" : "text-foreground/30 hover:text-foreground/50"
-          }`}
-        >
-          Technical View
-        </button>
-      </div>
-
       <ScrollArea className="flex-1 px-4 py-4">
         {events.length === 0 ? (
           <div className="text-center text-foreground/30 py-12">
@@ -65,7 +44,7 @@ export function SecurityOverlay({ open, tab, events, onToggle, onSetTab }: Secur
         ) : (
           <div className="space-y-3">
             {events.map((event, i) => (
-              <SecurityEventCard key={event.id} event={event} view={tab} isCurrent={i === events.length - 1} />
+              <SecurityEventCard key={event.id} event={event} isCurrent={i === events.length - 1} />
             ))}
             <div ref={bottomRef} />
           </div>

@@ -9,6 +9,9 @@ import { CIBANotification } from "@/components/security/CIBANotification";
 import { UniversalLoginScreen } from "@/components/security/UniversalLoginScreen";
 import { UcpDiscoveryScreen } from "@/components/security/UcpDiscoveryScreen";
 import { Badge } from "@/components/ui/badge";
+import { GuideBubble } from "@/components/demo/GuideBubble";
+import { AnimatePresence } from "framer-motion";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ScenarioStepProps {
   config: ScenarioConfig;
@@ -120,6 +123,22 @@ export function ScenarioStep({
     }
   }, [revealedStep, steps, onSyncSecurityEvents]);
 
+  // Derive all revealed security events for the guide rail
+  const revealedEvents = useMemo(() => {
+    const upTo = Math.min(revealedStep + 1, steps.length);
+    return steps.slice(0, upTo)
+      .filter(s => s.securityEvent)
+      .map(s => s.securityEvent!);
+  }, [revealedStep, steps]);
+
+  // Auto-scroll guide rail to bottom when new events appear
+  const guideBottomRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (guideBottomRef.current && revealedEvents.length > 0) {
+      guideBottomRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [revealedEvents.length]);
+
   // Gate handling
   const isConsentGate = currentStepData?.gate === "consent" && currentStepData.securityMoment?.kind === "consent";
   const isCibaGate = currentStepData?.gate === "ciba" && currentStepData.securityMoment?.kind === "ciba";
@@ -202,9 +221,42 @@ export function ScenarioStep({
         <span className="text-sm text-muted-foreground">{config.description}</span>
       </div>
 
-      {/* Client shell -fixed height container */}
-      <div className="h-[600px] shrink-0">
-        {renderClientShell()}
+      {/* Client shell + guide rail */}
+      <div className="h-[600px] shrink-0 flex gap-0">
+        {/* Chat window */}
+        <div className="flex-1 min-w-0 relative">
+          {renderClientShell()}
+        </div>
+
+        {/* Guide rail */}
+        <div className="w-[312px] shrink-0 flex flex-col border-l">
+          <div className="px-3 py-2.5 border-b flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span className="text-xs font-semibold text-foreground/60">What's Happening</span>
+          </div>
+          <ScrollArea className="flex-1 px-2 py-2">
+            {revealedEvents.length === 0 ? (
+              <p className="text-[11px] text-foreground/25 text-center py-8 px-2">
+                Security events will appear here as the demo progresses.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                <AnimatePresence initial={false}>
+                  {revealedEvents.map((evt, i) => (
+                    <GuideBubble
+                      key={evt.id}
+                      event={evt}
+                      isLatest={i === revealedEvents.length - 1}
+                    />
+                  ))}
+                </AnimatePresence>
+                <div ref={guideBottomRef} />
+              </div>
+            )}
+          </ScrollArea>
+        </div>
       </div>
 
       {/* Consent overlay */}

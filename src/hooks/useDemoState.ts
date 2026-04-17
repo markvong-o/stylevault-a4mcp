@@ -15,7 +15,6 @@ export function useDemoState() {
   const setScenario = useCallback((id: string) => dispatch({ type: "SET_SCENARIO", payload: id }), [dispatch]);
   const setConversation = useCallback((id: string) => dispatch({ type: "SET_CONVERSATION", payload: id }), [dispatch]);
   const toggleOverlay = useCallback(() => dispatch({ type: "TOGGLE_OVERLAY" }), [dispatch]);
-  const setOverlayTab = useCallback((tab: "business" | "technical") => dispatch({ type: "SET_OVERLAY_TAB", payload: tab }), [dispatch]);
   const gateDecision = useCallback((gateId: string, decision: "approved" | "denied") => dispatch({ type: "GATE_DECISION", payload: { gateId, decision } }), [dispatch]);
   const addSecurityEvent = useCallback((event: SecurityEvent) => dispatch({ type: "ADD_SECURITY_EVENT", payload: event }), [dispatch]);
   const syncSecurityEvents = useCallback((events: SecurityEvent[]) => dispatch({ type: "SYNC_SECURITY_EVENTS", payload: events }), [dispatch]);
@@ -24,7 +23,7 @@ export function useDemoState() {
   return {
     ...state,
     nextStep, prevStep, goToAct, goToStep,
-    setScenario, setConversation, toggleOverlay, setOverlayTab,
+    setScenario, setConversation, toggleOverlay,
     gateDecision, addSecurityEvent, syncSecurityEvents, reset,
   };
 }

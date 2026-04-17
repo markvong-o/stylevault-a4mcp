@@ -7,7 +7,6 @@ const initialState: DemoState = {
   currentAct: 0,
   currentStep: 0,
   overlayOpen: false,
-  overlayTab: "business",
   activeScenario: "",
   activeConversation: "",
   conversationSteps: {},
@@ -31,8 +30,6 @@ function demoReducer(state: DemoState, action: DemoAction): DemoState {
       return { ...state, activeConversation: action.payload, currentStep: 0 };
     case "TOGGLE_OVERLAY":
       return { ...state, overlayOpen: !state.overlayOpen };
-    case "SET_OVERLAY_TAB":
-      return { ...state, overlayTab: action.payload };
     case "GATE_DECISION":
       return { ...state, gateDecisions: { ...state.gateDecisions, [action.payload.gateId]: action.payload.decision } };
     case "ADD_SECURITY_EVENT":
