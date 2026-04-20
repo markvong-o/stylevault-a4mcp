@@ -81,7 +81,7 @@ export function StyleVaultWidget({ onAddSecurityEvent }: StyleVaultWidgetProps) 
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-[164px] left-6 z-30 w-14 h-14 rounded-full bg-gradient-to-br from-[#4016A0] to-[#B49BFC] shadow-lg shadow-[#4016A0]/30 flex items-center justify-center text-white hover:scale-105 transition-transform cursor-pointer"
+        className="fixed bottom-6 left-6 z-30 w-14 h-14 rounded-full bg-gradient-to-br from-[#4016A0] to-[#B49BFC] shadow-lg shadow-[#4016A0]/30 flex items-center justify-center text-white hover:scale-105 transition-transform cursor-pointer"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -91,7 +91,7 @@ export function StyleVaultWidget({ onAddSecurityEvent }: StyleVaultWidgetProps) 
   }
 
   return (
-    <div className="client-stylevault fixed bottom-[164px] left-6 z-30 w-[648px] h-[580px] rounded-2xl bg-white border shadow-2xl flex flex-col overflow-hidden animate-slide-up scrollbar-hidden">
+    <div className="client-stylevault fixed bottom-6 left-6 z-30 w-[648px] max-w-[calc(100vw-3rem)] h-[580px] max-h-[calc(100vh-3rem)] rounded-2xl bg-white border shadow-2xl flex flex-col overflow-hidden animate-slide-up scrollbar-hidden">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b bg-[#4016A0]/5 shrink-0">
         <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#4016A0] to-[#B49BFC] flex items-center justify-center">
