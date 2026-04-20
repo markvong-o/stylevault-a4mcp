@@ -5,7 +5,6 @@ import {
   ReactFlow,
   Background,
   Controls,
-  MiniMap,
   type Node,
   type Edge,
 } from "@xyflow/react";
@@ -392,18 +391,6 @@ export function ChatGPTFlowDiagram() {
         >
           <Background gap={20} size={1} color="rgba(0,0,0,0.03)" />
           <Controls showInteractive={false} position="bottom-right" />
-          <MiniMap
-            nodeColor={(n) => {
-              if (n.type === "auth0") return COLORS.auth0;
-              if (n.type === "commerce") return COLORS.commerce;
-              if (n.type === "policy") return `${COLORS.auth0}40`;
-              if (n.id === "chatgpt") return COLORS.openai;
-              if (n.id === "mcp-server" || n.id === "mcp-tools") return COLORS.server;
-              return COLORS.user;
-            }}
-            maskColor="rgba(255,255,255,0.8)"
-            position="bottom-left"
-          />
         </ReactFlow>
       </div>
 
