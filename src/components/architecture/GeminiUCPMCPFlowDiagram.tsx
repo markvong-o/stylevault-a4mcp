@@ -27,54 +27,66 @@ const TOUCHPOINTS = [
     title: "Unauthenticated Request + Discovery (RFC 9728)",
     description:
       "Gemini connects to the /gemini-mcp endpoint. The server returns a 401 with RFC 9728 Protected Resource Metadata, pointing Gemini to Auth0 as the authorization server.",
+    auth0: false,
+    color: "#9C27B0",
   },
   {
     num: 2,
     title: "Authorization Server Discovery (RFC 8414)",
     description:
       "Gemini fetches Auth0's metadata endpoint to discover token, authorization, and JWKS endpoints. Standard OAuth discovery, same mechanism used by ChatGPT in the MCP flow.",
+    auth0: false,
+    color: "#9C27B0",
   },
   {
     num: 3,
     title: "OAuth 2.1 + PKCE Authentication",
     description:
       "Gemini redirects the user to Auth0 Universal Login. The user authenticates and consents to scopes (read:products, execute:purchase, read:orders). PKCE ensures the authorization code cannot be intercepted.",
+    auth0: true,
   },
   {
     num: 4,
     title: "Token Issuance with Bounded Authority",
     description:
       "Auth0 issues a scoped JWT with granted permissions and bounded authority claims (max_purchase_amount: $250). This same token format works regardless of whether the transport is MCP or REST.",
+    auth0: true,
   },
   {
     num: 5,
     title: "Authenticated MCP Session (JSON-RPC)",
     description:
       "Gemini sends JSON-RPC requests to /gemini-mcp with the Bearer token. UCP commerce operations (catalog, checkout, orders) are exposed as MCP tools rather than REST endpoints.",
+    auth0: false,
+    color: "#9C27B0",
   },
   {
     num: 6,
     title: "JWT + Scope Validation (JWKS)",
     description:
       "The MCP server validates the JWT signature against Auth0's JWKS endpoint on every tool call. Scope-based access control ensures Gemini can only invoke tools matching its granted permissions.",
+    auth0: true,
   },
   {
     num: 7,
     title: "On-Behalf-Of Token Exchange",
     description:
       "When a UCP tool requires downstream services (payments, shipping), the server exchanges the user's token for a narrower-scoped token via Auth0's OBO grant.",
+    auth0: true,
   },
   {
     num: 8,
     title: "Bounded Authority ($250 Cap)",
     description:
       "The ucp_checkout_create tool enforces the $250 bounded authority limit. Checkouts exceeding this limit transition to 'requires_escalation' state instead of 'ready_for_complete'.",
+    auth0: true,
   },
   {
     num: 9,
     title: "CIBA Escalation",
     description:
       "For escalated checkouts, the server triggers Auth0 CIBA to send a push notification to the buyer's device. The ucp_checkout_complete tool only succeeds after buyer approval.",
+    auth0: true,
   },
 ];
 
@@ -406,17 +418,40 @@ export function GeminiUCPMCPFlowDiagram() {
           <h3 className="text-sm font-semibold text-foreground/70">Auth0 Security Touchpoints</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {TOUCHPOINTS.map((tp) => (
-            <div key={tp.num} className="flex gap-3 p-3 rounded-lg bg-foreground/[0.015] border border-foreground/[0.04]">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-[11px] font-bold flex items-center justify-center">
-                {tp.num}
-              </span>
-              <div>
-                <p className="text-xs font-semibold text-foreground/65">{tp.title}</p>
-                <p className="text-[11px] text-foreground/40 leading-relaxed mt-0.5">{tp.description}</p>
+          {TOUCHPOINTS.map((tp) => {
+            const accent = tp.auth0 ? "#4016A0" : tp.color;
+            return (
+              <div
+                key={tp.num}
+                className="flex gap-3 p-3 rounded-lg border"
+                style={{
+                  backgroundColor: `${accent}08`,
+                  borderColor: `${accent}20`,
+                }}
+              >
+                <span
+                  className="shrink-0 w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center"
+                  style={{
+                    backgroundColor: `${accent}20`,
+                    color: accent,
+                  }}
+                >
+                  {tp.num}
+                </span>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-semibold text-foreground/65">{tp.title}</p>
+                    {tp.auth0 && (
+                      <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[#4016A0]/10 text-[#4016A0] border border-[#4016A0]/15">
+                        Auth0
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-foreground/40 leading-relaxed mt-0.5">{tp.description}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

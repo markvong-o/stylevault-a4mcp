@@ -27,54 +27,66 @@ const TOUCHPOINTS = [
     title: "UCP Manifest Discovery",
     description:
       "Gemini fetches /.well-known/ucp from StyleVault to discover capabilities, supported actions, and the authorization server URL (Auth0).",
+    auth0: false,
+    color: "#4285f4",
   },
   {
     num: 2,
     title: "Auth Server Discovery",
     description:
       "Gemini reads the authorization server URL from the UCP manifest and fetches Auth0's metadata endpoint to discover token, authorization, and JWKS endpoints.",
+    auth0: false,
+    color: "#4285f4",
   },
   {
     num: 3,
     title: "Identity Linking + Consent",
     description:
       "Gemini redirects the user to Auth0 Universal Login to link their Google identity to their StyleVault account. The user approves scopes for catalog access, checkout, and order management.",
+    auth0: true,
   },
   {
     num: 4,
     title: "Token Issuance",
     description:
       "Auth0 issues a scoped access token (JWT) back to Gemini. The token contains granted scopes, the linked identity, and bounded authority claims.",
+    auth0: true,
   },
   {
     num: 5,
     title: "Authenticated UCP API Calls",
     description:
       "Gemini sends REST API requests to StyleVault's UCP endpoints with the Bearer token. Every API call includes the token for validation.",
+    auth0: false,
+    color: "#4285f4",
   },
   {
     num: 6,
     title: "JWT + Scope Validation (JWKS)",
     description:
       "The merchant server validates the JWT signature against Auth0's JWKS endpoint and enforces scope-based access control on every UCP API call.",
+    auth0: true,
   },
   {
     num: 7,
     title: "OBO Token Exchange",
     description:
       "When a UCP action requires downstream services (payments, shipping), the merchant server exchanges the user's token with Auth0 for a narrower-scoped token via the OBO grant.",
+    auth0: true,
   },
   {
     num: 8,
     title: "Checkout State Machine",
     description:
       "UCP checkout sessions follow a merchant-enforced state machine: incomplete, requires_escalation, ready_for_complete, completed. When the total exceeds the merchant's $250 policy limit, the session transitions to requires_escalation instead of proceeding automatically.",
+    auth0: true,
   },
   {
     num: 9,
     title: "CIBA Escalation",
     description:
       "For checkout sessions exceeding bounded authority, the merchant server triggers Auth0 CIBA to send a push notification to the buyer's device. The session resumes only after explicit approval.",
+    auth0: true,
   },
 ];
 
@@ -405,17 +417,40 @@ export function GeminiFlowDiagram() {
           <h3 className="text-sm font-semibold text-foreground/70">Auth0 Security Touchpoints</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {TOUCHPOINTS.map((tp) => (
-            <div key={tp.num} className="flex gap-3 p-3 rounded-lg bg-foreground/[0.015] border border-foreground/[0.04]">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-[11px] font-bold flex items-center justify-center">
-                {tp.num}
-              </span>
-              <div>
-                <p className="text-xs font-semibold text-foreground/65">{tp.title}</p>
-                <p className="text-[11px] text-foreground/40 leading-relaxed mt-0.5">{tp.description}</p>
+          {TOUCHPOINTS.map((tp) => {
+            const accent = tp.auth0 ? "#4016A0" : tp.color;
+            return (
+              <div
+                key={tp.num}
+                className="flex gap-3 p-3 rounded-lg border"
+                style={{
+                  backgroundColor: `${accent}08`,
+                  borderColor: `${accent}20`,
+                }}
+              >
+                <span
+                  className="shrink-0 w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center"
+                  style={{
+                    backgroundColor: `${accent}20`,
+                    color: accent,
+                  }}
+                >
+                  {tp.num}
+                </span>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-semibold text-foreground/65">{tp.title}</p>
+                    {tp.auth0 && (
+                      <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[#4016A0]/10 text-[#4016A0] border border-[#4016A0]/15">
+                        Auth0
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-foreground/40 leading-relaxed mt-0.5">{tp.description}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
