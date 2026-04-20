@@ -69,7 +69,7 @@ const TOUCHPOINTS = [
     num: 8,
     title: "Checkout State Machine",
     description:
-      "UCP checkout sessions follow a state machine: created, requires_escalation, completed. The merchant enforces a $250 cap and transitions to escalation when exceeded.",
+      "UCP checkout sessions follow a merchant-enforced state machine: incomplete, requires_escalation, ready_for_complete, completed. When the total exceeds the merchant's $250 policy limit, the session transitions to requires_escalation instead of proceeding automatically.",
   },
   {
     num: 9,
@@ -193,7 +193,7 @@ function useDiagramData() {
           step: 8,
           title: "Checkout State Machine",
           subtitle: "$250 cap, escalation on exceed",
-          tooltip: "UCP checkouts move through defined states: created, requires_escalation, completed. If the total exceeds $250, the checkout pauses in an escalation state instead of going through automatically.",
+          tooltip: "UCP checkouts move through merchant-defined states: incomplete, requires_escalation, ready_for_complete, completed. If the total exceeds the merchant's $250 policy limit, the session pauses in requires_escalation instead of proceeding automatically. This is a server-side rule, not a token claim.",
         },
       },
       {
