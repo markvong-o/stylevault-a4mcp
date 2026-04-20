@@ -31,10 +31,20 @@ interface ToolInfo {
   requiredScope?: string;
 }
 
+interface ToolGroup {
+  id: string;
+  label: string;
+  subtitle: string;
+  endpoint: string;
+  transport: string;
+  accentColor: string;
+  tools: ToolInfo[];
+}
+
 interface ServerConfig {
   server: { name: string; version: string; protocolVersion: string };
   auth: { domain: string; audience: string; scopes: ScopeInfo[] };
-  tools: ToolInfo[];
+  toolGroups: ToolGroup[];
   sessions: { active: number; ids: string[] };
   boundedAuthority: {
     maxAgentPurchase: number;
@@ -75,7 +85,7 @@ function Section({
 /*  Tool row                                                           */
 /* ------------------------------------------------------------------ */
 
-function ToolRow({ tool }: { tool: ToolInfo }) {
+function ToolRow({ tool, accentColor }: { tool: ToolInfo; accentColor: string }) {
   const [open, setOpen] = useState(false);
   const hasSchema = Object.keys(tool.inputSchema).length > 0;
 
@@ -95,11 +105,18 @@ function ToolRow({ tool }: { tool: ToolInfo }) {
         )}
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
+          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
             <span className="text-[13px] font-semibold text-foreground/75">
               {tool.title}
             </span>
-            <code className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-foreground/[0.04] text-foreground/40 border border-foreground/[0.06]">
+            <code
+              className="text-[10px] font-mono px-1.5 py-0.5 rounded border"
+              style={{
+                backgroundColor: `${accentColor}08`,
+                borderColor: `${accentColor}20`,
+                color: `${accentColor}cc`,
+              }}
+            >
               {tool.name}
             </code>
             {tool.requiredScope && (
@@ -125,6 +142,79 @@ function ToolRow({ tool }: { tool: ToolInfo }) {
         </div>
       )}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Tabbed tool groups                                                 */
+/* ------------------------------------------------------------------ */
+
+function TabbedToolGroups({ groups }: { groups: ToolGroup[] }) {
+  const [activeTab, setActiveTab] = useState(0);
+  const active = groups[activeTab];
+
+  return (
+    <section className="rounded-xl border border-foreground/[0.06] bg-white">
+      {/* Tab bar */}
+      <div className="flex items-center border-b border-foreground/[0.05]">
+        {groups.map((group, i) => {
+          const selected = i === activeTab;
+          return (
+            <button
+              key={group.id}
+              onClick={() => setActiveTab(i)}
+              className={`relative flex items-center gap-2 px-5 py-3 text-[12px] font-medium transition-colors cursor-pointer ${
+                selected
+                  ? "text-foreground/75"
+                  : "text-foreground/35 hover:text-foreground/55 hover:bg-foreground/[0.02]"
+              }`}
+            >
+              <span
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: group.accentColor, opacity: selected ? 1 : 0.4 }}
+              />
+              {group.label}
+              <span className={`text-[10px] ${selected ? "text-foreground/40" : "text-foreground/25"}`}>
+                {group.tools.length}
+              </span>
+              {selected && (
+                <span
+                  className="absolute bottom-0 left-5 right-5 h-[2px] rounded-full"
+                  style={{ backgroundColor: group.accentColor }}
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Active tab meta */}
+      <div className="flex items-center justify-between px-5 py-3 border-b border-foreground/[0.04] bg-foreground/[0.01]">
+        <p className="text-[11px] text-foreground/40">
+          {active.subtitle}
+        </p>
+        <div className="flex items-center gap-3 text-[10px] text-foreground/30">
+          <code
+            className="font-mono px-1.5 py-0.5 rounded border"
+            style={{
+              backgroundColor: `${active.accentColor}08`,
+              borderColor: `${active.accentColor}18`,
+              color: `${active.accentColor}bb`,
+            }}
+          >
+            {active.endpoint}
+          </code>
+          <span>{active.transport}</span>
+        </div>
+      </div>
+
+      {/* Tool list */}
+      <div className="px-5 py-4 space-y-2">
+        {active.tools.map((tool) => (
+          <ToolRow key={tool.name} tool={tool} accentColor={active.accentColor} />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -237,13 +327,14 @@ export function ServerConfigView() {
     );
   }
 
-  const { server, auth, tools, boundedAuthority } = config;
+  const { server, auth, toolGroups, boundedAuthority } = config;
+  const totalTools = toolGroups.reduce((sum, g) => sum + g.tools.length, 0);
 
   return (
     <div className="min-h-full flex flex-col">
       {/* Header */}
       <header className="shrink-0 border-b border-foreground/[0.06] px-8 py-5">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-1.5 text-[12px] text-foreground/35 hover:text-foreground/55 transition-colors mb-3"
@@ -259,7 +350,7 @@ export function ServerConfigView() {
               </h1>
               <p className="text-xs text-foreground/35 mt-0.5">
                 {server.name} v{server.version} &middot; Protocol{" "}
-                {server.protocolVersion}
+                {server.protocolVersion} &middot; {totalTools} tools across {toolGroups.length} protocols
               </p>
             </div>
 
@@ -273,7 +364,7 @@ export function ServerConfigView() {
 
       {/* Content */}
       <main className="flex-1 px-8 py-6">
-        <div className="max-w-3xl mx-auto space-y-4">
+        <div className="max-w-4xl mx-auto space-y-4">
           {/* Server info */}
           <Section icon={Server} title="Server Info">
             <div className="grid grid-cols-3 gap-4">
@@ -294,14 +385,16 @@ export function ServerConfigView() {
             </div>
           </Section>
 
-          {/* Tools */}
-          <Section icon={Wrench} title={`Registered Tools (${tools.length})`}>
-            <div className="space-y-2">
-              {tools.map((tool) => (
-                <ToolRow key={tool.name} tool={tool} />
-              ))}
+          {/* Registered Tools (tabbed) */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2.5">
+              <Wrench size={16} className="text-foreground/35" strokeWidth={1.8} />
+              <h3 className="text-[13px] font-semibold text-foreground/65">
+                Registered Tools ({totalTools})
+              </h3>
             </div>
-          </Section>
+            <TabbedToolGroups groups={toolGroups} />
+          </div>
 
           {/* Auth & Scopes */}
           <Section icon={Shield} title="Authentication & Scopes">
@@ -399,7 +492,7 @@ export function ServerConfigView() {
 
       {/* Footer */}
       <footer className="shrink-0 border-t border-foreground/[0.06] px-8 py-4">
-        <div className="max-w-3xl mx-auto flex items-center gap-4 text-xs text-foreground/30">
+        <div className="max-w-4xl mx-auto flex items-center gap-4 text-xs text-foreground/30">
           <span>API: {port ? serverUrls(port).config : "discovering..."}</span>
           <span className="text-foreground/15">|</span>
           <span>WebSocket: {port ? serverUrls(port).ws : "discovering..."}</span>
