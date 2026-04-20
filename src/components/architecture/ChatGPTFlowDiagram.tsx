@@ -39,7 +39,7 @@ const TOUCHPOINTS = [
     num: 3,
     title: "OAuth 2.1 + PKCE Authentication",
     description:
-      "ChatGPT redirects the user to Auth0 Universal Login. The user authenticates and consents to scopes (read:products, execute:purchase, etc.).",
+      "ChatGPT redirects the user to Auth0 Universal Login. The user authenticates and consents to scopes (read:products, execute:purchase, etc.). OAuth 2.1 tightens the rules from 2.0: PKCE is now mandatory (it was optional), the implicit and password grants are removed entirely, and refresh tokens must be sender-constrained or rotated. The result is a smaller, harder-to-misuse spec that codifies what most secure implementations were already doing.",
   },
   {
     num: 4,
