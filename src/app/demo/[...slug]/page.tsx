@@ -3,6 +3,7 @@ export function generateStaticParams() {
   return [
     { slug: ["chatgpt"] },
     { slug: ["gemini"] },
+    { slug: ["gemini-mcp"] },
     { slug: ["closing"] },
   ];
 }

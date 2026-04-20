@@ -1,6 +1,6 @@
 // === Demo Navigation ===
 export interface DemoState {
-  currentAct: number;        // 0=intro, 1-3=scenarios, 4=closing
+  currentAct: number;        // 0=intro, 1-3=scenarios, 4=closing (5 total acts)
   currentStep: number;       // step within current act
   overlayOpen: boolean;
   activeScenario: string;    // scenario ID

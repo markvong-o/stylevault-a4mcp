@@ -19,7 +19,7 @@ export function StepIndicator({
   onNextStep, onPrevStep, onNextAct, onPrevAct,
   isLastConversation = true, isMultiChat = false,
 }: StepIndicatorProps) {
-  if (currentAct === 0 || currentAct === 3) return null;
+  if (currentAct === 0 || currentAct === 4) return null;
 
   const isLastStep = currentStep >= totalSteps - 1;
   const isFirstStep = currentStep === 0;

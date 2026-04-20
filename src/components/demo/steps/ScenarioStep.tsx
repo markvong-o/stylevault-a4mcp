@@ -4,6 +4,7 @@ import React, { useMemo, useEffect, useRef, useState } from "react";
 import type { ScenarioConfig, DemoStep, ChatMessage, SecurityEvent } from "@/lib/types";
 import { ClientBShell } from "@/components/clients/ClientBShell";
 import { ClientGeminiShell } from "@/components/clients/ClientGeminiShell";
+import { GEMINI_CONVERSATIONS, GEMINI_MCP_CONVERSATIONS } from "@/lib/scenario";
 import { ConsentScreen } from "@/components/security/ConsentScreen";
 import { CIBANotification } from "@/components/security/CIBANotification";
 import { UniversalLoginScreen } from "@/components/security/UniversalLoginScreen";
@@ -198,7 +199,17 @@ export function ScenarioStep({
   // Render the appropriate client shell
   const renderClientShell = () => {
     if (config.clientTheme === "enterprise") {
-      return <ClientGeminiShell messages={chatMessages} visibleCount={visibleCount} activeConversation={activeConversation} onConversationClick={onConversationClick} />;
+      const isUCPoverMCP = config.id === "scenario-d";
+      return (
+        <ClientGeminiShell
+          messages={chatMessages}
+          visibleCount={visibleCount}
+          activeConversation={activeConversation}
+          onConversationClick={onConversationClick}
+          conversations={isUCPoverMCP ? GEMINI_MCP_CONVERSATIONS : GEMINI_CONVERSATIONS}
+          transportLabel={isUCPoverMCP ? "UCP-over-MCP" : undefined}
+        />
+      );
     }
     return <ClientBShell messages={chatMessages} visibleCount={visibleCount} activeConversation={activeConversation} onConversationClick={onConversationClick} />;
   };

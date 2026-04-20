@@ -3,10 +3,12 @@
 import React, { useState } from "react";
 import { ChatGPTFlowDiagram } from "./ChatGPTFlowDiagram";
 import { GeminiFlowDiagram } from "./GeminiFlowDiagram";
+import { GeminiUCPMCPFlowDiagram } from "./GeminiUCPMCPFlowDiagram";
 
 const TABS = [
   { id: "chatgpt", label: "ChatGPT App (MCP + ACP)", color: "#10a37f" },
   { id: "gemini", label: "Gemini (UCP)", color: "#4285f4" },
+  { id: "gemini-ucp-mcp", label: "Gemini (UCP-over-MCP)", color: "#9C27B0" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -21,7 +23,7 @@ export function ArchitectureView() {
         <div className="max-w-5xl mx-auto">
           <h1 className="text-lg font-semibold text-foreground/80">Architecture</h1>
           <p className="text-xs text-foreground/35 mt-0.5">
-            Two integration paths to the same merchant. Auth0 secures both.
+            Three integration paths to the same merchant. Auth0 secures all of them.
           </p>
         </div>
       </header>
@@ -55,7 +57,13 @@ export function ArchitectureView() {
       {/* Diagram content */}
       <main className="flex-1 overflow-y-auto px-8 py-8">
         <div className="max-w-5xl mx-auto">
-          {activeTab === "chatgpt" ? <ChatGPTFlowDiagram /> : <GeminiFlowDiagram />}
+          {activeTab === "chatgpt" ? (
+            <ChatGPTFlowDiagram />
+          ) : activeTab === "gemini" ? (
+            <GeminiFlowDiagram />
+          ) : (
+            <GeminiUCPMCPFlowDiagram />
+          )}
         </div>
       </main>
     </div>

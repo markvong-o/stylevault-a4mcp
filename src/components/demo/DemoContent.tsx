@@ -3,7 +3,7 @@
 import React, { useCallback, useMemo } from "react";
 import { useDemoState } from "@/hooks/useDemoState";
 import { useUrlSync } from "@/hooks/useUrlSync";
-import { SCENARIO_CONFIGS, getConversationSteps, computeEffectiveSteps, CHATGPT_CONVERSATIONS, GEMINI_CONVERSATIONS } from "@/lib/scenario";
+import { SCENARIO_CONFIGS, getConversationSteps, computeEffectiveSteps, CHATGPT_CONVERSATIONS, GEMINI_CONVERSATIONS, GEMINI_MCP_CONVERSATIONS } from "@/lib/scenario";
 import { StepIndicator } from "./StepIndicator";
 import { SecurityOverlay } from "./SecurityOverlay";
 import { IntroStep } from "./steps/IntroStep";
@@ -27,6 +27,8 @@ export function DemoContent() {
       setConversation(CHATGPT_CONVERSATIONS[0].id);
     } else if (act === 2 && GEMINI_CONVERSATIONS.length > 0) {
       setConversation(GEMINI_CONVERSATIONS[0].id);
+    } else if (act === 3 && GEMINI_MCP_CONVERSATIONS.length > 0) {
+      setConversation(GEMINI_MCP_CONVERSATIONS[0].id);
     }
   }, [goToAct, setConversation]);
 
@@ -38,7 +40,7 @@ export function DemoContent() {
   }, [reset]);
 
   const handleNextAct = useCallback(() => {
-    if (currentAct >= 3) { handleReset(); return; }
+    if (currentAct >= 4) { handleReset(); return; }
     handleGoToAct(currentAct + 1);
   }, [currentAct, handleGoToAct, handleReset]);
 
@@ -52,11 +54,12 @@ export function DemoContent() {
 
   const chatgptConfig = SCENARIO_CONFIGS[0];
   const geminiConfig = SCENARIO_CONFIGS[1];
+  const geminiMcpConfig = SCENARIO_CONFIGS[2];
 
-  const activeConfig = currentAct === 2 ? geminiConfig : chatgptConfig;
+  const activeConfig = currentAct === 3 ? geminiMcpConfig : currentAct === 2 ? geminiConfig : chatgptConfig;
 
   const allEffectiveSteps = useMemo(() => {
-    if (currentAct !== 1 && currentAct !== 2) return [];
+    if (currentAct !== 1 && currentAct !== 2 && currentAct !== 3) return [];
     return computeEffectiveSteps(
       activeConfig.steps,
       gateDecisions,
@@ -105,6 +108,21 @@ export function DemoContent() {
           />
         );
       case 3:
+        return (
+          <ScenarioStep
+            config={geminiMcpConfig}
+            steps={effectiveSteps}
+            currentStep={currentStep}
+            onNextStep={nextStep}
+            onPrevStep={prevStep}
+            onGateDecision={gateDecision}
+            onSyncSecurityEvents={syncSecurityEvents}
+            onComplete={handleNextAct}
+            activeConversation={activeConversation || undefined}
+            onConversationClick={handleConversationClick}
+          />
+        );
+      case 4:
         return <ClosingStep securityEvents={securityEvents} onRestart={handleReset} />;
       default:
         return <IntroStep onStart={handleNextAct} />;
@@ -116,10 +134,10 @@ export function DemoContent() {
       {/* App area (header + main content) -- shifts when overlay opens */}
       <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${overlayOpen ? "mr-[384px]" : ""}`}>
         {/* Header */}
-        {currentAct > 0 && currentAct < 3 && (
+        {currentAct > 0 && currentAct < 4 && (
           <div className="w-full px-6 py-2.5 flex items-center justify-between border-b shrink-0">
             <span className="text-xs font-medium text-foreground/40">
-              {currentAct === 1 ? "ChatGPT App (MCP + ACP)" : "Gemini (UCP Commerce)"}
+              {currentAct === 1 ? "ChatGPT App (MCP + ACP)" : currentAct === 2 ? "Gemini (UCP Commerce)" : "Gemini (UCP-over-MCP)"}
             </span>
 
             <button
@@ -147,13 +165,15 @@ export function DemoContent() {
         onPrevStep={prevStep}
         onNextAct={handleNextAct}
         onPrevAct={handlePrevAct}
-        isMultiChat={currentAct === 1 || currentAct === 2}
+        isMultiChat={currentAct === 1 || currentAct === 2 || currentAct === 3}
         isLastConversation={
           currentAct === 1
             ? activeConversation === CHATGPT_CONVERSATIONS[CHATGPT_CONVERSATIONS.length - 1]?.id
             : currentAct === 2
               ? activeConversation === GEMINI_CONVERSATIONS[GEMINI_CONVERSATIONS.length - 1]?.id
-              : true
+              : currentAct === 3
+                ? activeConversation === GEMINI_MCP_CONVERSATIONS[GEMINI_MCP_CONVERSATIONS.length - 1]?.id
+                : true
         }
       />
 
@@ -163,7 +183,7 @@ export function DemoContent() {
       </div>
 
       {/* StyleVault AI floating widget -- positioned above footer */}
-      {(currentAct === 1 || currentAct === 2) && (
+      {(currentAct === 1 || currentAct === 2 || currentAct === 3) && (
         <StyleVaultWidget onAddSecurityEvent={addSecurityEvent} />
       )}
 

@@ -10,6 +10,7 @@ import { checkoutRoutes } from "./checkout.js";
 import { orderRoutes } from "./orders.js";
 import { authMiddleware } from "./auth.js";
 import { handleMcpPost, handleMcpGet, handleMcpDelete } from "./mcp/server.js";
+import { handleGeminiMcpPost, handleGeminiMcpGet, handleGeminiMcpDelete } from "./mcp/server-gemini-ucp.js";
 import { attachWebSocket } from "./mcp/ws.js";
 import { configRoutes } from "./routes/config.js";
 
@@ -45,6 +46,12 @@ expressApp.post("/mcp", handleMcpPost);
 expressApp.get("/mcp", handleMcpGet);
 expressApp.delete("/mcp", handleMcpDelete);
 
+// Gemini UCP-over-MCP endpoint (separate MCP server with UCP commerce tools)
+expressApp.use("/gemini-mcp", express.json());
+expressApp.post("/gemini-mcp", handleGeminiMcpPost);
+expressApp.get("/gemini-mcp", handleGeminiMcpGet);
+expressApp.delete("/gemini-mcp", handleGeminiMcpDelete);
+
 // ── Shared HTTP server ────────────────────────────────────────────
 // Route /mcp to Express, everything else to Hono.
 const preferredPort = parseInt(process.env.PORT ?? "3001", 10);
@@ -52,7 +59,7 @@ const MAX_PORT_RETRIES = 10;
 
 const server = http.createServer((req, res) => {
   const actualPort = (server.address() as { port: number })?.port ?? preferredPort;
-  if (req.url?.startsWith("/mcp")) {
+  if (req.url?.startsWith("/mcp") || req.url?.startsWith("/gemini-mcp")) {
     expressApp(req, res);
   } else {
     hono.fetch(
@@ -95,6 +102,7 @@ attachWebSocket(server);
 function printStartup(port: number) {
   console.log(`\nStyleVault Server running on port ${port}`);
   console.log(`\n  MCP endpoint:       http://localhost:${port}/mcp`);
+  console.log(`  Gemini UCP-over-MCP: http://localhost:${port}/gemini-mcp`);
   console.log(`  MCP metadata:       http://localhost:${port}/.well-known/oauth-protected-resource`);
   console.log(`  Log viewer WS:      ws://localhost:${port}/ws`);
   console.log(`  UCP discovery:      http://localhost:${port}/.well-known/ucp`);

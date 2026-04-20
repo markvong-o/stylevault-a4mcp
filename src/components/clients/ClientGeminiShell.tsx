@@ -12,9 +12,11 @@ interface ClientGeminiShellProps {
   inputValue?: string;
   activeConversation?: string;
   onConversationClick?: (id: string) => void;
+  conversations?: { id: string; label: string }[];
+  transportLabel?: string;
 }
 
-export function ClientGeminiShell({ messages, visibleCount, typing, inputValue, activeConversation, onConversationClick }: ClientGeminiShellProps) {
+export function ClientGeminiShell({ messages, visibleCount, typing, inputValue, activeConversation, onConversationClick, conversations, transportLabel }: ClientGeminiShellProps) {
   const [userTyping, setUserTyping] = useState({ typing: false, text: "", done: false });
   const handleUserTyping = useCallback((state: { typing: boolean; text: string; done: boolean }) => {
     setUserTyping(state);
@@ -46,7 +48,7 @@ export function ClientGeminiShell({ messages, visibleCount, typing, inputValue, 
         <div className="flex-1 overflow-y-auto px-2">
           <div className="px-3 py-2 text-xs font-medium text-[var(--client-muted)] uppercase tracking-wider">Today</div>
           <div className="space-y-1.5">
-            {GEMINI_CONVERSATIONS.map((conv) => {
+            {(conversations ?? GEMINI_CONVERSATIONS).map((conv) => {
               const isActive = activeConversation === conv.id;
               return (
                 <div
@@ -112,7 +114,7 @@ export function ClientGeminiShell({ messages, visibleCount, typing, inputValue, 
                 <span className="text-[7px] font-bold text-white">S</span>
               </div>
               <span className="text-xs font-medium text-[#4285f4]">StyleVault</span>
-              <span className="text-[9px] text-[#4285f4]/70 font-medium">UCP</span>
+              <span className="text-[9px] text-[#4285f4]/70 font-medium">{transportLabel ?? "UCP"}</span>
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
             </div>
           </div>

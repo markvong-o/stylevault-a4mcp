@@ -1200,6 +1200,393 @@ const CIBA_DENIAL_STEPS_C: Record<string, DemoStep> = {
 };
 
 // =============================================
+// SCENARIO D - Gemini UCP-over-MCP
+// =============================================
+
+const CONV_D1 = "Connect via MCP";
+const CONV_D2 = "Discover UCP capabilities";
+const CONV_D3 = "Find me a leather bag";
+const CONV_D4 = "Buy the Heritage Duffle";
+const CONV_D5 = "Buy the Meridian Watch";
+
+export const GEMINI_MCP_CONVERSATIONS = [
+  { id: CONV_D1, label: CONV_D1 },
+  { id: CONV_D2, label: CONV_D2 },
+  { id: CONV_D3, label: CONV_D3 },
+  { id: CONV_D4, label: CONV_D4 },
+  { id: CONV_D5, label: CONV_D5 },
+];
+
+const SCENARIO_D_STEPS: DemoStep[] = [
+  // === CHAT 1: "Connect via MCP" - RFC 9728 discovery + OAuth 2.1 + PKCE + consent ===
+  {
+    id: "d-0.1-401", type: "chat", conversation: CONV_D1,
+    chat: { id: "d-0.1", role: "system", content: "Connecting to StyleVault MCP endpoint...", timestamp: "12:00:00" },
+    securityEvent: {
+      id: "evt-d-401", timestamp: "12:00:00", type: "mcp-discovery", result: "granted", scenarioId: "scenario-d",
+      shortDescription: "Gemini received a 401 challenge from StyleVault's MCP endpoint, discovering Auth0 as the authorization server via RFC 9728.",
+      businessDescription: "Gemini received a 401 challenge from StyleVault's MCP endpoint, discovering Auth0 as the authorization server via RFC 9728. Standardized resource metadata means every AI agent discovers your auth requirements automatically, eliminating custom integration work.",
+      technicalDetail: {
+        protocol: "Protected Resource Metadata (RFC 9728) + JSON-RPC over Streamable HTTP",
+        request: "POST /gemini-mcp HTTP/1.1\nHost: mcp.stylevault.com\nContent-Type: application/json\n\n{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"initialize\",\n  \"id\": 1\n}",
+        response: "HTTP/1.1 401 Unauthorized\nWWW-Authenticate: Bearer resource_metadata=\"https://mcp.stylevault.com/.well-known/oauth-protected-resource\"\n\n// Protected Resource Metadata:\n{\n  \"resource\": \"https://mcp.stylevault.com/gemini-mcp\",\n  \"authorization_servers\": [\n    \"https://stylevault.us.auth0.com\"\n  ],\n  \"scopes_supported\": [\n    \"read:products\", \"execute:purchase\", \"read:orders\"\n  ],\n  \"bearer_methods_supported\": [\"header\"]\n}",
+      },
+    },
+  },
+  {
+    id: "d-0.2-as-discovery", type: "chat", conversation: CONV_D1,
+    chat: { id: "d-0.2", role: "system", content: "Discovering Auth0 authorization server metadata (RFC 8414)...", timestamp: "12:00:01" },
+    securityEvent: {
+      id: "evt-d-as-discovery", timestamp: "12:00:01", type: "mcp-discovery", result: "granted", scenarioId: "scenario-d",
+      shortDescription: "Gemini fetched Auth0's published configuration to discover token, authorization, and JWKS endpoints.",
+      businessDescription: "Gemini fetched Auth0's published configuration to discover token, authorization, and JWKS endpoints. The same Auth0 metadata serves ChatGPT's MCP flow and Gemini's UCP REST flow, so you configure once and every agent protocol benefits.",
+      technicalDetail: {
+        protocol: "Authorization Server Metadata (RFC 8414)",
+        request: "GET /.well-known/oauth-authorization-server HTTP/1.1\nHost: stylevault.us.auth0.com",
+        response: "HTTP/1.1 200 OK\n{\n  \"issuer\": \"https://stylevault.us.auth0.com\",\n  \"authorization_endpoint\": \"https://stylevault.us.auth0.com/authorize\",\n  \"token_endpoint\": \"https://stylevault.us.auth0.com/oauth/token\",\n  \"jwks_uri\": \"https://stylevault.us.auth0.com/.well-known/jwks.json\",\n  \"scopes_supported\": [\"read:products\", \"execute:purchase\", \"read:orders\"],\n  \"grant_types_supported\": [\"authorization_code\", \"refresh_token\", \"urn:openid:params:grant-type:ciba\"],\n  \"code_challenge_methods_supported\": [\"S256\"],\n  \"response_types_supported\": [\"code\"]\n}",
+      },
+    },
+  },
+  {
+    id: "d-1", type: "chat", conversation: CONV_D1,
+    chat: { id: "d-1", role: "system", content: "Auth0 authorization server discovered. Redirecting for authentication...", timestamp: "12:00:02" },
+  },
+  {
+    id: "d-1.5-login", type: "security-moment", gate: "login", gateId: "login-d", conversation: CONV_D1,
+    securityMoment: { kind: "login", method: "passkey" },
+    securityEvent: {
+      id: "evt-d-login", timestamp: "12:00:03", type: "token-issued", result: "granted", scenarioId: "scenario-d",
+      shortDescription: "Alex Morgan authenticated via passkey through Auth0 Universal Login.",
+      businessDescription: "Alex Morgan authenticated via passkey through Auth0 Universal Login. The same login experience works regardless of whether the agent uses MCP, UCP REST, or UCP-over-MCP as the transport layer.",
+      technicalDetail: {
+        protocol: "WebAuthn / Passkeys via Auth0 Universal Login (OAuth 2.1 + PKCE)",
+        request: "GET /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&client_id=cli_gemini_mcp_004\n&scope=read:products execute:purchase read:orders\n&code_challenge=Lk3xR9mT7vW2pN1jB0yQ4sF8hD5gE...\n&code_challenge_method=S256\n&prompt=login",
+        response: "HTTP/1.1 302 Found\nLocation: /callback?code=Zw9kLm4vRt8xYp\n\n// User authenticated via platform passkey (Face ID / Touch ID)",
+      },
+    },
+  },
+  {
+    id: "d-2-consent", type: "security-moment", gate: "consent", gateId: "consent-d", conversation: CONV_D1,
+    securityMoment: {
+      kind: "consent", clientName: "Gemini", productName: "StyleVault",
+      scopes: [
+        { scope: "read:products", label: "Browse and search products", icon: "search" },
+        { scope: "execute:purchase", label: "Place orders on your behalf", icon: "shopping-cart" },
+        { scope: "read:orders", label: "View your order history", icon: "package" },
+      ],
+      onApprove: "consent-d-approved", onDeny: "consent-d-denied",
+    },
+    securityEvent: {
+      id: "evt-d-consent", timestamp: "12:00:05", type: "consent", result: "granted", scenarioId: "scenario-d",
+      shortDescription: "Alex Morgan approved Gemini to access StyleVault's MCP tools with scoped permissions.",
+      businessDescription: "Alex Morgan approved Gemini to access StyleVault's MCP tools with scoped permissions. These scopes map directly to UCP commerce capabilities exposed as MCP tools, so the same permission model covers both transport layers.",
+      technicalDetail: {
+        protocol: "OAuth 2.1: Authorization Code + PKCE (Consent)",
+        request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=read:products execute:purchase read:orders\n&client_id=cli_gemini_mcp_004\n&code_challenge=Lk3xR9mT7vW2pN1jB0yQ4sF8hD5gE...\n&code_challenge_method=S256",
+        response: "HTTP/1.1 302 Found\nLocation: /callback?code=Zw9kLm4vRt8xYp",
+      },
+    },
+  },
+  {
+    id: "d-2.5-token", type: "chat", conversation: CONV_D1,
+    chat: { id: "d-2.5", role: "system", content: "Exchanging authorization code for tokens...", timestamp: "12:00:06" },
+    securityEvent: {
+      id: "evt-d-token", timestamp: "12:00:06", type: "token-issued", result: "granted", scenarioId: "scenario-d",
+      shortDescription: "Auth0 issued a scoped JWT with bounded authority claims for UCP-over-MCP access.",
+      businessDescription: "Auth0 issued a scoped JWT with bounded authority claims for UCP-over-MCP access. The token embeds a $250 per-transaction limit, allowing the MCP server to enforce spending caps without a separate policy lookup on every tool call.",
+      technicalDetail: {
+        protocol: "OAuth 2.1: Authorization Code Exchange + Bounded Authority",
+        request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=authorization_code\n&code=Zw9kLm4vRt8xYp\n&redirect_uri=https://gemini.google.com/callback\n&client_id=cli_gemini_mcp_004\n&code_verifier=qT3xR8mK7vW2pN1jB0yQ4sF6hD9gE",
+        response: "HTTP/1.1 200 OK\nContent-Type: application/json\n\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 3600,\n  \"scope\": \"read:products execute:purchase read:orders\"\n}",
+        tokenClaims: {
+          iss: "https://stylevault.us.auth0.com",
+          sub: "auth0|alex_morgan",
+          aud: "https://mcp.stylevault.com/gemini-mcp",
+          iat: 1718241600,
+          exp: 1718245200,
+          scope: "read:products execute:purchase read:orders",
+          azp: "cli_gemini_mcp_004",
+          max_purchase_amount: 250,
+          "auth_time": 1718241600,
+        },
+      },
+    },
+  },
+  {
+    id: "d-3-connected", type: "chat", conversation: CONV_D1,
+    chat: { id: "d-3", role: "system", content: "MCP session established. Connected to StyleVault UCP-over-MCP server.", timestamp: "12:00:08" },
+  },
+  {
+    id: "d-4-ask", type: "chat", conversation: CONV_D1,
+    chat: { id: "d-4", role: "user", content: "What can you do on StyleVault for me?", timestamp: "12:00:12" },
+  },
+  {
+    id: "d-5-response", type: "chat", conversation: CONV_D1,
+    chat: {
+      id: "d-5", role: "assistant",
+      content: "I've connected to StyleVault through MCP, with UCP commerce tools available as MCP tool calls. Here's what I can help with:\n\n- Discover the store's UCP manifest and capabilities\n- Search and browse their product catalog\n- Create checkout sessions and complete purchases\n- Track your existing orders\n\nAll requests flow through a single MCP endpoint as JSON-RPC calls, authenticated with your Auth0 token. What would you like to do?",
+      timestamp: "12:00:14",
+    },
+  },
+
+  // === CHAT 2: "Discover UCP capabilities" - ucp_discover tool call ===
+  {
+    id: "d-6-ask", type: "chat", conversation: CONV_D2,
+    chat: { id: "d-6", role: "user", content: "What kind of store is StyleVault? Show me their capabilities.", timestamp: "12:01:01" },
+  },
+  {
+    id: "d-7-discover", type: "chat", conversation: CONV_D2,
+    chat: {
+      id: "d-7", role: "assistant",
+      content: "StyleVault is a premium fashion retailer. Here's their UCP manifest, retrieved via the ucp_discover MCP tool:\n\n- Catalog: Full product search and browse\n- Checkout: State-machine checkout with escalation support\n- Orders: Order history and tracking\n- Auth: OAuth 2.0 via Auth0 (stylevault.us.auth0.com)\n- Bounded Authority: $250 per-transaction agent limit\n- Payment: Stripe and Google Pay\n\nThe manifest came through the MCP transport as a tool response, not a REST call to /.well-known/ucp. Same UCP semantics, different delivery mechanism.",
+      timestamp: "12:01:04",
+      toolCall: { name: "ucp_discover", status: "success", steps: [
+        { label: "MCP JSON-RPC", description: "tools/call: ucp_discover", status: "success" },
+        { label: "Auth0 JWT Validation", description: "Bearer token verified via JWKS", status: "success",
+          request: "// MCP server validates JWT on every tool call:\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\n\n// JWKS verification:\nGET /.well-known/jwks.json HTTP/1.1\nHost: stylevault.us.auth0.com",
+          response: "// Token signature valid.\n// Issuer: https://stylevault.us.auth0.com\n// Scopes: read:products execute:purchase read:orders\n// Bounded authority: max_purchase_amount=250",
+        },
+        { label: "UCP Manifest", description: "Commerce capabilities returned as tool response", status: "success",
+          request: "POST /gemini-mcp HTTP/1.1\nContent-Type: application/json\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nmcp-session-id: sess_d_001\n\n{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": { \"name\": \"ucp_discover\" },\n  \"id\": 2\n}",
+          response: "{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"content\": [{\n      \"type\": \"text\",\n      \"text\": \"{\\\"name\\\": \\\"StyleVault\\\", \\\"capabilities\\\": {\\\"catalog\\\": {...}, \\\"checkout\\\": {...}, \\\"orders\\\": {...}}, \\\"bounded_authority\\\": {\\\"max_agent_purchase\\\": 250}}\"\n    }]\n  },\n  \"id\": 2\n}",
+        },
+      ] },
+    },
+    securityEvent: {
+      id: "evt-d-discover", timestamp: "12:01:04", type: "ucp-discovery", result: "granted", scenarioId: "scenario-d",
+      shortDescription: "Gemini retrieved StyleVault's UCP manifest via the ucp_discover MCP tool, with JWT validated against Auth0's JWKS.",
+      businessDescription: "Gemini retrieved StyleVault's UCP manifest via the ucp_discover MCP tool, with JWT validated against Auth0's JWKS. Delivering the manifest through MCP means the agent discovers commerce capabilities using the same protocol it uses for tool calls, simplifying the integration path.",
+      technicalDetail: {
+        protocol: "MCP: tools/call (ucp_discover) + Auth0 JWKS Validation",
+        toolName: "ucp_discover",
+        tokenExchange: {
+          request: "// JWT validated on every MCP tool call:\n// 1. Verify signature against Auth0 JWKS\n// 2. Check token expiry and audience\n// 3. Extract scopes and bounded authority claims\n\nGET /.well-known/jwks.json HTTP/1.1\nHost: stylevault.us.auth0.com",
+          response: "// Signature valid. Claims extracted:\n// scope: read:products execute:purchase read:orders\n// max_purchase_amount: 250\n// aud: https://mcp.stylevault.com/gemini-mcp",
+        },
+        downstreamApi: {
+          request: "POST /gemini-mcp HTTP/1.1\nContent-Type: application/json\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nmcp-session-id: sess_d_001\n\n{\"jsonrpc\": \"2.0\", \"method\": \"tools/call\", \"params\": {\"name\": \"ucp_discover\"}, \"id\": 2}",
+          response: "{\"jsonrpc\": \"2.0\", \"result\": {\"content\": [{\"type\": \"text\", \"text\": \"{...manifest...}\"}]}, \"id\": 2}",
+        },
+      },
+    },
+  },
+
+  // === CHAT 3: "Find me a leather bag" - ucp_catalog_search tool call ===
+  {
+    id: "d-8-ask", type: "chat", conversation: CONV_D3,
+    chat: { id: "d-8", role: "user", content: "I'm looking for a leather bag under $300. What does StyleVault have?", timestamp: "12:02:01" },
+  },
+  {
+    id: "d-9-search", type: "chat", conversation: CONV_D3,
+    chat: {
+      id: "d-9", role: "assistant",
+      content: "I found 3 leather bags under $300 on StyleVault:\n\n1. Heritage Duffle - $269.00 (4.7 stars, 93 reviews)\n2. City Tote - $199.00 (4.5 stars, 156 reviews)\n3. Compact Travel Satchel - $149.00 (4.8 stars, 72 reviews)\n\nThe Heritage Duffle is the top-rated for travel. Want me to start a checkout?",
+      timestamp: "12:02:04",
+      toolCall: { name: "ucp_catalog_search", status: "success", steps: [
+        { label: "MCP JSON-RPC", description: "tools/call: ucp_catalog_search", status: "success" },
+        { label: "Auth0 JWT + Scope Check", description: "read:products scope verified", status: "success",
+          request: "// MCP server checks required scope for this tool:\n// ucp_catalog_search requires: read:products\n\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\n// Token scope: read:products execute:purchase read:orders",
+          response: "// Scope check passed: read:products is present.\n// Tool execution authorized.",
+        },
+        { label: "Catalog Query", description: "Products matching query returned via MCP", status: "success",
+          request: "POST /gemini-mcp HTTP/1.1\nContent-Type: application/json\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nmcp-session-id: sess_d_001\n\n{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"ucp_catalog_search\",\n    \"arguments\": { \"query\": \"leather bag\", \"max_price\": 300 }\n  },\n  \"id\": 3\n}",
+          response: "{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"content\": [{\n      \"type\": \"text\",\n      \"text\": \"{\\\"results\\\": [{\\\"name\\\": \\\"Heritage Duffle\\\", \\\"price\\\": 269.00}, {\\\"name\\\": \\\"City Tote\\\", \\\"price\\\": 199.00}, {\\\"name\\\": \\\"Compact Travel Satchel\\\", \\\"price\\\": 149.00}]}\"\n    }]\n  },\n  \"id\": 3\n}",
+        },
+      ] },
+    },
+    securityEvent: {
+      id: "evt-d-search", timestamp: "12:02:04", type: "tool-call", result: "granted", scenarioId: "scenario-d",
+      shortDescription: "Gemini searched StyleVault's catalog via the ucp_catalog_search MCP tool, with read:products scope validated.",
+      businessDescription: "Gemini searched StyleVault's catalog via the ucp_catalog_search MCP tool, with read:products scope validated. Scope-based access control on MCP tools gives you the same granular permissions as REST API endpoints, without per-endpoint routing.",
+      technicalDetail: {
+        protocol: "MCP: tools/call (ucp_catalog_search) + OAuth 2.1 Scope Enforcement",
+        toolName: "ucp_catalog_search",
+        tokenExchange: {
+          request: "// Scope enforcement on MCP tool calls:\n// Each UCP tool maps to one or more OAuth scopes.\n// ucp_catalog_search -> read:products\n// ucp_checkout_create -> execute:purchase\n// ucp_get_orders -> read:orders\n\nRequired scope: read:products\nToken scope: read:products execute:purchase read:orders",
+          response: "// Scope check: PASS\n// Tool authorized for execution.",
+        },
+        downstreamApi: {
+          request: "POST /gemini-mcp HTTP/1.1\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nmcp-session-id: sess_d_001\n\n{\"jsonrpc\": \"2.0\", \"method\": \"tools/call\", \"params\": {\"name\": \"ucp_catalog_search\", \"arguments\": {\"query\": \"leather bag\", \"max_price\": 300}}, \"id\": 3}",
+          response: "{\"jsonrpc\": \"2.0\", \"result\": {\"content\": [{\"type\": \"text\", \"text\": \"{\\\"results\\\": [...]}\"}]}, \"id\": 3}",
+        },
+      },
+    },
+  },
+
+  // === CHAT 4: "Buy the Heritage Duffle" - checkout + escalation + CIBA ===
+  {
+    id: "d-10-ask", type: "chat", conversation: CONV_D4,
+    chat: { id: "d-10", role: "user", content: "Buy me the Heritage Duffle from StyleVault.", timestamp: "12:03:01" },
+  },
+  {
+    id: "d-11-checkout", type: "chat", conversation: CONV_D4,
+    chat: {
+      id: "d-11", role: "assistant",
+      content: "I'm creating a checkout session for the Heritage Duffle ($269.00). Since this exceeds the $250 automated purchase limit embedded in your token, the checkout requires your approval before I can complete it.",
+      timestamp: "12:03:03",
+      toolCall: { name: "ucp_checkout_create", status: "success", steps: [
+        { label: "MCP JSON-RPC", description: "tools/call: ucp_checkout_create", status: "success" },
+        { label: "Auth0 JWT + Bounded Authority", description: "$269 > $250 max_purchase_amount claim", status: "success",
+          request: "// MCP server reads bounded authority from JWT:\n// max_purchase_amount: 250\n// Checkout total: $269.00\n// $269 > $250 -> requires_escalation\n\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\n// Token claim: max_purchase_amount=250",
+          response: "// Bounded authority exceeded.\n// Checkout session created with status:\n// requires_escalation\n// continue_url provided for buyer approval.",
+        },
+        { label: "Checkout State Machine", description: "incomplete -> requires_escalation", status: "success",
+          request: "POST /gemini-mcp HTTP/1.1\nContent-Type: application/json\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nmcp-session-id: sess_d_001\n\n{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"ucp_checkout_create\",\n    \"arguments\": {\n      \"product_id\": \"bag_heritage_001\",\n      \"quantity\": 1\n    }\n  },\n  \"id\": 4\n}",
+          response: "{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"content\": [{\n      \"type\": \"text\",\n      \"text\": \"{\\\"session_id\\\": \\\"mcp_sess_8j3n2\\\", \\\"status\\\": \\\"requires_escalation\\\", \\\"total\\\": 269.00, \\\"continue_url\\\": \\\"https://stylevault.com/ucp/escalate/8j3n2\\\", \\\"state_transitions\\\": [\\\"incomplete -> requires_escalation\\\"]}\"\n    }]\n  },\n  \"id\": 4\n}",
+        },
+      ] },
+    },
+    securityEvent: {
+      id: "evt-d-checkout", timestamp: "12:03:03", type: "ucp-checkout-state", result: "pending", scenarioId: "scenario-d",
+      shortDescription: "Gemini created a checkout for $269 via MCP, triggering escalation past the $250 bounded authority in the JWT.",
+      businessDescription: "Gemini created a checkout for $269 via MCP, triggering escalation past the $250 bounded authority in the JWT. The bounded authority limit lives in the token itself, so the MCP server enforces spending caps without external policy lookups on every transaction.",
+      technicalDetail: {
+        protocol: "MCP: tools/call (ucp_checkout_create) + JWT Bounded Authority",
+        request: "POST /gemini-mcp HTTP/1.1\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nmcp-session-id: sess_d_001\n\n{\"jsonrpc\": \"2.0\", \"method\": \"tools/call\", \"params\": {\"name\": \"ucp_checkout_create\", \"arguments\": {\"product_id\": \"bag_heritage_001\", \"quantity\": 1}}, \"id\": 4}",
+        response: "{\"jsonrpc\": \"2.0\", \"result\": {\"content\": [{\"type\": \"text\", \"text\": \"{\\\"status\\\": \\\"requires_escalation\\\", \\\"total\\\": 269.00, \\\"continue_url\\\": \\\"https://stylevault.com/ucp/escalate/8j3n2\\\"}\"}]}, \"id\": 4}",
+        tokenClaims: { max_purchase_amount: 250, enforcement: "JWT claim (server-side)" },
+      },
+    },
+  },
+  {
+    id: "d-12-ciba", type: "security-moment", gate: "ciba", gateId: "ciba-d", conversation: CONV_D4,
+    securityMoment: {
+      kind: "ciba",
+      action: "Approve MCP checkout: Heritage Duffle ($269.00)",
+      description: "The MCP server triggers Auth0 CIBA for buyer approval. This is the same escalation flow as the UCP REST path, but initiated from within an MCP tool call.",
+      approverName: "Alex Morgan",
+    },
+    securityEvent: {
+      id: "evt-d-ciba", timestamp: "12:03:05", type: "ciba", result: "approved", scenarioId: "scenario-d",
+      shortDescription: "Alex Morgan approved the $269 Heritage Duffle purchase via Auth0 CIBA, triggered from the MCP tool call.",
+      businessDescription: "Alex Morgan approved the $269 Heritage Duffle purchase via Auth0 CIBA, triggered from the MCP tool call. Auth0 CIBA works identically whether triggered from MCP tools, UCP REST endpoints, or any other backend, giving you one approval flow across all channels.",
+      technicalDetail: {
+        protocol: "Auth0 CIBA: Buyer Approval (triggered from MCP tool)",
+        request: "// MCP server triggers CIBA via Auth0:\nPOST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"MCP Purchase: Heritage Duffle ($269.00) via Gemini\",\n  \"scope\": \"openid\"\n}",
+        response: "HTTP/1.1 200 OK\n{\n  \"auth_req_id\": \"ciba-req-d01\",\n  \"expires_in\": 300,\n  \"interval\": 5\n}",
+      },
+    },
+  },
+  {
+    id: "d-13-complete", type: "chat", conversation: CONV_D4,
+    chat: {
+      id: "d-13", role: "assistant",
+      content: "Your purchase is confirmed! Here's the summary:\n\n- Heritage Duffle - $269.00\n- Order ID: mcp_ord_4x9k2\n- Status: Confirmed\n- Estimated delivery: 3-5 business days\n\nThe checkout was completed through MCP with Auth0 verifying your approval via CIBA. You'll receive a confirmation email at alex@example.com.",
+      timestamp: "12:03:12",
+      toolCall: { name: "ucp_checkout_complete", status: "success", steps: [
+        { label: "MCP JSON-RPC", description: "tools/call: ucp_checkout_complete", status: "success" },
+        { label: "Auth0 CIBA Verification", description: "Buyer approval confirmed, escalation token issued", status: "success",
+          request: "// MCP server polls Auth0 CIBA for approval:\nGET /oauth/token?auth_req_id=ciba-req-d01 HTTP/1.1\nHost: stylevault.us.auth0.com",
+          response: "HTTP/1.1 200 OK\n{\n  \"escalation_token\": \"esc_8j3n2_approved\"\n}",
+        },
+        { label: "Checkout Completion", description: "requires_escalation -> completed", status: "success",
+          request: "POST /gemini-mcp HTTP/1.1\nContent-Type: application/json\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nmcp-session-id: sess_d_001\n\n{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"ucp_checkout_complete\",\n    \"arguments\": {\n      \"session_id\": \"mcp_sess_8j3n2\",\n      \"escalation_token\": \"esc_8j3n2_approved\"\n    }\n  },\n  \"id\": 5\n}",
+          response: "{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"content\": [{\n      \"type\": \"text\",\n      \"text\": \"{\\\"session_id\\\": \\\"mcp_sess_8j3n2\\\", \\\"status\\\": \\\"completed\\\", \\\"order_id\\\": \\\"mcp_ord_4x9k2\\\", \\\"total\\\": 269.00}\"\n    }]\n  },\n  \"id\": 5\n}",
+        },
+      ] },
+    },
+    securityEvent: {
+      id: "evt-d-purchase", timestamp: "12:03:12", type: "ucp-payment-auth", result: "granted", scenarioId: "scenario-d",
+      shortDescription: "Gemini completed the Heritage Duffle purchase via MCP after Alex Morgan's CIBA approval.",
+      businessDescription: "Gemini completed the Heritage Duffle purchase via MCP after Alex Morgan's CIBA approval. The full audit trail shows the MCP tool call, the bounded authority check, the CIBA approval, and the state machine transition, all flowing through Auth0.",
+      technicalDetail: {
+        protocol: "MCP: tools/call (ucp_checkout_complete) + Auth0 CIBA Escalation",
+        toolName: "ucp_checkout_complete",
+        tokenExchange: {
+          request: "// CIBA approval verified. Escalation token attached:\nX-UCP-Escalation-Token: esc_8j3n2_approved",
+          response: "// Escalation token validated.\n// Checkout state: requires_escalation -> completed",
+        },
+        downstreamApi: {
+          request: "POST /gemini-mcp HTTP/1.1\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nmcp-session-id: sess_d_001\n\n{\"jsonrpc\": \"2.0\", \"method\": \"tools/call\", \"params\": {\"name\": \"ucp_checkout_complete\", \"arguments\": {\"session_id\": \"mcp_sess_8j3n2\", \"escalation_token\": \"esc_8j3n2_approved\"}}, \"id\": 5}",
+          response: "{\"jsonrpc\": \"2.0\", \"result\": {\"content\": [{\"type\": \"text\", \"text\": \"{\\\"status\\\": \\\"completed\\\", \\\"order_id\\\": \\\"mcp_ord_4x9k2\\\"}\"}]}, \"id\": 5}",
+        },
+      },
+    },
+  },
+
+  // === CHAT 5: "Buy the Meridian Watch" - bounded authority hard denial ===
+  {
+    id: "d-14-ask", type: "chat", conversation: CONV_D5,
+    chat: { id: "d-14", role: "user", content: "I also want the Meridian Automatic Watch from my wishlist. Can you buy that too?", timestamp: "12:04:01" },
+  },
+  {
+    id: "d-15-denied", type: "chat", conversation: CONV_D5,
+    chat: {
+      id: "d-15", role: "assistant",
+      content: "I can't complete that purchase. The Meridian Automatic Watch is $2,400.00, which exceeds the $250 bounded authority limit in my access token. Even with buyer escalation, this amount falls outside the range configured for AI agent transactions.\n\nFor premium purchases like this, you can buy directly on StyleVault where additional identity verification protects high-value transactions.",
+      timestamp: "12:04:03",
+      toolCall: { name: "ucp_checkout_create", status: "denied", detail: "bounded_authority_exceeded: $250 JWT claim", steps: [
+        { label: "MCP JSON-RPC", description: "tools/call: ucp_checkout_create", status: "success" },
+        { label: "Auth0 JWT + Bounded Authority", description: "$2,400 exceeds $250 max_purchase_amount claim", status: "denied",
+          request: "// MCP server reads bounded authority from JWT:\n// max_purchase_amount: 250\n// Checkout total: $2,400.00\n// $2,400 >> $250 -> hard denial (unrecoverable)\n\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...",
+          response: "// Bounded authority hard denial.\n// Amount exceeds configurable ceiling.\n// No escalation path available.",
+        },
+        { label: "Checkout Rejected", description: "Rejected: $2,400 exceeds $250 bounded authority", status: "denied",
+          request: "POST /gemini-mcp HTTP/1.1\nContent-Type: application/json\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nmcp-session-id: sess_d_001\n\n{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"ucp_checkout_create\",\n    \"arguments\": {\n      \"product_id\": \"watch_meridian_001\",\n      \"quantity\": 1\n    }\n  },\n  \"id\": 6\n}",
+          response: "{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"content\": [{\n      \"type\": \"text\",\n      \"text\": \"{\\\"error\\\": \\\"bounded_authority_exceeded\\\", \\\"error_description\\\": \\\"$2,400.00 exceeds bounded authority limit of $250.00\\\", \\\"messages\\\": [{\\\"severity\\\": \\\"unrecoverable\\\", \\\"text\\\": \\\"Transaction amount exceeds agent transaction limit.\\\"}]}\"\n    }],\n    \"isError\": true\n  },\n  \"id\": 6\n}",
+        },
+      ] },
+    },
+    securityEvent: {
+      id: "evt-d-bounded", timestamp: "12:04:03", type: "bounded-authority", result: "denied", scenarioId: "scenario-d",
+      shortDescription: "The MCP server blocked a $2,400 watch purchase that exceeded the $250 bounded authority in the JWT.",
+      businessDescription: "The MCP server blocked a $2,400 watch purchase that exceeded the $250 bounded authority in the JWT. Because the spending limit is embedded in the token, enforcement happens at the MCP tool layer without any external policy lookup, reducing latency and eliminating a potential point of failure.",
+      technicalDetail: {
+        protocol: "MCP: tools/call (ucp_checkout_create) + JWT Bounded Authority Denial",
+        request: "POST /gemini-mcp HTTP/1.1\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nmcp-session-id: sess_d_001\n\n{\"jsonrpc\": \"2.0\", \"method\": \"tools/call\", \"params\": {\"name\": \"ucp_checkout_create\", \"arguments\": {\"product_id\": \"watch_meridian_001\", \"quantity\": 1}}, \"id\": 6}",
+        response: "{\"jsonrpc\": \"2.0\", \"result\": {\"content\": [{\"type\": \"text\", \"text\": \"{\\\"error\\\": \\\"bounded_authority_exceeded\\\", \\\"error_description\\\": \\\"$2,400.00 exceeds bounded authority limit of $250.00\\\"}\"}], \"isError\": true}, \"id\": 6}",
+        tokenClaims: { max_purchase_amount: 250, enforcement: "JWT claim (server-side)" },
+        tokenExchange: {
+          request: "// Bounded authority checked from JWT claims:\n// max_purchase_amount: 250\n// Requested: $2,400.00\n// Result: HARD DENIAL (no escalation path)",
+          response: "// $2,400.00 > $250.00 = DENIED\n// This is a hard cap, not soft escalation.\n// Agent cannot proceed even with buyer approval.",
+        },
+        downstreamApi: {
+          request: "POST /gemini-mcp HTTP/1.1\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nmcp-session-id: sess_d_001\n\n{\"jsonrpc\": \"2.0\", \"method\": \"tools/call\", \"params\": {\"name\": \"ucp_checkout_create\", \"arguments\": {\"product_id\": \"watch_meridian_001\"}}, \"id\": 6}",
+          response: "{\"jsonrpc\": \"2.0\", \"result\": {\"content\": [{\"type\": \"text\", \"text\": \"{\\\"error\\\": \\\"bounded_authority_exceeded\\\"}\"}], \"isError\": true}, \"id\": 6}",
+        },
+      },
+    },
+  },
+];
+
+const CONSENT_DENIED_STEPS_D: DemoStep[] = [
+  {
+    id: "consent-denied-d", type: "chat", conversation: CONV_D1,
+    chat: { id: "cd-d", role: "system", content: "Connection declined. Gemini did not receive any access to StyleVault's MCP tools.", timestamp: "12:00:07" },
+    securityEvent: {
+      id: "evt-consent-denied-d", timestamp: "12:00:07", type: "consent", result: "denied", scenarioId: "scenario-d",
+      shortDescription: "Alex Morgan denied Gemini MCP access. No token was issued.",
+      businessDescription: "Alex Morgan denied Gemini MCP access. No token was issued. Rejection is immediate and complete, with no partial permissions or residual session state on the MCP endpoint.",
+      technicalDetail: { protocol: "OAuth 2.1", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"access_denied\"\n}" },
+    },
+  },
+];
+
+const CIBA_DENIAL_STEPS_D: Record<string, DemoStep> = {
+  "ciba-d": {
+    id: "ciba-denied-d", type: "chat", conversation: CONV_D4,
+    chat: {
+      id: "ciba-d-d", role: "assistant",
+      content: "The purchase wasn't completed. You declined the approval request, so the MCP checkout session has been canceled. No charges were made. Let me know if you'd like to try again or look at other items.",
+      timestamp: "12:03:08",
+      toolCall: { name: "ucp_checkout_complete", status: "denied", detail: "ciba_denied", steps: [
+        { label: "MCP JSON-RPC", description: "tools/call: ucp_checkout_complete", status: "success" },
+        { label: "Auth0 CIBA", description: "User denied the authorization request", status: "denied",
+          request: "// MCP server triggered CIBA via Auth0:\nPOST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"MCP Purchase: Heritage Duffle ($269.00)\",\n  \"scope\": \"openid\"\n}",
+          response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"authorization_declined\"\n}",
+        },
+      ] },
+    },
+    securityEvent: {
+      id: "evt-ciba-denied-d", timestamp: "12:03:08", type: "ciba", result: "denied", scenarioId: "scenario-d",
+      shortDescription: "Alex Morgan denied the approval. The MCP checkout session was canceled.",
+      businessDescription: "Alex Morgan denied the approval. The MCP checkout session was canceled. Denied transactions are logged alongside approvals, providing a complete audit trail for compliance.",
+      technicalDetail: { protocol: "Auth0 CIBA (MCP Tool Escalation)", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"authorization_declined\"\n}" },
+    },
+  },
+};
+
+// =============================================
 // SCENARIO_CONFIGS - exported for DemoContent
 // =============================================
 
@@ -1227,5 +1614,17 @@ export const SCENARIO_CONFIGS: ScenarioConfig[] = [
     steps: SCENARIO_C_STEPS,
     cibaDenialSteps: CIBA_DENIAL_STEPS_C,
     consentDeniedSteps: CONSENT_DENIED_STEPS_C,
+  },
+  {
+    id: "scenario-d",
+    label: "Gemini (UCP-over-MCP)",
+    clientName: "Gemini",
+    clientType: "3rd-party",
+    clientTheme: "enterprise",
+    description: "3rd-party AI assistant using UCP commerce semantics over MCP transport. Same checkout state machine, delivered as MCP tool calls.",
+    scopes: ["read:products", "execute:purchase", "read:orders"],
+    steps: SCENARIO_D_STEPS,
+    cibaDenialSteps: CIBA_DENIAL_STEPS_D,
+    consentDeniedSteps: CONSENT_DENIED_STEPS_D,
   },
 ];
