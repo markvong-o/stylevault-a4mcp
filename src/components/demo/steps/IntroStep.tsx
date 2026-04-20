@@ -56,11 +56,11 @@ export function IntroStep({ onStart: _onStart }: IntroStepProps) {
         {/* Supporting copy */}
         <div className={`max-w-xl text-center transition-all duration-1000 delay-300 ${phase >= 3 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
           <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-            By securing its agentic endpoints with Auth0, StyleVault shipped two integration paths in parallel: a ChatGPT App powered by MCP, ready for OpenAI&apos;s Agentic Commerce Protocol (ACP) and Instant Checkout, and a Google/Gemini integration via the Universal Commerce Protocol (UCP). Two protocols, one security layer. Faster time to market. Lower operational costs.
+            By securing its agentic endpoints with Auth0, StyleVault shipped two integration paths in parallel: a ChatGPT App powered by MCP, ready for OpenAI&apos;s Agentic Commerce Protocol (ACP) and Instant Checkout, and a Google/Gemini integration via the Universal Commerce Protocol (UCP). One security layer across both protocols, cutting time to market while keeping operational costs low.
           </p>
           <p className="text-base text-foreground/50 mt-5">
-            Every connection. Every action. Every limit.<br />
-            <span className="text-primary font-semibold">Secured by Auth0.</span>
+            From identity to consent to spending limits,{" "}
+            <span className="text-primary font-semibold">Auth0 secures every interaction.</span>
           </p>
         </div>
 

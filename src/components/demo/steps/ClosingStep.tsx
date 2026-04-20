@@ -145,7 +145,7 @@ export function ClosingStep({ securityEvents, onRestart }: ClosingStepProps) {
       {/* Closing copy + restart */}
       <div className={`relative z-10 max-w-2xl text-center transition-all duration-700 ${revealed >= 4 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
         <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-          Auth0 gave StyleVault a single security layer across two parallel integration paths. MCP powers the ChatGPT App and lays the foundation for OpenAI&apos;s Agentic Commerce Protocol (ACP) and Instant Checkout. UCP powers the Gemini commerce integration with its own discovery, checkout state machine, and escalation flow. Two protocols, same Auth0 identity, consent, and authorization guarantees. One security platform. Faster time to market. Lower operational costs.
+          Auth0 gave StyleVault a single security layer across two parallel integration paths. MCP powers the ChatGPT App and lays the foundation for OpenAI&apos;s Agentic Commerce Protocol (ACP) and Instant Checkout, while UCP powers the Gemini commerce integration with its own discovery, checkout state machine, and escalation flow. Both protocols share the same Auth0 identity, consent, and authorization guarantees, letting StyleVault reach more AI ecosystems without duplicating security infrastructure.
         </p>
         <button
           onClick={onRestart}
