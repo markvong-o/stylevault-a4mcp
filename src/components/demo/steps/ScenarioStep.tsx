@@ -222,27 +222,29 @@ export function ScenarioStep({
       </div>
 
       {/* Client shell + guide rail */}
-      <div className="h-[600px] shrink-0 flex gap-0">
+      <div className="flex-1 min-h-0 flex gap-0 pb-16">
         {/* Chat window */}
         <div className="flex-1 min-w-0 relative">
           {renderClientShell()}
         </div>
 
         {/* Guide rail */}
-        <div className="w-[312px] shrink-0 flex flex-col border-l">
+        <div className="w-[430px] shrink-0 flex flex-col border-l">
           <div className="px-3 py-2.5 border-b flex items-center gap-1.5">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
-            <span className="text-xs font-semibold text-foreground/60">What's Happening</span>
+            <span className="text-xs font-semibold tracking-wide uppercase text-foreground/40">What&apos;s Happening</span>
           </div>
           <ScrollArea className="flex-1 px-2 py-2">
             {revealedEvents.length === 0 ? (
-              <p className="text-[11px] text-foreground/25 text-center py-8 px-2">
+              <p className="text-[11px] text-foreground/20 text-center py-8 px-2">
                 Security events will appear here as the demo progresses.
               </p>
             ) : (
-              <div className="space-y-2">
+              <div className="relative space-y-2">
+                {/* Timeline vertical line */}
+                <div className="absolute left-[4px] top-3 bottom-3 w-px bg-black/[0.08]" />
                 <AnimatePresence initial={false}>
                   {revealedEvents.map((evt, i) => (
                     <GuideBubble

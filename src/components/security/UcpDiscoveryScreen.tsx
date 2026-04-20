@@ -38,8 +38,15 @@ export function UcpDiscoveryScreen({ merchantName, capabilities, manifestUrl, on
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in">
-      <div className="w-[520px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-slide-up">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-sm animate-in">
+      {/* Security checkpoint label */}
+      <div className="mb-4 flex items-center gap-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-glow" />
+        <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-primary/70">Security Checkpoint</span>
+        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-glow" />
+      </div>
+
+      <div className="w-[520px] bg-white rounded-2xl shadow-2xl border border-primary/20 overflow-hidden animate-slide-up event-card-active">
         {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b">
           <div className="flex items-center gap-3 mb-2">
@@ -51,8 +58,8 @@ export function UcpDiscoveryScreen({ merchantName, capabilities, manifestUrl, on
               </svg>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">UCP Merchant Discovery</h3>
-              <p className="text-sm text-gray-500">Gemini discovered {merchantName}'s commerce capabilities</p>
+              <h3 className="text-lg font-semibold text-foreground">UCP Merchant Discovery</h3>
+              <p className="text-sm text-muted-foreground">Gemini discovered {merchantName}&apos;s commerce capabilities</p>
             </div>
           </div>
         </div>
@@ -60,7 +67,7 @@ export function UcpDiscoveryScreen({ merchantName, capabilities, manifestUrl, on
         {/* Manifest preview */}
         <div className="px-6 py-4">
           <div className="mb-3">
-            <span className="text-xs font-mono text-gray-400">{manifestUrl}</span>
+            <span className="text-xs font-mono text-muted-foreground">{manifestUrl}</span>
           </div>
 
           <div className="bg-gray-50 rounded-lg border p-4 mb-4">
@@ -78,7 +85,7 @@ ${capabilities.map(c => `    "${c}": { "versions": ["1.0.0"] }`).join(",\n")}
           </div>
 
           {/* Capability list */}
-          <p className="text-sm font-medium text-gray-700 mb-3">Available capabilities:</p>
+          <p className="text-sm font-medium text-foreground/70 mb-3">Available capabilities:</p>
           <div className="space-y-2 mb-4">
             {capabilities.map((cap) => {
               const info = CAPABILITY_LABELS[cap] || { label: cap, icon: "box" };
@@ -88,16 +95,16 @@ ${capabilities.map(c => `    "${c}": { "versions": ["1.0.0"] }`).join(",\n")}
                     <CapabilityIcon type={cap} />
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-800">{info.label}</span>
-                    <span className="text-xs text-gray-400 ml-2 font-mono">{cap}</span>
+                    <span className="text-sm font-medium text-foreground">{info.label}</span>
+                    <span className="text-xs text-muted-foreground ml-2 font-mono">{cap}</span>
                   </div>
                 </div>
               );
             })}
           </div>
 
-          <p className="text-xs text-gray-400 mb-4">
-            StyleVault verifies the agent's identity via HTTP Message Signatures (RFC 9421). Auth0 handles Identity Linking when the user connects their account.
+          <p className="text-xs text-muted-foreground mb-4">
+            StyleVault verifies the agent&apos;s identity via HTTP Message Signatures (RFC 9421). Auth0 handles Identity Linking when the user connects their account.
           </p>
         </div>
 
@@ -105,13 +112,13 @@ ${capabilities.map(c => `    "${c}": { "versions": ["1.0.0"] }`).join(",\n")}
         <div className="px-6 pb-6 flex gap-3">
           <button
             onClick={onAuthorize}
-            className="flex-1 py-2.5 rounded-lg bg-[#4285f4] text-white font-medium text-sm hover:bg-[#3367d6] transition-colors cursor-pointer"
+            className="flex-1 py-2.5 rounded-lg bg-[#4285f4] text-white font-medium text-sm hover:bg-[#3367d6] transition-colors cursor-pointer shadow-lg shadow-[#4285f4]/20"
           >
             Authorize Agent
           </button>
           <button
             onClick={onDeny}
-            className="flex-1 py-2.5 rounded-lg border text-gray-600 font-medium text-sm hover:bg-gray-50 transition-colors cursor-pointer"
+            className="flex-1 py-2.5 rounded-lg border text-muted-foreground font-medium text-sm hover:bg-black/[0.03] transition-colors cursor-pointer"
           >
             Deny
           </button>

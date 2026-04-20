@@ -26,11 +26,18 @@ export function CIBANotification({ action, description, approverName, onApprove,
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center backdrop-blur-sm animate-in">
+    <div className="fixed inset-0 z-40 flex flex-col items-center justify-center backdrop-blur-sm animate-in">
+      {/* Security checkpoint label */}
+      <div className="mb-4 flex items-center gap-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-glow" />
+        <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-primary/70">Security Checkpoint</span>
+        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-glow" />
+      </div>
+
       <div className={`w-full max-w-sm rounded-2xl border p-6 animate-slide-up shadow-2xl ${
         approved
-          ? "border-emerald-300 bg-white glow-green"
-          : "border-amber-300 bg-white glow-amber"
+          ? "border-emerald-500/30 bg-white glow-green"
+          : "border-amber-500/30 bg-white glow-amber"
       }`}>
         <div className="flex items-center gap-2 mb-4 pb-3 border-b">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">

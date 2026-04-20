@@ -9,6 +9,26 @@ export interface Product {
   in_stock: boolean;
 }
 
+/**
+ * Wishlists - keyed by user email.
+ * In production this would come from a database. For the demo,
+ * seeded with data matching the scenario definitions.
+ */
+export const WISHLISTS = new Map<string, string[]>([
+  [
+    "alex@example.com",
+    ["scarf_cashmere_001", "jacket_denim_001", "bag_weekender_001", "watch_meridian_001"],
+  ],
+]);
+
+/**
+ * User preferences - keyed by user email.
+ * Updated by the update_preferences MCP tool.
+ */
+export const PREFERENCES = new Map<string, string[]>([
+  ["alex@example.com", ["minimalist style", "neutral tones", "premium materials"]],
+]);
+
 export const PRODUCTS: Product[] = [
   {
     id: "scarf_cashmere_001",

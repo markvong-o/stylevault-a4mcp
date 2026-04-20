@@ -476,7 +476,7 @@ export function SecurityEventCard({ event, isCurrent }: SecurityEventCardProps) 
   return (
     <div
       className={`rounded-lg border p-3 transition-all ${
-        isCurrent ? "event-card-active" : "opacity-50 hover:opacity-100"
+        isCurrent ? "event-card-active" : "opacity-40 hover:opacity-100"
       }`}
       style={{ borderColor: colors.border, backgroundColor: colors.bg }}
     >

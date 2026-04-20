@@ -112,27 +112,25 @@ export function DemoContent() {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* App area (header + main content) -- shifts when overlay opens */}
-      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${overlayOpen ? "mr-[416px]" : ""}`}>
+      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${overlayOpen ? "mr-[384px]" : ""}`}>
         {/* Header */}
-        <div className="w-full px-6 py-3 flex items-center justify-between border-b shrink-0">
-          <button onClick={handleReset} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-            <span className="text-xl font-semibold text-foreground">StyleVault</span>
-          </button>
+        {currentAct > 0 && currentAct < 3 && (
+          <div className="w-full px-6 py-2.5 flex items-center justify-between border-b shrink-0">
+            <span className="text-xs font-medium text-foreground/40">
+              {currentAct === 1 ? "ChatGPT App (MCP + ACP)" : "Gemini (UCP Commerce)"}
+            </span>
 
-          <div className="flex items-center gap-3">
-            {currentAct > 0 && (
-              <button
-                onClick={toggleOverlay}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border hover:border-primary/30 bg-primary/5 hover:bg-primary/10 text-foreground/70 hover:text-foreground cursor-pointer"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                {overlayOpen ? "Hide" : "Show"} Under the Hood
-              </button>
-            )}
+            <button
+              onClick={toggleOverlay}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border hover:border-primary/30 bg-primary/5 hover:bg-primary/10 text-foreground/70 hover:text-foreground cursor-pointer"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              {overlayOpen ? "Hide" : "Show"} Under the Hood
+            </button>
           </div>
-        </div>
+        )}
 
         {/* Main content */}
         <main className="flex-1 flex flex-col overflow-y-auto">
@@ -140,32 +138,28 @@ export function DemoContent() {
         </main>
       </div>
 
-      {/* Footer section -- step nav + disclaimer, always full width, never shifts */}
-      <div className="shrink-0 border-t bg-white relative z-20">
-        {/* Step navigation */}
-        <StepIndicator
-          currentAct={currentAct}
-          currentStep={currentStep}
-          totalSteps={effectiveSteps.length}
-          onNextStep={nextStep}
-          onPrevStep={prevStep}
-          onNextAct={handleNextAct}
-          onPrevAct={handlePrevAct}
-          onGoToAct={handleGoToAct}
-          isMultiChat={currentAct === 1 || currentAct === 2}
-          isLastConversation={
-            currentAct === 1
-              ? activeConversation === CHATGPT_CONVERSATIONS[CHATGPT_CONVERSATIONS.length - 1]?.id
-              : currentAct === 2
-                ? activeConversation === GEMINI_CONVERSATIONS[GEMINI_CONVERSATIONS.length - 1]?.id
-                : true
-          }
-        />
+      {/* Floating step navigation */}
+      <StepIndicator
+        currentAct={currentAct}
+        currentStep={currentStep}
+        totalSteps={effectiveSteps.length}
+        onNextStep={nextStep}
+        onPrevStep={prevStep}
+        onNextAct={handleNextAct}
+        onPrevAct={handlePrevAct}
+        isMultiChat={currentAct === 1 || currentAct === 2}
+        isLastConversation={
+          currentAct === 1
+            ? activeConversation === CHATGPT_CONVERSATIONS[CHATGPT_CONVERSATIONS.length - 1]?.id
+            : currentAct === 2
+              ? activeConversation === GEMINI_CONVERSATIONS[GEMINI_CONVERSATIONS.length - 1]?.id
+              : true
+        }
+      />
 
-        {/* Disclaimer */}
-        <div className="w-full border-t px-6 py-2 text-center">
-          <p className="text-xs text-muted-foreground italic">This is a fictitious application created for demonstration purposes only. All data, identities, and scenarios are simulated.</p>
-        </div>
+      {/* Disclaimer */}
+      <div className="fixed bottom-0 left-0 right-0 z-10 py-1 text-center pointer-events-none">
+        <p className="text-[10px] text-foreground/15 italic">This is a fictitious application created for demonstration purposes only. All data, identities, and scenarios are simulated.</p>
       </div>
 
       {/* StyleVault AI floating widget -- positioned above footer */}

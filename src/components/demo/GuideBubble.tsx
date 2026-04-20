@@ -41,27 +41,26 @@ export function GuideBubble({ event, isLatest }: GuideBubbleProps) {
   return (
     <motion.div
       initial={{ opacity: 0, x: 12 }}
-      animate={{ opacity: isLatest ? 1 : 0.3, x: 0 }}
+      animate={{ opacity: isLatest ? 1 : 0.35, x: 0 }}
       whileHover={{ opacity: 1 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="relative pl-3"
+      className="relative pl-6"
     >
-      {/* Left-pointing arrow */}
+      {/* Timeline node */}
       <div
-        className="absolute left-0 top-3"
-        style={{
-          width: 0,
-          height: 0,
-          borderTop: "6px solid transparent",
-          borderBottom: "6px solid transparent",
-          borderRight: `6px solid ${colors.border}`,
-        }}
-      />
-      <div
-        className="rounded-lg px-3 py-2 border text-xs"
+        className="absolute left-0 top-3 w-[10px] h-[10px] rounded-full border-2"
         style={{
           borderColor: colors.border,
           backgroundColor: colors.bg,
+          boxShadow: isLatest ? `0 0 8px ${colors.border}` : "none",
+        }}
+      />
+
+      <div
+        className="rounded-lg px-3 py-2 border text-xs"
+        style={{
+          borderColor: isLatest ? colors.border : "rgba(0,0,0,0.06)",
+          backgroundColor: isLatest ? colors.bg : "rgba(0,0,0,0.01)",
         }}
       >
         <div className="flex items-start gap-2">

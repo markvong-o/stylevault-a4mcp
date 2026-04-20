@@ -250,16 +250,18 @@ export function ChatSimulator({ messages, visibleCount, theme, clientName, typin
 
   return (
     <ScrollArea className="flex-1 min-h-0 px-4 py-4">
-      {showMessages.map((msg, idx) => (
-        <MessageBubble
-          key={msg.id}
-          message={msg}
-          theme={theme}
-          isLatest={idx === showMessages.length - 1}
-        />
-      ))}
-      {typing && <TypingIndicator theme={theme} />}
-      <div ref={bottomRef} />
+      <div className="flex flex-col justify-end min-h-full">
+        {showMessages.map((msg, idx) => (
+          <MessageBubble
+            key={msg.id}
+            message={msg}
+            theme={theme}
+            isLatest={idx === showMessages.length - 1}
+          />
+        ))}
+        {typing && <TypingIndicator theme={theme} />}
+        <div ref={bottomRef} />
+      </div>
     </ScrollArea>
   );
 }

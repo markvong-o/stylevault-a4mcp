@@ -27,8 +27,15 @@ export function ConsentScreen({ clientName, productName, scopes, onApprove, onDe
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center backdrop-blur-sm animate-in">
-      <Card className="w-full max-w-md border-primary/20 animate-slide-up bg-white shadow-2xl">
+    <div className="fixed inset-0 z-40 flex flex-col items-center justify-center backdrop-blur-sm animate-in">
+      {/* Security checkpoint label */}
+      <div className="mb-4 flex items-center gap-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-glow" />
+        <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-primary/70">Security Checkpoint</span>
+        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-glow" />
+      </div>
+
+      <Card className="w-full max-w-md border-primary/20 animate-slide-up bg-white shadow-2xl event-card-active">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>

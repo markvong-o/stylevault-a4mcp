@@ -19,6 +19,7 @@
   --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
 }
 
 :root {
@@ -234,7 +235,7 @@ body::before {
   top: 0;
   right: 0;
   bottom: var(--footer-height, 150px);
-  width: 416px;
+  width: 384px;
   z-index: 50;
   display: flex;
   flex-direction: column;
