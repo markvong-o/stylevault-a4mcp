@@ -23,17 +23,6 @@ const NAV_ITEMS: NavItem[] = [
       { label: "Gemini MCP", href: "/demo/gemini-mcp" },
     ],
   },
-  {
-    kind: "group",
-    label: "Playgrounds",
-    children: [
-      { label: "Commerce", href: "/playground/ucp" },
-      { label: "ChatGPT App", href: "/playground/mcp" },
-      { label: "UCP-over-MCP", href: "/playground/gemini-mcp" },
-    ],
-  },
-  { kind: "link", label: "Logs", href: "/logs" },
-  { kind: "link", label: "Config", href: "/config" },
   { kind: "link", label: "Architecture", href: "/architecture" },
 ];
 

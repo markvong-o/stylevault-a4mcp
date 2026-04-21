@@ -1,5 +1,6 @@
 import { EventEmitter } from "node:events";
 import { randomUUID } from "node:crypto";
+import { redis } from "../redis.js";
 
 export interface McpLogEvent {
   id: string;
@@ -40,10 +41,12 @@ export interface McpLogEvent {
   };
 }
 
+const REDIS_KEY = "stylevault:logs";
+const TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const MAX_HISTORY = 200;
 
 class McpEventBus extends EventEmitter {
-  private history: McpLogEvent[] = [];
+  private memory: McpLogEvent[] = [];
 
   emit(event: "mcp-log", data: McpLogEvent): boolean;
   emit(event: string, ...args: unknown[]): boolean {
@@ -57,7 +60,7 @@ class McpEventBus extends EventEmitter {
   }
 
   /**
-   * Push a new event, store it in the history ring buffer, and emit.
+   * Push a new event, persist (Redis or in-memory), and emit for real-time SSE.
    */
   push(event: Omit<McpLogEvent, "id" | "timestamp">): McpLogEvent {
     const full: McpLogEvent = {
@@ -65,23 +68,50 @@ class McpEventBus extends EventEmitter {
       id: randomUUID(),
       timestamp: new Date().toISOString(),
     };
-    this.history.push(full);
-    if (this.history.length > MAX_HISTORY) {
-      this.history.shift();
+
+    if (redis) {
+      const score = Date.now();
+      redis
+        .pipeline()
+        .zadd(REDIS_KEY, score, JSON.stringify(full))
+        .zremrangebyscore(REDIS_KEY, "-inf", score - TTL_MS)
+        .exec()
+        .catch((err) => console.error("[event-bus] redis write error:", err.message));
+    } else {
+      this.memory.push(full);
+      if (this.memory.length > MAX_HISTORY) this.memory.shift();
     }
+
     this.emit("mcp-log", full);
     return full;
   }
 
   /**
-   * Return the buffered history so new SSE clients can catch up.
+   * Return persisted history so new SSE clients can catch up.
    */
-  getHistory(): McpLogEvent[] {
-    return [...this.history];
+  async getHistory(): Promise<McpLogEvent[]> {
+    if (!redis) return [...this.memory];
+
+    try {
+      const members = await redis.zrange(REDIS_KEY, 0, -1);
+      return members.map((m) => JSON.parse(m) as McpLogEvent);
+    } catch (err) {
+      console.error("[event-bus] redis read error:", (err as Error).message);
+      return [];
+    }
   }
 
-  clear(): void {
-    this.history = [];
+  async clear(): Promise<void> {
+    if (!redis) {
+      this.memory = [];
+      return;
+    }
+
+    try {
+      await redis.del(REDIS_KEY);
+    } catch (err) {
+      console.error("[event-bus] redis clear error:", (err as Error).message);
+    }
   }
 }
 

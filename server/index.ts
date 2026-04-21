@@ -73,7 +73,7 @@ nextApp.prepare().then(() => {
   }
 
   // ── SSE helper (writes directly to Node response, no framework bridge) ──
-  function handleSSE(res: http.ServerResponse) {
+  async function handleSSE(res: http.ServerResponse) {
     res.writeHead(200, {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
@@ -89,8 +89,9 @@ nextApp.prepare().then(() => {
     // Send retry hint
     write("retry", "3000");
 
-    // Flush buffered history
-    for (const evt of eventBus.getHistory()) {
+    // Flush persisted history from Redis
+    const history = await eventBus.getHistory();
+    for (const evt of history) {
       write("history", JSON.stringify(evt), evt.id);
     }
     write("history-done", "");
@@ -134,9 +135,10 @@ nextApp.prepare().then(() => {
 
     // Clear events
     if (req.url === "/api/events" && req.method === "DELETE") {
-      eventBus.clear();
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ cleared: true }));
+      eventBus.clear().then(() => {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ cleared: true }));
+      });
       return;
     }
 

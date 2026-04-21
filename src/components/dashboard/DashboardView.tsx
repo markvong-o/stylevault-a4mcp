@@ -1,8 +1,7 @@
 "use client";
 
-import { MessageSquare, Bot, Activity, Settings, Zap, Terminal, LayoutDashboard, Layers, Sparkles } from "lucide-react";
+import { MessageSquare, Bot, LayoutDashboard, Sparkles } from "lucide-react";
 import { ChicletCard } from "./ChicletCard";
-import { serverUrls } from "@/hooks/useServerPort";
 
 const SECTIONS = [
   {
@@ -39,59 +38,9 @@ const SECTIONS = [
     ],
   },
   {
-    title: "Playgrounds",
-    subtitle: "Interactive protocol explorers with live API calls against the running server.",
-    items: [
-      {
-        title: "Commerce (UCP)",
-        description:
-          "Step through a real UCP commerce flow with live API calls. Discover merchant capabilities, search the catalog, create checkouts, and see bounded authority in action.",
-        href: "/playground/ucp",
-        icon: Zap,
-        accentColor: "#f59e0b",
-        tag: "Live",
-      },
-      {
-        title: "ChatGPT App (MCP)",
-        description:
-          "Step through the MCP protocol layer that powers ChatGPT Apps. Initialize a session, discover tools, execute calls, and see bounded authority in action.",
-        href: "/playground/mcp",
-        icon: Terminal,
-        accentColor: "#10a37f",
-        tag: "Live",
-      },
-      {
-        title: "UCP-over-MCP",
-        description:
-          "Step through UCP commerce operations exposed as MCP tools. Initialize, discover the manifest, browse catalog, checkout with escalation, all via JSON-RPC.",
-        href: "/playground/gemini-mcp",
-        icon: Layers,
-        accentColor: "#9C27B0",
-        tag: "Live",
-      },
-    ],
-  },
-  {
     title: "Admin",
     subtitle: "Server monitoring, configuration, and architecture reference.",
     items: [
-      {
-        title: "Live Server Logs",
-        description:
-          "Real-time event stream from the StyleVault server. Watch authentication flows, tool calls, and session lifecycle as they happen.",
-        href: "/logs",
-        icon: Activity,
-        accentColor: "#22c55e",
-        tag: "Live",
-      },
-      {
-        title: "Server Config",
-        description:
-          "View registered tools, Auth0 scopes, bounded authority rules, and active sessions for the running server instance.",
-        href: "/config",
-        icon: Settings,
-        accentColor: "#4016A0",
-      },
       {
         title: "Architecture",
         description:
@@ -147,8 +96,6 @@ export function DashboardView() {
       {/* Footer */}
       <footer className="shrink-0 border-t border-foreground/[0.06] px-8 py-4">
         <div className="max-w-6xl mx-auto flex items-center gap-4 text-xs text-foreground/30">
-          <span>Server: {serverUrls().api || "localhost"}</span>
-          <span className="text-foreground/15">|</span>
           <span>Protocol: 2025-03-26</span>
           <span className="text-foreground/15">|</span>
           <span>Auth: Auth0</span>
