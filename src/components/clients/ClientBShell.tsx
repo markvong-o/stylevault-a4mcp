@@ -12,9 +12,10 @@ interface ClientBShellProps {
   inputValue?: string;
   activeConversation?: string;
   onConversationClick?: (id: string) => void;
+  stepNav?: React.ReactNode;
 }
 
-export function ClientBShell({ messages, visibleCount, typing, inputValue, activeConversation, onConversationClick }: ClientBShellProps) {
+export function ClientBShell({ messages, visibleCount, typing, inputValue, activeConversation, onConversationClick, stepNav }: ClientBShellProps) {
   const [userTyping, setUserTyping] = useState({ typing: false, text: "", done: false });
   const handleUserTyping = useCallback((state: { typing: boolean; text: string; done: boolean }) => {
     setUserTyping(state);
@@ -154,7 +155,10 @@ export function ClientBShell({ messages, visibleCount, typing, inputValue, activ
               </button>
             </div>
           </div>
-          <p className="text-[10px] text-[var(--client-muted)] text-center mt-2">ChatGPT can make mistakes. Check important info.</p>
+          <div className="flex items-center justify-center gap-3 mt-2">
+            <p className="text-[10px] text-[var(--client-muted)]">ChatGPT can make mistakes. Check important info.</p>
+            {stepNav}
+          </div>
         </div>
       </div>
 

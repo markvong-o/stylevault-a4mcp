@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useServerPort, serverUrls } from "@/hooks/useServerPort";
+import { serverUrls } from "@/hooks/useServerPort";
 import { usePlaygroundState } from "@/hooks/usePlaygroundState";
 import { Step1Manifest } from "./steps/Step1Manifest";
 import { Step2Catalog } from "./steps/Step2Catalog";
@@ -18,34 +18,20 @@ const STEPS = [
 ];
 
 export function UCPPlaygroundView() {
-  const port = useServerPort();
   const {
     state, goToStep, setSearchQuery, selectProduct, setQuantity,
     reset, fetchManifest, searchCatalog, createCheckout,
     simulateEscalation, completeCheckout,
   } = usePlaygroundState();
 
-  const baseUrl = port ? serverUrls(port).api : null;
+  const baseUrl = serverUrls().api;
 
   // Determine visible steps (hide step 4 if no escalation needed and checkout exists)
   const visibleSteps = state.checkoutSession && !state.needsEscalation
     ? STEPS.filter(s => s.num !== 4)
     : STEPS;
 
-  if (!port) {
-    return (
-      <div className="min-h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-foreground/30">Connecting to UCP server...</p>
-          <p className="text-xs text-foreground/20 mt-1">Probing ports 3001-3010</p>
-        </div>
-      </div>
-    );
-  }
-
   const renderStep = () => {
-    if (!baseUrl) return null;
     switch (state.step) {
       case 1:
         return (
@@ -124,7 +110,7 @@ export function UCPPlaygroundView() {
               </span>
             </div>
             <p className="text-xs text-foreground/35 mt-0.5">
-              Step through a real UCP commerce flow with live API calls on port {port}
+              Step through a real UCP commerce flow with live API calls
             </p>
           </div>
 

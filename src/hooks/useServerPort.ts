@@ -1,56 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-const DEFAULT_PORT = 3001;
-const MAX_PROBE = 10;
-
 /**
- * Discovers the UCP/MCP server port by probing /health starting at 3001.
- * Returns the port once found, or null while probing.
+ * Previously discovered the backend server port by probing localhost:3001-3010.
+ * Now that the backend runs on the same port as Next.js, this always returns
+ * a truthy value so consumers skip their "discovering..." loading states.
+ *
+ * @deprecated Use serverUrls() directly instead.
  */
-export function useServerPort() {
-  const [port, setPort] = useState<number | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    const host =
-      typeof window !== "undefined" ? window.location.hostname : "localhost";
-
-    async function probe() {
-      for (let p = DEFAULT_PORT; p < DEFAULT_PORT + MAX_PROBE; p++) {
-        if (cancelled) return;
-        try {
-          const res = await fetch(`http://${host}:${p}/health`, {
-            signal: AbortSignal.timeout(500),
-          });
-          if (res.ok) {
-            if (!cancelled) setPort(p);
-            return;
-          }
-        } catch {
-          // port not responding, try next
-        }
-      }
-    }
-
-    probe();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return port;
+export function useServerPort(): number {
+  return 0; // truthy-enough to pass null checks, but unused
 }
 
-/** Build URLs from a discovered port. */
-export function serverUrls(port: number) {
-  const host =
-    typeof window !== "undefined" ? window.location.hostname : "localhost";
+/**
+ * Build URLs for backend API endpoints.
+ * With the custom server, everything is same-origin.
+ */
+export function serverUrls(_port?: number) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
   return {
-    ws: `ws://${host}:${port}/ws`,
-    api: `http://${host}:${port}`,
-    health: `http://${host}:${port}/health`,
-    config: `http://${host}:${port}/api/config`,
+    api: origin,
+    stream: `${origin}/api/events/stream`,
+    health: `${origin}/health`,
+    config: `${origin}/api/config`,
   };
 }

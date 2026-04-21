@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -12,7 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { CodeBlock } from "@/components/logs/SyntaxHighlight";
-import { useServerPort, serverUrls } from "@/hooks/useServerPort";
+import { serverUrls } from "@/hooks/useServerPort";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -223,21 +223,17 @@ function TabbedToolGroups({ groups }: { groups: ToolGroup[] }) {
 /* ------------------------------------------------------------------ */
 
 export function ServerConfigView() {
-  const port = useServerPort();
   const [config, setConfig] = useState<ServerConfig | null>(null);
   const [status, setStatus] = useState<FetchStatus>("loading");
   const [sessionCount, setSessionCount] = useState(0);
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Fetch config from server once port is discovered
+  // Fetch config from server
   useEffect(() => {
-    if (!port) return;
     let cancelled = false;
 
     async function load() {
       try {
-        const res = await fetch(serverUrls(port!).config);
+        const res = await fetch(serverUrls().config);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: ServerConfig = await res.json();
         if (!cancelled) {
@@ -254,48 +250,25 @@ export function ServerConfigView() {
     return () => {
       cancelled = true;
     };
-  }, [port]);
+  }, []);
 
-  // WebSocket for live session count
-  const connectWs = useCallback(() => {
-    if (!port) return;
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
-
-    const ws = new WebSocket(serverUrls(port).ws);
-
-    ws.onmessage = (msg) => {
-      try {
-        const data = JSON.parse(msg.data);
-        // Track session-init and session-close events
-        if (data.type === "event") {
-          const evt = data.event;
-          if (evt.type === "session-init") {
-            setSessionCount((c) => c + 1);
-          } else if (evt.type === "session-close") {
-            setSessionCount((c) => Math.max(0, c - 1));
-          }
-        }
-      } catch {
-        // skip
-      }
-    };
-
-    ws.onclose = () => {
-      wsRef.current = null;
-      reconnectRef.current = setTimeout(connectWs, 3000);
-    };
-
-    ws.onerror = () => ws.close();
-    wsRef.current = ws;
-  }, [port]);
-
+  // SSE for live session count
   useEffect(() => {
-    connectWs();
-    return () => {
-      clearTimeout(reconnectRef.current);
-      wsRef.current?.close();
-    };
-  }, [connectWs]);
+    const es = new EventSource(`${serverUrls().api}/api/events/stream`);
+
+    es.addEventListener("event", (e) => {
+      try {
+        const evt = JSON.parse(e.data);
+        if (evt.type === "session-init") {
+          setSessionCount((c) => c + 1);
+        } else if (evt.type === "session-close") {
+          setSessionCount((c) => Math.max(0, c - 1));
+        }
+      } catch { /* skip */ }
+    });
+
+    return () => es.close();
+  }, []);
 
   // Loading / error states
   if (status === "loading") {
@@ -312,7 +285,7 @@ export function ServerConfigView() {
     return (
       <div className="min-h-full flex flex-col items-center justify-center gap-3">
         <p className="text-sm text-red-400">
-          Could not reach server (tried ports 3001-3010)
+          Could not reach server
         </p>
         <button
           onClick={() => {
@@ -493,9 +466,9 @@ export function ServerConfigView() {
       {/* Footer */}
       <footer className="shrink-0 border-t border-foreground/[0.06] px-8 py-4">
         <div className="max-w-4xl mx-auto flex items-center gap-4 text-xs text-foreground/30">
-          <span>API: {port ? serverUrls(port).config : "discovering..."}</span>
+          <span>API: /api/config</span>
           <span className="text-foreground/15">|</span>
-          <span>WebSocket: {port ? serverUrls(port).ws : "discovering..."}</span>
+          <span>Events: /api/events/stream</span>
         </div>
       </footer>
     </div>

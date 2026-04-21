@@ -1,65 +1,67 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { LogEventCard, type McpLogEvent } from "./LogEventCard";
-import { useServerPort, serverUrls } from "@/hooks/useServerPort";
+import { serverUrls } from "@/hooks/useServerPort";
 
 type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
 export function McpLogView() {
-  const port = useServerPort();
   const [events, setEvents] = useState<McpLogEvent[]>([]);
   const [status, setStatus] = useState<ConnectionStatus>("connecting");
   const [filter, setFilter] = useState<string>("all");
   const scrollRef = useRef<HTMLDivElement>(null);
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  const connect = useCallback(() => {
-    if (!port) return;
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
-
-    setStatus("connecting");
-    const { ws: wsUrl } = serverUrls(port);
-    const ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-      setStatus("connected");
-    };
-
-    ws.onmessage = (msg) => {
-      try {
-        const data = JSON.parse(msg.data);
-        if (data.type === "history") {
-          setEvents(data.events);
-        } else if (data.type === "event") {
-          setEvents((prev) => [...prev, data.event]);
-        }
-      } catch {
-        // Skip unparseable messages
-      }
-    };
-
-    ws.onclose = () => {
-      setStatus("disconnected");
-      wsRef.current = null;
-      reconnectTimerRef.current = setTimeout(connect, 3000);
-    };
-
-    ws.onerror = () => {
-      ws.close();
-    };
-
-    wsRef.current = ws;
-  }, [port]);
+  const esRef = useRef<EventSource | null>(null);
+  const seenRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    connect();
-    return () => {
-      clearTimeout(reconnectTimerRef.current);
-      wsRef.current?.close();
+    setStatus("connecting");
+    const historyBuf: McpLogEvent[] = [];
+
+    const es = new EventSource(`${serverUrls().api}/api/events/stream`);
+    esRef.current = es;
+
+    es.addEventListener("history", (e) => {
+      try {
+        const evt: McpLogEvent = JSON.parse(e.data);
+        if (!seenRef.current.has(evt.id)) {
+          seenRef.current.add(evt.id);
+          historyBuf.push(evt);
+        }
+      } catch { /* skip */ }
+    });
+
+    es.addEventListener("history-done", () => {
+      if (historyBuf.length > 0) {
+        setEvents((prev) => {
+          // Merge: keep existing events, add any new from history
+          const existing = new Set(prev.map((e) => e.id));
+          const newEvents = historyBuf.filter((e) => !existing.has(e.id));
+          return newEvents.length > 0 ? [...prev, ...newEvents] : prev;
+        });
+      }
+      setStatus("connected");
+    });
+
+    es.addEventListener("event", (e) => {
+      try {
+        const evt: McpLogEvent = JSON.parse(e.data);
+        if (seenRef.current.has(evt.id)) return;
+        seenRef.current.add(evt.id);
+        setEvents((prev) => [...prev, evt]);
+      } catch { /* skip */ }
+    });
+
+    es.onerror = () => {
+      setStatus("disconnected");
+      // EventSource auto-reconnects; status will update on next history-done
     };
-  }, [connect]);
+
+    return () => {
+      es.close();
+      esRef.current = null;
+    };
+  }, []);
 
   // Auto-scroll to bottom on new events
   useEffect(() => {
@@ -71,10 +73,25 @@ export function McpLogView() {
     }
   }, [events.length]);
 
+  const handleClear = () => {
+    setEvents([]);
+    seenRef.current = new Set();
+    fetch(`${serverUrls().api}/api/events`, { method: "DELETE" }).catch(() => {});
+  };
+
+  const TOOL_TYPES = new Set(["tool-call", "tool-result", "tool-list"]);
+  const AUTH_TYPES = new Set(["auth-challenge", "token-issued", "token-verified", "token-rejected", "consent", "mcp-dcr", "ciba", "bounded-authority", "ucp-checkout-state", "ucp-payment-auth"]);
+  const DISCOVERY_TYPES = new Set(["metadata-fetch", "mcp-discovery", "ucp-discovery"]);
   const filteredEvents =
     filter === "all"
       ? events
-      : events.filter((e) => e.type === filter);
+      : filter === "tool-result"
+        ? events.filter((e) => TOOL_TYPES.has(e.type))
+        : filter === "auth-challenge"
+          ? events.filter((e) => AUTH_TYPES.has(e.type))
+          : filter === "metadata-fetch"
+            ? events.filter((e) => DISCOVERY_TYPES.has(e.type))
+            : events.filter((e) => e.type === filter);
 
   const errorCount = events.filter(
     (e) => e.result === "error" || e.result === "denied"
@@ -94,16 +111,15 @@ export function McpLogView() {
         ? "Connecting..."
         : "Disconnected";
 
-  const wsDisplay = port ? serverUrls(port).ws : "discovering...";
-  const mcpDisplay = port ? `http://localhost:${port}/mcp` : "...";
+  const streamDisplay = "/api/events/stream";
+  const mcpDisplay = "/mcp";
 
   const filterOptions = [
     { value: "all", label: "All" },
     { value: "session-init", label: "Sessions" },
     { value: "auth-challenge", label: "Auth" },
     { value: "token-verified", label: "Tokens" },
-    { value: "tool-call", label: "Tool Calls" },
-    { value: "tool-result", label: "Tool Results" },
+    { value: "tool-result", label: "Tools" },
     { value: "metadata-fetch", label: "Discovery" },
   ];
 
@@ -124,12 +140,12 @@ export function McpLogView() {
               </h1>
             </div>
             <span className="text-xs text-foreground/30 font-mono">
-              {wsDisplay}
+              {streamDisplay}
             </span>
           </div>
 
           <button
-            onClick={() => setEvents([])}
+            onClick={handleClear}
             className="text-xs px-3 py-1.5 rounded-md border border-foreground/[0.08] text-foreground/40 hover:text-foreground/60 hover:border-foreground/15 transition-colors cursor-pointer"
           >
             Clear
@@ -142,7 +158,13 @@ export function McpLogView() {
             const count =
               opt.value === "all"
                 ? events.length
-                : events.filter((e) => e.type === opt.value || (opt.value === "token-verified" && e.type === "token-rejected")).length;
+                : events.filter((e) => {
+                    if (opt.value === "tool-result") return TOOL_TYPES.has(e.type);
+                    if (opt.value === "auth-challenge") return AUTH_TYPES.has(e.type);
+                    if (opt.value === "metadata-fetch") return DISCOVERY_TYPES.has(e.type);
+                    if (opt.value === "token-verified") return e.type === "token-verified" || e.type === "token-rejected";
+                    return e.type === opt.value;
+                  }).length;
             return (
               <button
                 key={opt.value}

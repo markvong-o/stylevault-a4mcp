@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useServerPort, serverUrls } from "@/hooks/useServerPort";
+import { serverUrls } from "@/hooks/useServerPort";
 import { useMCPPlaygroundState } from "@/hooks/useMCPPlaygroundState";
 import { Step1Init } from "./steps/Step1Init";
 import { Step2Tools } from "./steps/Step2Tools";
@@ -18,29 +18,15 @@ const STEPS = [
 ];
 
 export function MCPPlaygroundView() {
-  const port = useServerPort();
   const {
     state, goToStep, selectTool, setToolArgs, reset,
     initializeSession, listTools, callTool,
     callBoundedAuthority, cleanupSession,
   } = useMCPPlaygroundState();
 
-  const baseUrl = port ? serverUrls(port).api : null;
-
-  if (!port) {
-    return (
-      <div className="min-h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-foreground/30">Connecting to MCP server...</p>
-          <p className="text-xs text-foreground/20 mt-1">Probing ports 3001-3010</p>
-        </div>
-      </div>
-    );
-  }
+  const baseUrl = serverUrls().api;
 
   const renderStep = () => {
-    if (!baseUrl) return null;
     switch (state.step) {
       case 1:
         return (
@@ -118,7 +104,7 @@ export function MCPPlaygroundView() {
               </span>
             </div>
             <p className="text-xs text-foreground/35 mt-0.5">
-              See the MCP protocol layer that powers ChatGPT Apps. Live calls on port {port}
+              See the MCP protocol layer that powers ChatGPT Apps
             </p>
           </div>
 

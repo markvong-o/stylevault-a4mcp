@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { GuideBubble } from "@/components/demo/GuideBubble";
 import { AnimatePresence } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useDemoLiveCalls } from "@/hooks/useDemoLiveCalls";
 
 interface ScenarioStepProps {
   config: ScenarioConfig;
@@ -25,6 +26,8 @@ interface ScenarioStepProps {
   onComplete: () => void;
   activeConversation?: string;
   onConversationClick?: (id: string) => void;
+  isLastConversation?: boolean;
+  isMultiChat?: boolean;
 }
 
 export function ScenarioStep({
@@ -32,11 +35,14 @@ export function ScenarioStep({
   onNextStep, onPrevStep,
   onGateDecision, onSyncSecurityEvents, onComplete,
   activeConversation, onConversationClick,
+  isLastConversation = true, isMultiChat = false,
 }: ScenarioStepProps) {
   const prevEventsRef = useRef<string[]>([]);
   const pendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [revealedStep, setRevealedStep] = useState(-1);
   const [cibaApproved, setCibaApproved] = useState<Record<string, boolean>>({});
+
+  useDemoLiveCalls(config.id, steps, currentStep);
 
   const currentStepData = steps[currentStep];
 
@@ -196,6 +202,48 @@ export function ScenarioStep({
     }
   };
 
+  // Inline step navigation
+  const totalSteps = steps.length;
+  const isLastStep = currentStep >= totalSteps - 1;
+  const isFirstStep = currentStep === 0;
+
+  const handleStepNext = () => {
+    if (!isLastStep) onNextStep();
+    else if (isMultiChat && !isLastConversation) return;
+    else onComplete();
+  };
+
+  const handleStepBack = () => {
+    if (!isFirstStep) onPrevStep();
+  };
+
+  const stepNav = totalSteps > 0 ? (
+    <div className="flex items-center gap-1 rounded-full bg-[#1a1a2e]/90 backdrop-blur-xl border border-[#1a1a2e]/20 px-1.5 py-1 shadow-lg">
+      <button
+        onClick={handleStepBack}
+        disabled={isFirstStep}
+        className="w-6 h-6 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      <span className="text-[9px] text-white/30 font-mono px-1.5 border-l border-white/8">
+        {currentStep + 1}/{totalSteps}
+      </span>
+      <button
+        onClick={handleStepNext}
+        disabled={isLastStep && isMultiChat && !isLastConversation}
+        className="h-6 px-2 rounded-full flex items-center gap-1 text-[10px] font-medium bg-white/10 hover:bg-white/15 text-white/70 hover:text-white transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+      >
+        <span>{isLastStep && isMultiChat && !isLastConversation ? "Select" : isLastStep ? "Finish" : "Next"}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
+  ) : null;
+
   // Render the appropriate client shell
   const renderClientShell = () => {
     if (config.clientTheme === "enterprise") {
@@ -208,10 +256,11 @@ export function ScenarioStep({
           onConversationClick={onConversationClick}
           conversations={isUCPoverMCP ? GEMINI_MCP_CONVERSATIONS : GEMINI_CONVERSATIONS}
           transportLabel={isUCPoverMCP ? "UCP-over-MCP" : undefined}
+          stepNav={stepNav}
         />
       );
     }
-    return <ClientBShell messages={chatMessages} visibleCount={visibleCount} activeConversation={activeConversation} onConversationClick={onConversationClick} />;
+    return <ClientBShell messages={chatMessages} visibleCount={visibleCount} activeConversation={activeConversation} onConversationClick={onConversationClick} stepNav={stepNav} />;
   };
 
   const CLIENT_TYPE_BADGES: Record<string, { label: string; variant: "success" | "warning" | "default" }> = {
@@ -224,7 +273,7 @@ export function ScenarioStep({
   const badge = CLIENT_TYPE_BADGES[config.clientType] ?? { label: config.clientType, variant: "default" as const };
 
   return (
-    <div className="flex-1 flex flex-col p-6 gap-4 overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col p-6 gap-4 overflow-hidden">
       {/* Scenario header */}
       <div className="flex items-center gap-3 shrink-0">
         <h2 className="text-xl font-semibold text-foreground">{config.clientName}</h2>
@@ -233,7 +282,7 @@ export function ScenarioStep({
       </div>
 
       {/* Client shell + guide rail */}
-      <div className="flex-1 min-h-0 flex gap-0 pb-16">
+      <div className="flex-1 min-h-0 flex gap-0">
         {/* Chat window */}
         <div className="flex-1 min-w-0 relative">
           {renderClientShell()}

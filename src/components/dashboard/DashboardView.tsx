@@ -2,7 +2,7 @@
 
 import { MessageSquare, Bot, Activity, Settings, Zap, Terminal, LayoutDashboard, Layers, Sparkles } from "lucide-react";
 import { ChicletCard } from "./ChicletCard";
-import { useServerPort } from "@/hooks/useServerPort";
+import { serverUrls } from "@/hooks/useServerPort";
 
 const SECTIONS = [
   {
@@ -106,7 +106,6 @@ const SECTIONS = [
 ] as const;
 
 export function DashboardView() {
-  const port = useServerPort();
 
   return (
     <div className="min-h-full flex flex-col">
@@ -148,7 +147,7 @@ export function DashboardView() {
       {/* Footer */}
       <footer className="shrink-0 border-t border-foreground/[0.06] px-8 py-4">
         <div className="max-w-6xl mx-auto flex items-center gap-4 text-xs text-foreground/30">
-          <span>Server: {port ? `localhost:${port}` : "discovering..."}</span>
+          <span>Server: {serverUrls().api || "localhost"}</span>
           <span className="text-foreground/15">|</span>
           <span>Protocol: 2025-03-26</span>
           <span className="text-foreground/15">|</span>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useServerPort, serverUrls } from "@/hooks/useServerPort";
+import { serverUrls } from "@/hooks/useServerPort";
 import { useGeminiMCPPlaygroundState } from "@/hooks/useGeminiMCPPlaygroundState";
 import { Step1Init } from "./steps/Step1Init";
 import { Step2Discover } from "./steps/Step2Discover";
@@ -20,7 +20,6 @@ const STEPS = [
 ];
 
 export function GeminiMCPPlaygroundView() {
-  const port = useServerPort();
   const {
     state, goToStep, setSearchQuery, selectProduct, setQuantity,
     setEscalationToken, reset,
@@ -28,22 +27,9 @@ export function GeminiMCPPlaygroundView() {
     getProductDetails, createCheckout, completeCheckout, cleanupSession,
   } = useGeminiMCPPlaygroundState();
 
-  const baseUrl = port ? serverUrls(port).api : null;
-
-  if (!port) {
-    return (
-      <div className="min-h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-foreground/30">Connecting to UCP-over-MCP server...</p>
-          <p className="text-xs text-foreground/20 mt-1">Probing ports 3001-3010</p>
-        </div>
-      </div>
-    );
-  }
+  const baseUrl = serverUrls().api;
 
   const renderStep = () => {
-    if (!baseUrl) return null;
     switch (state.step) {
       case 1:
         return (
@@ -149,7 +135,7 @@ export function GeminiMCPPlaygroundView() {
               </span>
             </div>
             <p className="text-xs text-foreground/35 mt-0.5">
-              UCP commerce semantics transported over MCP protocol. Live calls on port {port}
+              UCP commerce semantics transported over MCP protocol
             </p>
           </div>
 

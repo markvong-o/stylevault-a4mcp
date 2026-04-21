@@ -14,9 +14,10 @@ interface ClientGeminiShellProps {
   onConversationClick?: (id: string) => void;
   conversations?: { id: string; label: string }[];
   transportLabel?: string;
+  stepNav?: React.ReactNode;
 }
 
-export function ClientGeminiShell({ messages, visibleCount, typing, inputValue, activeConversation, onConversationClick, conversations, transportLabel }: ClientGeminiShellProps) {
+export function ClientGeminiShell({ messages, visibleCount, typing, inputValue, activeConversation, onConversationClick, conversations, transportLabel, stepNav }: ClientGeminiShellProps) {
   const [userTyping, setUserTyping] = useState({ typing: false, text: "", done: false });
   const handleUserTyping = useCallback((state: { typing: boolean; text: string; done: boolean }) => {
     setUserTyping(state);
@@ -155,7 +156,10 @@ export function ClientGeminiShell({ messages, visibleCount, typing, inputValue, 
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14m-7-7l7 7-7 7" /></svg>
             </button>
           </div>
-          <p className="text-[10px] text-[var(--client-muted)] text-center mt-2.5">Gemini can make mistakes. Please verify important information.</p>
+          <div className="flex items-center justify-center gap-3 mt-2.5">
+            <p className="text-[10px] text-[var(--client-muted)]">Gemini can make mistakes. Please verify important information.</p>
+            {stepNav}
+          </div>
         </div>
       </div>
 

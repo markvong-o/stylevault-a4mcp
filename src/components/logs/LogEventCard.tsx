@@ -45,6 +45,16 @@ const EVENT_ICONS: Record<string, string> = {
   "tool-call": "\u2699\uFE0F",
   "tool-result": "\uD83D\uDCE6",
   "session-close": "\uD83D\uDEAA",
+  "consent": "\uD83D\uDD12",
+  "ciba": "\uD83D\uDCF1",
+  "token-issued": "\uD83D\uDD11",
+  "mcp-discovery": "\uD83C\uDF10",
+  "mcp-dcr": "\uD83D\uDCDD",
+  "ucp-discovery": "\uD83C\uDF10",
+  "ucp-checkout-state": "\uD83D\uDED2",
+  "ucp-payment-auth": "\uD83D\uDCB3",
+  "bounded-authority": "\uD83D\uDEE1\uFE0F",
+  "scope-denial": "\u26D4",
 };
 
 const EVENT_LABELS: Record<string, string> = {
@@ -57,6 +67,16 @@ const EVENT_LABELS: Record<string, string> = {
   "tool-call": "Tool Call",
   "tool-result": "Tool Result",
   "session-close": "Session Close",
+  "consent": "Consent",
+  "ciba": "Step-Up Auth",
+  "token-issued": "Token Issued",
+  "mcp-discovery": "MCP Discovery",
+  "mcp-dcr": "Client Registration",
+  "ucp-discovery": "UCP Discovery",
+  "ucp-checkout-state": "Checkout State",
+  "ucp-payment-auth": "Payment Auth",
+  "bounded-authority": "Bounded Authority",
+  "scope-denial": "Scope Denied",
 };
 
 const RESULT_COLORS: Record<
@@ -101,6 +121,10 @@ function formatTime(isoString: string): string {
   } catch {
     return "--:--:--";
   }
+}
+
+function formatDetail(value: unknown): string {
+  return typeof value === "string" ? value : JSON.stringify(value, null, 2);
 }
 
 interface Props {
@@ -247,7 +271,7 @@ export function LogEventCard({ event, isLatest }: Props) {
               <p className="text-[10px] text-foreground/40 uppercase tracking-wider mb-1">
                 Request Body
               </p>
-              <CodeBlock code={JSON.stringify(d.requestBody, null, 2)} />
+              <CodeBlock code={formatDetail(d.requestBody)} />
             </div>
           ) : null}
 
@@ -257,7 +281,7 @@ export function LogEventCard({ event, isLatest }: Props) {
               <p className="text-[10px] text-foreground/40 uppercase tracking-wider mb-1">
                 Tool Arguments
               </p>
-              <CodeBlock code={JSON.stringify(d.toolArgs, null, 2)} />
+              <CodeBlock code={formatDetail(d.toolArgs)} />
             </div>
           ) : null}
 
@@ -267,7 +291,7 @@ export function LogEventCard({ event, isLatest }: Props) {
               <p className="text-[10px] text-foreground/40 uppercase tracking-wider mb-1">
                 Token Claims
               </p>
-              <CodeBlock code={JSON.stringify(d.tokenClaims, null, 2)} />
+              <CodeBlock code={formatDetail(d.tokenClaims)} />
             </div>
           ) : null}
 
@@ -277,7 +301,7 @@ export function LogEventCard({ event, isLatest }: Props) {
               <p className="text-[10px] text-foreground/40 uppercase tracking-wider mb-1">
                 Response
               </p>
-              <CodeBlock code={JSON.stringify(d.responseBody, null, 2)} />
+              <CodeBlock code={formatDetail(d.responseBody)} />
             </div>
           ) : null}
 
@@ -287,7 +311,7 @@ export function LogEventCard({ event, isLatest }: Props) {
               <p className="text-[10px] text-foreground/40 uppercase tracking-wider mb-1">
                 Tool Result
               </p>
-              <CodeBlock code={JSON.stringify(d.toolResult, null, 2)} />
+              <CodeBlock code={formatDetail(d.toolResult)} />
             </div>
           ) : null}
         </div>

@@ -4,7 +4,6 @@ import React, { useCallback, useMemo } from "react";
 import { useDemoState } from "@/hooks/useDemoState";
 import { useUrlSync } from "@/hooks/useUrlSync";
 import { SCENARIO_CONFIGS, getConversationSteps, computeEffectiveSteps, CHATGPT_CONVERSATIONS, GEMINI_CONVERSATIONS, GEMINI_MCP_CONVERSATIONS } from "@/lib/scenario";
-import { StepIndicator } from "./StepIndicator";
 import { SecurityOverlay } from "./SecurityOverlay";
 import { IntroStep } from "./steps/IntroStep";
 import { ScenarioStep } from "./steps/ScenarioStep";
@@ -44,10 +43,6 @@ export function DemoContent() {
     handleGoToAct(currentAct + 1);
   }, [currentAct, handleGoToAct, handleReset]);
 
-  const handlePrevAct = useCallback(() => {
-    if (currentAct > 0) handleGoToAct(currentAct - 1);
-  }, [currentAct, handleGoToAct]);
-
   const handleConversationClick = useCallback((id: string) => {
     setConversation(id);
   }, [setConversation]);
@@ -73,6 +68,17 @@ export function DemoContent() {
     return getConversationSteps(allEffectiveSteps, activeConversation);
   }, [activeConversation, allEffectiveSteps]);
 
+  const isLastConversation =
+    currentAct === 1
+      ? activeConversation === CHATGPT_CONVERSATIONS[CHATGPT_CONVERSATIONS.length - 1]?.id
+      : currentAct === 2
+        ? activeConversation === GEMINI_CONVERSATIONS[GEMINI_CONVERSATIONS.length - 1]?.id
+        : currentAct === 3
+          ? activeConversation === GEMINI_MCP_CONVERSATIONS[GEMINI_MCP_CONVERSATIONS.length - 1]?.id
+          : true;
+
+  const isMultiChat = currentAct === 1 || currentAct === 2 || currentAct === 3;
+
   const renderAct = () => {
     switch (currentAct) {
       case 0:
@@ -90,6 +96,8 @@ export function DemoContent() {
             onComplete={handleNextAct}
             activeConversation={activeConversation || undefined}
             onConversationClick={handleConversationClick}
+            isLastConversation={isLastConversation}
+            isMultiChat={isMultiChat}
           />
         );
       case 2:
@@ -105,6 +113,8 @@ export function DemoContent() {
             onComplete={handleNextAct}
             activeConversation={activeConversation || undefined}
             onConversationClick={handleConversationClick}
+            isLastConversation={isLastConversation}
+            isMultiChat={isMultiChat}
           />
         );
       case 3:
@@ -120,6 +130,8 @@ export function DemoContent() {
             onComplete={handleNextAct}
             activeConversation={activeConversation || undefined}
             onConversationClick={handleConversationClick}
+            isLastConversation={isLastConversation}
+            isMultiChat={isMultiChat}
           />
         );
       case 4:
@@ -132,7 +144,7 @@ export function DemoContent() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* App area (header + main content) -- shifts when overlay opens */}
-      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${overlayOpen ? "mr-[384px]" : ""}`}>
+      <div className={`flex-1 min-h-0 flex flex-col overflow-hidden transition-all duration-300 ${overlayOpen ? "mr-[384px]" : ""}`}>
         {/* Header */}
         {currentAct > 0 && currentAct < 4 && (
           <div className="w-full px-6 py-2.5 flex items-center justify-between border-b shrink-0">
@@ -151,31 +163,10 @@ export function DemoContent() {
         )}
 
         {/* Main content */}
-        <main className="flex-1 flex flex-col overflow-y-auto">
+        <main className="flex-1 min-h-0 flex flex-col overflow-hidden">
           {renderAct()}
         </main>
       </div>
-
-      {/* Floating step navigation */}
-      <StepIndicator
-        currentAct={currentAct}
-        currentStep={currentStep}
-        totalSteps={effectiveSteps.length}
-        onNextStep={nextStep}
-        onPrevStep={prevStep}
-        onNextAct={handleNextAct}
-        onPrevAct={handlePrevAct}
-        isMultiChat={currentAct === 1 || currentAct === 2 || currentAct === 3}
-        isLastConversation={
-          currentAct === 1
-            ? activeConversation === CHATGPT_CONVERSATIONS[CHATGPT_CONVERSATIONS.length - 1]?.id
-            : currentAct === 2
-              ? activeConversation === GEMINI_CONVERSATIONS[GEMINI_CONVERSATIONS.length - 1]?.id
-              : currentAct === 3
-                ? activeConversation === GEMINI_MCP_CONVERSATIONS[GEMINI_MCP_CONVERSATIONS.length - 1]?.id
-                : true
-        }
-      />
 
       {/* Disclaimer */}
       <div className="fixed bottom-0 left-0 right-0 z-10 py-1 text-center pointer-events-none">
