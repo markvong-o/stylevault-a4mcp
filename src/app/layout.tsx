@@ -17,7 +17,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} antialiased flex flex-col h-screen`}>
         <Navbar />
-        <div className="flex-1 min-h-0 flex flex-col overflow-y-auto scrollbar-hidden">{children}</div>
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">{children}</div>
       </body>
     </html>
   );

@@ -50,7 +50,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
-  zoom: 1.15;
+  zoom: 1;
 }
 
 body::before {

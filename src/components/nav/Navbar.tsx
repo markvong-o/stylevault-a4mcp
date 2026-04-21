@@ -27,8 +27,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 function isActive(pathname: string, href: string): boolean {
-  if (href === "/dashboard") return pathname === "/dashboard";
-  return pathname.startsWith(href);
+  return pathname === href || pathname.startsWith(href + "/");
 }
 
 // ---------------------------------------------------------------------------
