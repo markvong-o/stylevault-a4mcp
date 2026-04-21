@@ -1,4 +1,5 @@
 import http from "node:http";
+import { Readable } from "node:stream";
 import next from "next";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -146,8 +147,8 @@ nextApp.prepare().then(() => {
       const ac = new AbortController();
       res.on("close", () => ac.abort());
 
-      hono
-        .fetch(
+      Promise.resolve(
+        hono.fetch(
           new Request(`http://localhost:${port}${req.url}`, {
             method: req.method,
             headers: Object.fromEntries(
@@ -155,13 +156,15 @@ nextApp.prepare().then(() => {
                 .filter(([, v]) => v !== undefined)
                 .map(([k, v]) => [k, Array.isArray(v) ? v.join(", ") : v!])
             ),
-            body: req.method !== "GET" && req.method !== "HEAD" ? req : undefined,
+            body: req.method !== "GET" && req.method !== "HEAD"
+              ? Readable.toWeb(req) as ReadableStream
+              : undefined,
             // @ts-expect-error duplex is required for streaming request bodies
             duplex: "half",
             signal: ac.signal,
           })
         )
-        .then(async (response) => {
+      ).then(async (response: Response) => {
           res.writeHead(
             response.status,
             Object.fromEntries(response.headers.entries())

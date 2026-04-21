@@ -205,7 +205,7 @@ export function registerTools(server: McpServer): void {
     },
     async (_params, { authInfo }) => {
       const start = Date.now();
-      const userEmail = (authInfo as Record<string, unknown>)?.email as string || "alex@example.com";
+      const userEmail = (authInfo as unknown as Record<string, unknown>)?.email as string || "alex@example.com";
       const wishlistIds = WISHLISTS.get(userEmail) || [];
       const items = wishlistIds
         .map((id) => PRODUCTS.find((p) => p.id === id))
@@ -242,7 +242,7 @@ export function registerTools(server: McpServer): void {
     },
     async (_params, { authInfo }) => {
       const start = Date.now();
-      const userEmail = (authInfo as Record<string, unknown>)?.email as string || "alex@example.com";
+      const userEmail = (authInfo as unknown as Record<string, unknown>)?.email as string || "alex@example.com";
       const userOrders = Array.from(orders.values()).filter(
         (o) => o.buyer_email === userEmail
       );
@@ -327,7 +327,7 @@ export function registerTools(server: McpServer): void {
         };
       }
 
-      const userEmail = (authInfo as Record<string, unknown>)?.email as string || "alex@example.com";
+      const userEmail = (authInfo as unknown as Record<string, unknown>)?.email as string || "alex@example.com";
       const orderId = generateId("ord");
       const order = {
         order_id: orderId,
@@ -371,7 +371,7 @@ export function registerTools(server: McpServer): void {
     },
     async ({ add }, { authInfo }) => {
       const start = Date.now();
-      const userEmail = (authInfo as Record<string, unknown>)?.email as string || "alex@example.com";
+      const userEmail = (authInfo as unknown as Record<string, unknown>)?.email as string || "alex@example.com";
       const current = PREFERENCES.get(userEmail) || [];
       const updated = [...new Set([...current, ...add])];
       PREFERENCES.set(userEmail, updated);
