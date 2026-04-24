@@ -116,7 +116,7 @@ function useDiagramData() {
         type: "actor",
         position: { x: 700, y: 0 },
         data: {
-          label: "StyleVault",
+          label: "RetailZero",
           subtitle: "UCP-over-MCP Server",
           detail: "Streamable HTTP",
           color: COLORS.server,

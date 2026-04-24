@@ -1,4 +1,4 @@
-# StyleVault MCP Server -- What's Left to Do
+# RetailZero MCP Server -- What's Left to Do
 
 This document covers everything that still needs to happen before the MCP server is fully operational with Auth0 and ChatGPT connected end-to-end.
 
@@ -24,8 +24,8 @@ The MCP server code is ready, but the Auth0 side needs to be set up manually in 
 
 ### Create an Application for the MCP Server
 
-- [ ] Create a Machine-to-Machine application named `StyleVault MCP Server`
-- [ ] Authorize it for the `StyleVault API`
+- [ ] Create a Machine-to-Machine application named `RetailZero MCP Server`
+- [ ] Authorize it for the `RetailZero API`
 - [ ] Copy the Client ID into `.env`
 
 ### Enable Dynamic Client Registration

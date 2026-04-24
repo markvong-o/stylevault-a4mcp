@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Store } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Data
@@ -28,6 +29,35 @@ const NAV_ITEMS: NavItem[] = [
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
+}
+
+// ---------------------------------------------------------------------------
+// Auth state hook
+// ---------------------------------------------------------------------------
+
+interface AuthUser {
+  name?: string;
+  email?: string;
+  picture?: string;
+}
+
+function useAuth() {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.isAuthenticated) {
+          setUser(data.user);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { user, loading };
 }
 
 // ---------------------------------------------------------------------------
@@ -61,7 +91,6 @@ function NavDropdown({
 
   return (
     <div className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
-      {/* Trigger */}
       <button
         className={`flex items-center gap-1 text-[12px] px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
           groupActive
@@ -85,7 +114,6 @@ function NavDropdown({
         </svg>
       </button>
 
-      {/* Dropdown panel */}
       {open && (
         <div className="absolute top-full left-0 mt-1 min-w-[180px] rounded-lg border border-foreground/[0.08] bg-white shadow-lg shadow-black/[0.06] py-1 z-[60]">
           {children.map(({ label: childLabel, href }) => {
@@ -116,18 +144,17 @@ function NavDropdown({
 
 export function Navbar() {
   const pathname = usePathname();
+  const { user, loading } = useAuth();
 
   if (pathname === "/") return null;
 
   return (
     <nav className="shrink-0 flex items-center justify-between border-b border-foreground/[0.06] bg-white/80 backdrop-blur-md px-6 h-12 z-50">
       {/* Brand */}
-      <Link href="/" className="flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#4016A0] to-[#B49BFC] flex items-center justify-center">
-          <span className="text-[11px] font-bold text-white">SV</span>
-        </div>
-        <span className="font-display italic text-[15px] text-foreground/70">
-          StyleVault
+      <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+        <Store className="h-6 w-6 text-[#B49BFC]" />
+        <span>
+          Retail<span className="text-[#B49BFC]">Zero</span>
         </span>
       </Link>
 
@@ -159,6 +186,52 @@ export function Navbar() {
             </Link>
           );
         })}
+      </div>
+
+      {/* Auth */}
+      <div className="flex items-center gap-2">
+        {loading ? (
+          <div className="w-16" />
+        ) : user ? (
+          <>
+            <Link
+              href="/playground/live"
+              className={`text-[12px] px-3 py-1.5 rounded-md transition-colors ${
+                isActive(pathname, "/playground/live")
+                  ? "bg-primary/[0.08] text-primary font-medium"
+                  : "text-foreground/40 hover:text-foreground/65 hover:bg-foreground/[0.03]"
+              }`}
+            >
+              Live Playground
+            </Link>
+            <Link
+              href="/profile"
+              className={`flex items-center gap-2 text-[12px] px-3 py-1.5 rounded-md transition-colors ${
+                isActive(pathname, "/profile")
+                  ? "bg-primary/[0.08] text-primary font-medium"
+                  : "text-foreground/40 hover:text-foreground/65 hover:bg-foreground/[0.03]"
+              }`}
+            >
+              {user.picture && (
+                <img src={user.picture} alt="" className="w-5 h-5 rounded-full" />
+              )}
+              {user.name || user.email || "Profile"}
+            </Link>
+            <a
+              href="/oauth/logout"
+              className="text-[12px] px-3 py-1.5 rounded-md text-foreground/40 hover:text-foreground/65 hover:bg-foreground/[0.03] transition-colors"
+            >
+              Log out
+            </a>
+          </>
+        ) : (
+          <a
+            href="/oauth/login"
+            className="text-[12px] px-3 py-1.5 rounded-md border border-primary/20 text-primary hover:bg-primary/[0.06] transition-colors"
+          >
+            Log in
+          </a>
+        )}
       </div>
     </nav>
   );

@@ -26,7 +26,7 @@ export function getActiveGeminiSessions(): { active: number; ids: string[] } {
  */
 function createMcpServer(): McpServer {
   const server = new McpServer({
-    name: "StyleVault UCP-over-MCP",
+    name: "RetailZero UCP-over-MCP",
     version: "1.0.0",
   });
   registerGeminiUCPTools(server);
@@ -161,7 +161,7 @@ export async function handleGeminiMcpPost(req: Request, res: Response): Promise<
               clientInfo: body?.params?.clientInfo,
             },
             responseBody: {
-              serverInfo: { name: "StyleVault UCP-over-MCP", version: "1.0.0" },
+              serverInfo: { name: "RetailZero UCP-over-MCP", version: "1.0.0" },
               protocolVersion: "2025-03-26",
             },
             duration: Date.now() - startTime,

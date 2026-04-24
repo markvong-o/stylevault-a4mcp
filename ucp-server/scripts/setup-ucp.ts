@@ -25,9 +25,9 @@ import { banner, step, done, info, warn, fail, spin, ask, askPassword, confirm, 
 
 // ── Constants ───────────────────────────────────────────────
 
-const API_NAME = "StyleVault MCP API";
+const API_NAME = "RetailZero MCP API";
 const API_IDENTIFIER = "https://api.stylevault.com";
-const UCP_APP_NAME = "StyleVault UCP Identity Linking";
+const UCP_APP_NAME = "RetailZero UCP Identity Linking";
 const TEST_USER_EMAIL = "alex@example.com";
 const TEST_USER_PASSWORD = "Demo-Pass-2026!";
 const DB_CONNECTION = "Username-Password-Authentication";
@@ -52,7 +52,7 @@ exports.onExecutePostLogin = async (event, api) => {
 
 async function main() {
   banner(
-    "StyleVault -- Google UCP Setup",
+    "RetailZero -- Google UCP Setup",
     "This script provisions Auth0 (with CIBA), initializes the database, and generates your .env."
   );
 
@@ -205,7 +205,7 @@ async function main() {
   const actionSpinner = spin("Creating post-login Action...");
   try {
     const action = await createAction(token, domain!, {
-      name: "StyleVault Bounded Authority",
+      name: "RetailZero Bounded Authority",
       code: BOUNDED_AUTHORITY_ACTION_CODE,
       supported_triggers: [{ id: "post-login", version: "v3" }],
     });

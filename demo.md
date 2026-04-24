@@ -1,20 +1,20 @@
-# StyleVault MCP Security Demo: Presenter Script
+# RetailZero MCP Security Demo: Presenter Script
 
 Duration: ~8-10 minutes
 
 
 ## Setup
 
-"This is StyleVault, a premium e-commerce platform. Like every commerce brand right now, they're asking: how do we let AI assistants securely shop on behalf of our customers?"
+"This is RetailZero, a premium e-commerce platform. Like every commerce brand right now, they're asking: how do we let AI assistants securely shop on behalf of our customers?"
 
 The answer is Auth0's Auth for MCP. Today I'm going to show you three scenarios: a 1st-party AI widget, ChatGPT via MCP Discovery, and Gemini through UCP. Each builds on the last.
 
 Click Start Demo.
 
 
-## Scenario A: StyleVault AI Widget (1st-Party)
+## Scenario A: RetailZero AI Widget (1st-Party)
 
-"First, notice this purple widget in the corner. That's StyleVault's own 1st-party AI assistant. It's built right into their site. Let's interact with it."
+"First, notice this purple widget in the corner. That's RetailZero's own 1st-party AI assistant. It's built right into their site. Let's interact with it."
 
 Click the floating bubble.
 
@@ -22,7 +22,7 @@ Click the floating bubble.
 
 Click through the widget interaction to show wishlist access.
 
-"The security is invisible. StyleVault embedded transaction controls directly in the token, so bounded authority is enforced at the infrastructure level. Code can't override it. Prompts can't override it."
+"The security is invisible. RetailZero embedded transaction controls directly in the token, so bounded authority is enforced at the infrastructure level. Code can't override it. Prompts can't override it."
 
 Click to the CIBA approval moment.
 
@@ -35,13 +35,13 @@ Click Approve.
 
 ## Scenario B: ChatGPT via MCP Discovery and Dynamic Registration
 
-"Now let's move to the harder problem: 3rd-party AI clients like ChatGPT. These clients can't use the same simple flow because they're external, they're multi-session, and StyleVault didn't pre-register them."
+"Now let's move to the harder problem: 3rd-party AI clients like ChatGPT. These clients can't use the same simple flow because they're external, they're multi-session, and RetailZero didn't pre-register them."
 
 "How does Auth0 solve this? Through MCP Discovery and Dynamic Client Registration."
 
 Click the ChatGPT scenario.
 
-"ChatGPT discovers StyleVault through published metadata. That metadata includes the MCP capabilities and a pointer to Auth0 as the authorization server. All of this is standardized and discoverable. ChatGPT then dynamically registers itself, and Auth0 issues credentials on the fly with no pre-configuration needed."
+"ChatGPT discovers RetailZero through published metadata. That metadata includes the MCP capabilities and a pointer to Auth0 as the authorization server. All of this is standardized and discoverable. ChatGPT then dynamically registers itself, and Auth0 issues credentials on the fly with no pre-configuration needed."
 
 Click Approve on the passkey login.
 
@@ -65,7 +65,7 @@ Click to show the Technical tab details (HTTP request, response, decoded claims)
 
 Switch back to Business tab.
 
-"From a business perspective: ChatGPT now has time-limited, scoped access to StyleVault's API. No permanent keys. No hardcoded credentials in configuration. Every request is validated and auditable."
+"From a business perspective: ChatGPT now has time-limited, scoped access to RetailZero's API. No permanent keys. No hardcoded credentials in configuration. Every request is validated and auditable."
 
 Click through conversations 1 and 2.
 
@@ -97,11 +97,11 @@ Click the Gemini scenario.
 
 "Different UI. Material Design. Google blue. Same backend, different agent profiles and capabilities."
 
-Gemini starts by discovering StyleVault's UCP Merchant Manifest. This manifest defines the endpoints and the autonomous authority limits that StyleVault is comfortable with.
+Gemini starts by discovering RetailZero's UCP Merchant Manifest. This manifest defines the endpoints and the autonomous authority limits that RetailZero is comfortable with.
 
 Click through the UCP Discovery flow.
 
-"Next: Agent Profile Exchange and Capability Negotiation. Gemini identifies itself as a Google agent. StyleVault declares its authority limits. Auth0 validates both before tokens are issued."
+"Next: Agent Profile Exchange and Capability Negotiation. Gemini identifies itself as a Google agent. RetailZero declares its authority limits. Auth0 validates both before tokens are issued."
 
 "This is fundamentally different from MCP. With MCP, you're assuming the human approved this specific agent. With UCP, the agent may operate autonomously for hours, making multiple purchases. So the negotiation is stricter. The agent has to prove its identity and capabilities up front."
 
@@ -111,7 +111,7 @@ Phishing-resistant authentication. Table stakes.
 
 Click to the UCP Discovery Gate.
 
-Auth0 validates Gemini's identity and capabilities against the merchant manifest. Is this agent legitimate? Does its authority level match StyleVault's policy? Only after validation passes does Gemini receive tokens.
+Auth0 validates Gemini's identity and capabilities against the merchant manifest. Is this agent legitimate? Does its authority level match RetailZero's policy? Only after validation passes does Gemini receive tokens.
 
 Click Approve on consent.
 
@@ -125,7 +125,7 @@ Click "Under the Hood" Technical tab.
 
 Switch back to Business tab.
 
-"Operationally: UCP gives StyleVault autonomous agent capability with guardrails. The agent shops on the customer's behalf, completes purchases under the limit, and escalates only when it exceeds authority."
+"Operationally: UCP gives RetailZero autonomous agent capability with guardrails. The agent shops on the customer's behalf, completes purchases under the limit, and escalates only when it exceeds authority."
 
 Click through UCP catalog search.
 
@@ -169,9 +169,9 @@ Click to the Technical tab.
 
 Here's what ties it all together. Three different AI clients. One security layer.
 
-"StyleVault's own widget, ChatGPT via MCP, and Gemini via UCP are all connected through Auth0 with the same OAuth infrastructure, the same bounded authority enforcement, the same CIBA for step-up approval, and the same audit trail."
+"RetailZero's own widget, ChatGPT via MCP, and Gemini via UCP are all connected through Auth0 with the same OAuth infrastructure, the same bounded authority enforcement, the same CIBA for step-up approval, and the same audit trail."
 
-StyleVault configured the security once. It works for all three channels. When a fourth AI platform appears next quarter, the cost of adding it is near zero. Deploy the connector. Security posture remains unchanged.
+RetailZero configured the security once. It works for all three channels. When a fourth AI platform appears next quarter, the cost of adding it is near zero. Deploy the connector. Security posture remains unchanged.
 
 
 ## Why This Matters
@@ -180,11 +180,11 @@ The business case is stark.
 
 Without Auth0: 3-6 months of custom engineering. OAuth servers. Consent management. Backchannel auth. Fine-grained permissions. Transaction limits. Audit logging. Each one a separate build. Each one a security risk.
 
-With Auth0: managed services. StyleVault went from zero to a secured MCP server in weeks, not quarters. That's operational cost reduction and accelerated time to market.
+With Auth0: managed services. RetailZero went from zero to a secured MCP server in weeks, not quarters. That's operational cost reduction and accelerated time to market.
 
 The structural advantage runs deeper. Every new AI client that connects automatically gets the same security posture. ChatGPT today. Claude tomorrow. Vertical-specific agents next quarter. The marginal cost of each new channel approaches zero.
 
-While competitors are still scoping their security architecture, StyleVault is live across multiple AI platforms. They compressed months of infrastructure work into days of integration. Their engineering team focuses on product, not security plumbing. That's competitive advantage in the era of agentic commerce.
+While competitors are still scoping their security architecture, RetailZero is live across multiple AI platforms. They compressed months of infrastructure work into days of integration. Their engineering team focuses on product, not security plumbing. That's competitive advantage in the era of agentic commerce.
 
 Auth0 made it fast, made it affordable, made it trustworthy.
 
@@ -210,7 +210,7 @@ Weeks, not quarters. Auth0 provides consent, CIBA, and token infrastructure as m
 In MCP: request fails at the infrastructure level. In UCP: agent receives an escalation response and must request human approval. Both are cryptographically enforced through token claims. Application code can't override them.
 
 **Do I have to use all three approaches?**
-No. StyleVault chose all three for different user experiences and autonomy levels. You might use only MCP (ChatGPT with real-time approval). Or only UCP (autonomous procurement agents). Auth0 supports all patterns.
+No. RetailZero chose all three for different user experiences and autonomy levels. You might use only MCP (ChatGPT with real-time approval). Or only UCP (autonomous procurement agents). Auth0 supports all patterns.
 
 **What about the audit trail?**
 Complete. Every token exchange, API call, CIBA approval, and authority decision is logged. You can reconstruct the entire authorization flow for any transaction. Compliance-ready out of the box.

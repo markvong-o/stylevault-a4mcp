@@ -14,7 +14,7 @@ app.get("/.well-known/ucp", (c) => {
         },
       ],
     },
-    name: "StyleVault",
+    name: "RetailZero",
     description: "Premium fashion and lifestyle e-commerce",
     capabilities: {
       "dev.ucp.shopping.checkout": {
@@ -68,7 +68,7 @@ app.get("/.well-known/ucp", (c) => {
     ],
     extensions: [],
     contact: {
-      email: "ucp@stylevault.com",
+      email: "ucp@retailzero.com",
     },
   });
 });

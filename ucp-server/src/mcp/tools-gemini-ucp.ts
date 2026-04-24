@@ -110,7 +110,7 @@ export function registerGeminiUCPTools(server: McpServer): void {
             },
           ],
         },
-        name: "StyleVault",
+        name: "RetailZero",
         description: "Premium fashion and lifestyle e-commerce",
         capabilities: {
           "dev.ucp.shopping.catalog": {
@@ -178,7 +178,7 @@ export function registerGeminiUCPTools(server: McpServer): void {
     {
       title: "Search Catalog (UCP)",
       description:
-        "Search the StyleVault product catalog by keyword, category, or price range. " +
+        "Search the RetailZero product catalog by keyword, category, or price range. " +
         "Equivalent to UCP GET /ucp/v1/catalog/search.",
       inputSchema: {
         query: z.string().optional().describe("Search keyword (e.g. 'leather bag')"),

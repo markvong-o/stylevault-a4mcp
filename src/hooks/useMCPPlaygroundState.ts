@@ -158,7 +158,7 @@ export function useMCPPlaygroundState() {
     const body = rpcBody("initialize", {
       protocolVersion: "2025-03-26",
       capabilities: {},
-      clientInfo: { name: "StyleVault Playground", version: "1.0.0" },
+      clientInfo: { name: "RetailZero Playground", version: "1.0.0" },
     });
     const start = performance.now();
     try {

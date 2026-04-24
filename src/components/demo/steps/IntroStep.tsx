@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Store } from "lucide-react";
 
 interface IntroStepProps {
   onStart: () => void;
@@ -9,16 +10,11 @@ interface IntroStepProps {
 
 export function IntroStep({ onStart: _onStart }: IntroStepProps) {
   const router = useRouter();
-  const [phase, setPhase] = useState(0);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const timers = [
-      setTimeout(() => setPhase(1), 500),
-      setTimeout(() => setPhase(2), 1500),
-      setTimeout(() => setPhase(3), 2800),
-      setTimeout(() => setPhase(4), 4000),
-    ];
-    return () => timers.forEach(clearTimeout);
+    const t = setTimeout(() => setVisible(true), 100);
+    return () => clearTimeout(t);
   }, []);
 
   return (
@@ -31,13 +27,11 @@ export function IntroStep({ onStart: _onStart }: IntroStepProps) {
 
       <div className="relative z-10 flex flex-col items-center gap-8 max-w-3xl px-8">
         {/* Logo + Title */}
-        <div className={`transition-all duration-1000 ${phase >= 1 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+        <div className={`transition-all duration-500 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <div className="flex items-center gap-5 mb-3">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#4016A0] to-[#B49BFC] flex items-center justify-center shadow-xl shadow-primary/30">
-              <span className="text-2xl font-bold text-white">SV</span>
-            </div>
-            <h1 className="text-6xl font-[family-name:var(--font-display)] italic bg-gradient-to-r from-foreground via-foreground/80 to-foreground/40 bg-clip-text text-transparent">
-              StyleVault
+            <Store className="h-12 w-12 text-[#B49BFC]" />
+            <h1 className="text-6xl font-bold">
+              <span className="bg-gradient-to-r from-foreground via-foreground/80 to-foreground/40 bg-clip-text text-transparent">Retail</span><span className="text-[#B49BFC]">Zero</span>
             </h1>
           </div>
           <p className="text-base text-muted-foreground text-center mt-3 tracking-wide">
@@ -46,17 +40,17 @@ export function IntroStep({ onStart: _onStart }: IntroStepProps) {
         </div>
 
         {/* Main tagline */}
-        <div className={`max-w-2xl text-center transition-all duration-1000 delay-200 ${phase >= 2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+        <div className={`max-w-2xl text-center transition-all duration-500 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <p className="text-2xl font-light text-foreground/70 leading-relaxed">
             &ldquo;What if your AI assistants could securely access your{" "}
-            <span className="text-primary font-medium">StyleVault</span> account?&rdquo;
+            <span className="text-primary font-medium">RetailZero</span> account?&rdquo;
           </p>
         </div>
 
         {/* Supporting copy */}
-        <div className={`max-w-xl text-center transition-all duration-1000 delay-300 ${phase >= 3 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+        <div className={`max-w-xl text-center transition-all duration-500 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-            By securing its agentic endpoints with Auth0, StyleVault shipped two integration paths in parallel: a ChatGPT App powered by MCP, ready for OpenAI&apos;s Agentic Commerce Protocol (ACP) and Instant Checkout, and a Google/Gemini integration via the Universal Commerce Protocol (UCP). One security layer across both protocols, cutting time to market while keeping operational costs low.
+            By securing its agentic endpoints with Auth0, RetailZero shipped two integration paths in parallel: a ChatGPT App powered by MCP, ready for OpenAI&apos;s Agentic Commerce Protocol (ACP) and Instant Checkout, and a Google/Gemini integration via the Universal Commerce Protocol (UCP). One security layer across both protocols, cutting time to market while keeping operational costs low.
           </p>
           <p className="text-base text-foreground/50 mt-5">
             From identity to consent to spending limits,{" "}
@@ -65,7 +59,7 @@ export function IntroStep({ onStart: _onStart }: IntroStepProps) {
         </div>
 
         {/* CTA */}
-        <div className={`transition-all duration-1000 delay-500 ${phase >= 4 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+        <div className={`transition-all duration-500 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <button
             onClick={() => router.push("/dashboard")}
             className="mt-4 group relative px-8 py-3 rounded-full text-base font-medium text-white bg-gradient-to-r from-primary to-primary/80 shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300 cursor-pointer"

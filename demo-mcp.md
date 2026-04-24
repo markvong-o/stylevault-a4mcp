@@ -1,11 +1,11 @@
-# Auth0 for MCP: ChatGPT + StyleVault Demo
+# Auth0 for MCP: ChatGPT + RetailZero Demo
 
 Duration: ~5 minutes
 
 
 ## Setup
 
-"This is StyleVault, a premium e-commerce platform. Every commerce brand is asking the same question now: how do we let AI assistants like ChatGPT shop securely on behalf of our customers?"
+"This is RetailZero, a premium e-commerce platform. Every commerce brand is asking the same question now: how do we let AI assistants like ChatGPT shop securely on behalf of our customers?"
 
 "Auth0 for MCP answers that. What you're about to see is what happens when a third-party AI client connects, authenticates, and transacts, all secured out of the box."
 
@@ -14,9 +14,9 @@ Click Start Demo. Select the ChatGPT scenario.
 
 ## Discovery and Dynamic Registration
 
-"ChatGPT has never connected to StyleVault before. There's no pre-registration required, no API keys to exchange, no portal onboarding. So how does it connect?"
+"ChatGPT has never connected to RetailZero before. There's no pre-registration required, no API keys to exchange, no portal onboarding. So how does it connect?"
 
-"Two things happen automatically. ChatGPT queries StyleVault's MCP server for its protected resource metadata. That metadata points to Auth0 as the authorization server. ChatGPT then fetches Auth0's server metadata to learn what scopes are available and where to register."
+"Two things happen automatically. ChatGPT queries RetailZero's MCP server for its protected resource metadata. That metadata points to Auth0 as the authorization server. ChatGPT then fetches Auth0's server metadata to learn what scopes are available and where to register."
 
 "From there, ChatGPT registers itself dynamically. Auth0 issues a client_id on the spot with no manual setup required, no tickets created, and no waiting for a developer to whitelist a new integration."
 
@@ -85,16 +85,16 @@ Click to conversation 5.
 
 "The access token contains a $250 transaction cap as a bounded authority claim. The request is blocked before the MCP server sees it through infrastructure-level enforcement. No prompt injection can override a cryptographic claim, and no model hallucination bypasses a token constraint."
 
-"ChatGPT gracefully explains the limit and suggests completing the purchase directly on StyleVault instead of crashing or failing silently."
+"ChatGPT gracefully explains the limit and suggests completing the purchase directly on RetailZero instead of crashing or failing silently."
 
 
 ## The Business Case
 
-"Think about what StyleVault didn't have to build: OAuth servers, consent management, backchannel auth, fine-grained permissions, transaction limits, and audit logging. Without Auth0, each of those is a separate engineering effort and a potential security gap."
+"Think about what RetailZero didn't have to build: OAuth servers, consent management, backchannel auth, fine-grained permissions, transaction limits, and audit logging. Without Auth0, each of those is a separate engineering effort and a potential security gap."
 
-"With Auth0, all of that is managed infrastructure. StyleVault went from zero to a secured MCP server in weeks, not quarters. And because the security layer is configured once, every new AI client that connects inherits the same posture automatically. ChatGPT connects today, Claude connects tomorrow, vertical agents connect next quarter, and the marginal cost of each new channel is near zero."
+"With Auth0, all of that is managed infrastructure. RetailZero went from zero to a secured MCP server in weeks, not quarters. And because the security layer is configured once, every new AI client that connects inherits the same posture automatically. ChatGPT connects today, Claude connects tomorrow, vertical agents connect next quarter, and the marginal cost of each new channel is near zero."
 
-"That combination of lower operational cost and faster go-to-market is the structural advantage. While competitors are still designing their security layer, StyleVault is already transacting across multiple AI platforms."
+"That combination of lower operational cost and faster go-to-market is the structural advantage. While competitors are still designing their security layer, RetailZero is already transacting across multiple AI platforms."
 
 
 ## Handling Questions

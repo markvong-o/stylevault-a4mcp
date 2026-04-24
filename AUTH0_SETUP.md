@@ -1,4 +1,4 @@
-# Auth0 Setup Guide for StyleVault Demos
+# Auth0 Setup Guide for RetailZero Demos
 
 This guide walks you through configuring Auth0 so the MCP (ChatGPT) and UCP (Gemini) demos work end-to-end. There are two paths: automated scripts that provision everything, or manual setup if you prefer to configure each piece yourself.
 
@@ -10,7 +10,7 @@ The automated path takes about 5 minutes. The manual path takes about 20.
 
 - An Auth0 tenant (free tier works for MCP; CIBA requires an Enterprise plan or feature flag)
 - Node.js 18+ installed
-- The StyleVault repo cloned and dependencies installed (`npm install` in both root and `ucp-server/`)
+- The RetailZero repo cloned and dependencies installed (`npm install` in both root and `ucp-server/`)
 
 ---
 
@@ -24,7 +24,7 @@ Before running the scripts, you need an M2M (Machine-to-Machine) application tha
 
 1. Go to **Auth0 Dashboard > Applications > Create Application**
 2. Choose **Machine to Machine**
-3. Name it something like `StyleVault Setup Script`
+3. Name it something like `RetailZero Setup Script`
 4. Authorize it for the **Auth0 Management API** with these scopes:
    - `create:resource_servers`
    - `create:clients`
@@ -44,10 +44,10 @@ npm run setup:chatgpt
 
 This creates:
 - **API (Resource Server)**: `https://api.stylevault.com` with 5 scopes
-- **MCP Server Application**: `StyleVault MCP Server` (M2M, `client_credentials` grant)
+- **MCP Server Application**: `RetailZero MCP Server` (M2M, `client_credentials` grant)
 - **Client Grant**: Links the app to the API with all scopes
 - **Test User**: `alex@example.com` / `Demo-Pass-2026!`
-- **Post-Login Action**: `StyleVault Bounded Authority` (adds `$250` cap to tokens)
+- **Post-Login Action**: `RetailZero Bounded Authority` (adds `$250` cap to tokens)
 - **.env file**: Written to `ucp-server/.env`
 
 ### A.3 Run the UCP Setup Script
@@ -57,7 +57,7 @@ npm run setup:ucp
 ```
 
 This adds:
-- **UCP Identity Linking Application**: `StyleVault UCP Identity Linking` (Regular Web app, with CIBA grant type)
+- **UCP Identity Linking Application**: `RetailZero UCP Identity Linking` (Regular Web app, with CIBA grant type)
 - **Client Grant**: Links the UCP app to the same API
 - **SQLite Databases**: Products catalog and transactions store
 - **Updated .env**: Merges `AUTH0_UCP_CLIENT_ID`, `AUTH0_UCP_CLIENT_SECRET`, `CIBA_ENABLED=true`
@@ -67,7 +67,7 @@ This adds:
 The scripts create the Action but cannot wire it into the Login Flow automatically. You must do this manually:
 
 1. Go to **Auth0 Dashboard > Actions > Flows > Login**
-2. Drag the **StyleVault Bounded Authority** Action into the flow (between Start and Complete)
+2. Drag the **RetailZero Bounded Authority** Action into the flow (between Start and Complete)
 3. Click **Apply**
 
 For CIBA (escalation demo):
@@ -104,7 +104,7 @@ If you prefer to configure everything by hand, follow these steps.
 
 1. Go to **Auth0 Dashboard > Applications > APIs > Create API**
 2. Configure:
-   - **Name**: `StyleVault MCP API`
+   - **Name**: `RetailZero MCP API`
    - **Identifier**: `https://api.stylevault.com`
    - **Signing Algorithm**: RS256
 3. Under the **Permissions** tab, add these scopes:
@@ -128,9 +128,9 @@ This application represents the MCP server itself. ChatGPT obtains tokens throug
 1. Go to **Applications > Create Application**
 2. Choose **Machine to Machine**
 3. Configure:
-   - **Name**: `StyleVault MCP Server`
+   - **Name**: `RetailZero MCP Server`
    - **Grant Types**: `client_credentials`
-4. Authorize it for the `StyleVault MCP API` with all 5 scopes
+4. Authorize it for the `RetailZero MCP API` with all 5 scopes
 5. Note the **Client ID** and **Client Secret**
 
 ### B.3 Create the UCP Identity Linking Application (Gemini)
@@ -140,11 +140,11 @@ This application handles the OAuth flow for Gemini's Identity Linking and suppor
 1. Go to **Applications > Create Application**
 2. Choose **Regular Web Application**
 3. Configure:
-   - **Name**: `StyleVault UCP Identity Linking`
+   - **Name**: `RetailZero UCP Identity Linking`
    - **Grant Types**: `authorization_code`, `client_credentials`, `urn:openid:params:grant-type:ciba`
    - **Token Endpoint Auth Method**: `client_secret_post`
 4. Under **Settings > Allowed Callback URLs**, add your server URL (e.g., `http://localhost:3001/callback`)
-5. Authorize it for the `StyleVault MCP API` with all 5 scopes
+5. Authorize it for the `RetailZero MCP API` with all 5 scopes
 6. Note the **Client ID** and **Client Secret**
 
 > **Note**: The CIBA grant type (`urn:openid:params:grant-type:ciba`) requires Auth0 Enterprise or a specific feature flag. If your tenant doesn't support it, the escalation demo will simulate CIBA approval instead of triggering a real push notification.
@@ -164,7 +164,7 @@ This Action injects a spending limit into every access token. The MCP/UCP server
 
 1. Go to **Actions > Library > Build Custom**
 2. Configure:
-   - **Name**: `StyleVault Bounded Authority`
+   - **Name**: `RetailZero Bounded Authority`
    - **Trigger**: Login / Post Login
    - **Runtime**: Node 18
 3. Paste this code:
@@ -179,7 +179,7 @@ exports.onExecutePostLogin = async (event, api) => {
 
 4. Click **Deploy**
 5. Go to **Actions > Flows > Login**
-6. Drag **StyleVault Bounded Authority** into the flow between Start and Complete
+6. Drag **RetailZero Bounded Authority** into the flow between Start and Complete
 7. Click **Apply**
 
 ### B.6 Enable Guardian (for CIBA / Escalation)

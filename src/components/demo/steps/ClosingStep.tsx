@@ -100,28 +100,28 @@ export function ClosingStep({ securityEvents, onRestart }: ClosingStepProps) {
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
         </div>
-        <h2 className="text-3xl font-[family-name:var(--font-display)] italic text-foreground mb-3">Security Summary</h2>
+        <h2 className="text-3xl font-bold text-foreground mb-3">Security Summary</h2>
         <p className="text-lg text-muted-foreground">
-          Auth0 secured every AI interaction with StyleVault across {securityEvents.length} security events.
+          Auth0 secured every AI interaction with RetailZero across {securityEvents.length} security events.
         </p>
       </div>
 
       {/* Stats */}
       <div className={`relative z-10 flex items-center gap-8 transition-all duration-700 ${revealed >= 2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
         <div className="text-center">
-          <p className="text-3xl font-[family-name:var(--font-display)] italic text-emerald-600">{grantedCount}</p>
+          <p className="text-3xl font-bold text-emerald-600">{grantedCount}</p>
           <p className="text-xs text-muted-foreground">Allowed</p>
         </div>
         <div className="text-center">
-          <p className="text-3xl font-[family-name:var(--font-display)] italic text-red-500">{deniedCount}</p>
+          <p className="text-3xl font-bold text-red-500">{deniedCount}</p>
           <p className="text-xs text-muted-foreground">Denied</p>
         </div>
         <div className="text-center">
-          <p className="text-3xl font-[family-name:var(--font-display)] italic text-primary">{toolCallEvents.length}</p>
+          <p className="text-3xl font-bold text-primary">{toolCallEvents.length}</p>
           <p className="text-xs text-muted-foreground">Tool Calls</p>
         </div>
         <div className="text-center">
-          <p className="text-3xl font-[family-name:var(--font-display)] italic text-foreground">{securityEvents.length}</p>
+          <p className="text-3xl font-bold text-foreground">{securityEvents.length}</p>
           <p className="text-xs text-muted-foreground">Total Events</p>
         </div>
       </div>
@@ -145,7 +145,7 @@ export function ClosingStep({ securityEvents, onRestart }: ClosingStepProps) {
       {/* Closing copy + restart */}
       <div className={`relative z-10 max-w-2xl text-center transition-all duration-700 ${revealed >= 4 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
         <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-          Auth0 gave StyleVault a single security layer across two parallel integration paths. MCP powers the ChatGPT App and lays the foundation for OpenAI&apos;s Agentic Commerce Protocol (ACP) and Instant Checkout, while UCP powers the Gemini commerce integration with its own discovery, checkout state machine, and escalation flow. Both protocols share the same Auth0 identity, consent, and authorization guarantees, letting StyleVault reach more AI ecosystems without duplicating security infrastructure.
+          Auth0 gave RetailZero a single security layer across two parallel integration paths. MCP powers the ChatGPT App and lays the foundation for OpenAI&apos;s Agentic Commerce Protocol (ACP) and Instant Checkout, while UCP powers the Gemini commerce integration with its own discovery, checkout state machine, and escalation flow. Both protocols share the same Auth0 identity, consent, and authorization guarantees, letting RetailZero reach more AI ecosystems without duplicating security infrastructure.
         </p>
         <button
           onClick={onRestart}

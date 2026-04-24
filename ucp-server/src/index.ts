@@ -33,7 +33,7 @@ hono.route("/", orderRoutes);
 
 // Health check
 hono.get("/health", (c) =>
-  c.json({ status: "ok", service: "stylevault-server", mcp: true, ucp: true })
+  c.json({ status: "ok", service: "retailzero-server", mcp: true, ucp: true })
 );
 
 // ── Express app (MCP endpoint only) ───────────────────────────────
@@ -100,7 +100,7 @@ attachWebSocket(server);
 
 // ── Start with automatic port retry ──────────────────────────────
 function printStartup(port: number) {
-  console.log(`\nStyleVault Server running on port ${port}`);
+  console.log(`\nRetailZero Server running on port ${port}`);
   console.log(`\n  MCP endpoint:       http://localhost:${port}/mcp`);
   console.log(`  Gemini UCP-over-MCP: http://localhost:${port}/gemini-mcp`);
   console.log(`  MCP metadata:       http://localhost:${port}/.well-known/oauth-protected-resource`);

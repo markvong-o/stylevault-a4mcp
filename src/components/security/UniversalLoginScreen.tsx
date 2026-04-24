@@ -54,9 +54,9 @@ export function UniversalLoginScreen({ onLogin, visible }: UniversalLoginScreenP
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4016A0] to-[#B49BFC] flex items-center justify-center shadow-lg shadow-[#4016A0]/30">
               <span className="text-sm font-bold text-white">SV</span>
             </div>
-            <span className="text-lg font-semibold text-[#191919]">StyleVault</span>
+            <span className="text-lg font-semibold text-[#191919]">RetailZero</span>
           </div>
-          <h2 className="text-xl font-semibold text-[#191919]">Sign in to StyleVault</h2>
+          <h2 className="text-xl font-semibold text-[#191919]">Sign in to RetailZero</h2>
           <p className="text-sm text-[#191919]/50 mt-1">to continue to ChatGPT</p>
         </div>
 

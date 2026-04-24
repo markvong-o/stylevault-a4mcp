@@ -11,7 +11,7 @@ app.get("/api/config", (c) => {
 
   return c.json({
     server: {
-      name: "StyleVault",
+      name: "RetailZero",
       version: "1.0.0",
       protocolVersion: "2025-03-26",
     },
@@ -39,7 +39,7 @@ app.get("/api/config", (c) => {
             name: "search_products",
             title: "Search Products",
             description:
-              "Search the StyleVault catalog by keyword, category, or price range. Returns matching products with name, price, rating, and availability.",
+              "Search the RetailZero catalog by keyword, category, or price range. Returns matching products with name, price, rating, and availability.",
             inputSchema: {
               query: { type: "string", optional: true, description: "Search keyword" },
               category: { type: "string", optional: true, description: "Filter by category" },

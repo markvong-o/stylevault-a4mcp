@@ -216,7 +216,7 @@ export function LogEventCard({ event, isLatest }: Props) {
       {/* Expanded details */}
       {expanded && hasDetails && (
         <div
-          className="border-t px-3.5 py-3 space-y-3"
+          className="border-t px-3.5 py-3 space-y-3 max-h-[300px] overflow-y-auto"
           style={{ borderColor: colors.border }}
           onClick={(e) => e.stopPropagation()}
         >

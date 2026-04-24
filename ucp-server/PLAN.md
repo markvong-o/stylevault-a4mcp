@@ -1,8 +1,8 @@
-# StyleVault UCP Production Integration Plan
+# RetailZero UCP Production Integration Plan
 
 ## Overview
 
-This plan covers what's needed to take the StyleVault UCP merchant server from a demo mock to a production-grade, Google-conformant implementation secured by Auth0. The work is organized into four tiers by priority.
+This plan covers what's needed to take the RetailZero UCP merchant server from a demo mock to a production-grade, Google-conformant implementation secured by Auth0. The work is organized into four tiers by priority.
 
 ---
 
@@ -118,7 +118,7 @@ When a checkout completes or an order status changes, the server must POST event
   "order": {
     "id": "order_123",
     "checkout_id": "checkout_abc",
-    "permalink_url": "https://stylevault.com/orders/123",
+    "permalink_url": "https://retailzero.com/orders/123",
     "line_items": [...],
     "fulfillment": { "expectations": [...], "events": [...] },
     "currency": "USD",
@@ -143,7 +143,7 @@ The `/.well-known/ucp` manifest needs to match the production schema.
 
 **Current (simplified):**
 ```json
-{ "name": "StyleVault", "capabilities": ["dev.ucp.shopping.checkout", ...] }
+{ "name": "RetailZero", "capabilities": ["dev.ucp.shopping.checkout", ...] }
 ```
 
 **Production (required):**
@@ -360,7 +360,7 @@ Auth0's consent screen handles scope approval during identity linking. Configure
 - `ucp:catalog:read` -> "Browse product catalog on your behalf"
 - `ucp:checkout:session` -> "Create and manage checkout sessions"
 - `ucp:orders:read` -> "View your order history and tracking"
-- `ucp:identity:link` -> "Link your StyleVault account"
+- `ucp:identity:link` -> "Link your RetailZero account"
 
 ---
 
@@ -370,7 +370,7 @@ Auth0's consent screen handles scope approval during identity linking. Configure
 
 - [ ] Active Google Merchant Center account
 - [ ] Products published with `native_commerce="true"` attribute
-- [ ] Return policy published on stylevault.com
+- [ ] Return policy published on retailzero.com
 - [ ] Customer support contact info published
 - [ ] `/.well-known/ucp` serving production manifest
 - [ ] All Tier 1 conformance requirements met

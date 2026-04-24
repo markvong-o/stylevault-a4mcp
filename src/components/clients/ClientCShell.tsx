@@ -28,7 +28,7 @@ export function ClientCShell({ messages, visibleCount, typing, inputValue }: Cli
               <span className="text-sm font-bold text-[#4016A0]">SV</span>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[var(--client-text)]">StyleVault Dashboard</h3>
+              <h3 className="text-sm font-semibold text-[var(--client-text)]">RetailZero Dashboard</h3>
               <p className="text-xs text-[var(--client-muted)]">alex@example.com</p>
             </div>
           </div>

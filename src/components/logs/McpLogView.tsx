@@ -1,67 +1,46 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { LogEventCard, type McpLogEvent } from "./LogEventCard";
-import { serverUrls } from "@/hooks/useServerPort";
 
-type ConnectionStatus = "connecting" | "connected" | "disconnected";
+type ConnectionStatus = "polling" | "connected" | "error";
+
+const POLL_INTERVAL = 2000;
 
 export function McpLogView() {
   const [events, setEvents] = useState<McpLogEvent[]>([]);
-  const [status, setStatus] = useState<ConnectionStatus>("connecting");
+  const [status, setStatus] = useState<ConnectionStatus>("polling");
   const [filter, setFilter] = useState<string>("all");
   const scrollRef = useRef<HTMLDivElement>(null);
-  const esRef = useRef<EventSource | null>(null);
   const seenRef = useRef<Set<string>>(new Set());
 
-  useEffect(() => {
-    setStatus("connecting");
-    const historyBuf: McpLogEvent[] = [];
+  const poll = useCallback(async () => {
+    try {
+      const res = await fetch("/api/events");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const incoming: McpLogEvent[] = data.events || [];
 
-    const es = new EventSource(`${serverUrls().api}/api/events/stream`);
-    esRef.current = es;
-
-    es.addEventListener("history", (e) => {
-      try {
-        const evt: McpLogEvent = JSON.parse(e.data);
-        if (!seenRef.current.has(evt.id)) {
-          seenRef.current.add(evt.id);
-          historyBuf.push(evt);
-        }
-      } catch { /* skip */ }
-    });
-
-    es.addEventListener("history-done", () => {
-      if (historyBuf.length > 0) {
+      const fresh = incoming.filter((e) => !seenRef.current.has(e.id));
+      if (fresh.length > 0) {
+        for (const e of fresh) seenRef.current.add(e.id);
         setEvents((prev) => {
-          // Merge: keep existing events, add any new from history
           const existing = new Set(prev.map((e) => e.id));
-          const newEvents = historyBuf.filter((e) => !existing.has(e.id));
+          const newEvents = fresh.filter((e) => !existing.has(e.id));
           return newEvents.length > 0 ? [...prev, ...newEvents] : prev;
         });
       }
       setStatus("connected");
-    });
-
-    es.addEventListener("event", (e) => {
-      try {
-        const evt: McpLogEvent = JSON.parse(e.data);
-        if (seenRef.current.has(evt.id)) return;
-        seenRef.current.add(evt.id);
-        setEvents((prev) => [...prev, evt]);
-      } catch { /* skip */ }
-    });
-
-    es.onerror = () => {
-      setStatus("disconnected");
-      // EventSource auto-reconnects; status will update on next history-done
-    };
-
-    return () => {
-      es.close();
-      esRef.current = null;
-    };
+    } catch {
+      setStatus("error");
+    }
   }, []);
+
+  useEffect(() => {
+    poll();
+    const interval = setInterval(poll, POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [poll]);
 
   // Auto-scroll to bottom on new events
   useEffect(() => {
@@ -76,7 +55,7 @@ export function McpLogView() {
   const handleClear = () => {
     setEvents([]);
     seenRef.current = new Set();
-    fetch(`${serverUrls().api}/api/events`, { method: "DELETE" }).catch(() => {});
+    fetch("/api/events", { method: "DELETE" }).catch(() => {});
   };
 
   const TOOL_TYPES = new Set(["tool-call", "tool-result", "tool-list"]);
@@ -100,18 +79,17 @@ export function McpLogView() {
   const statusColor =
     status === "connected"
       ? "bg-emerald-400"
-      : status === "connecting"
+      : status === "polling"
         ? "bg-amber-400"
         : "bg-red-400";
 
   const statusLabel =
     status === "connected"
       ? "Connected"
-      : status === "connecting"
-        ? "Connecting..."
-        : "Disconnected";
+      : status === "polling"
+        ? "Polling..."
+        : "Error";
 
-  const streamDisplay = "/api/events/stream";
   const mcpDisplay = "/mcp";
 
   const filterOptions = [
@@ -132,15 +110,15 @@ export function McpLogView() {
             <div className="flex items-center gap-2">
               <div
                 className={`w-2 h-2 rounded-full ${statusColor} ${
-                  status === "connecting" ? "animate-pulse" : ""
+                  status === "polling" ? "animate-pulse" : ""
                 }`}
               />
               <h1 className="text-base font-semibold text-foreground/80">
-                StyleVault Server Logs
+                RetailZero Server Logs
               </h1>
             </div>
             <span className="text-xs text-foreground/30 font-mono">
-              {streamDisplay}
+              /api/events
             </span>
           </div>
 

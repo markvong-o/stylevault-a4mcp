@@ -1,6 +1,6 @@
 # ChatGPT Remote MCP Server Integration Guide
 
-This guide covers what it takes to turn the StyleVault MCP server into a production-ready remote MCP server that ChatGPT can connect to, with Auth0 handling the full OAuth 2.1 authorization flow.
+This guide covers what it takes to turn the RetailZero MCP server into a production-ready remote MCP server that ChatGPT can connect to, with Auth0 handling the full OAuth 2.1 authorization flow.
 
 ---
 
@@ -128,7 +128,7 @@ The MCP spec requires OAuth 2.1 with PKCE. Auth0 supports this natively, which m
 
 1. Go to Auth0 Dashboard > Applications > APIs
 2. Create a new API:
-   - **Name:** StyleVault MCP API
+   - **Name:** RetailZero MCP API
    - **Identifier (Audience):** `https://api.stylevault.com`
    - **Signing Algorithm:** RS256
 3. Under the **Permissions** tab, add scopes:
@@ -329,7 +329,7 @@ This gives you a public HTTPS URL like `https://abc123.ngrok.io`. Use this URL a
 
 ## Phase 8: Register with ChatGPT
 
-**Goal:** Add your MCP server to ChatGPT so users can interact with StyleVault tools.
+**Goal:** Add your MCP server to ChatGPT so users can interact with RetailZero tools.
 
 ### For Development/Testing
 
@@ -367,7 +367,7 @@ ChatGPT uses tool descriptions to decide when to invoke them. Better description
 
 1. Review each tool's `description` in the MCP server registration code
 2. Make descriptions action-oriented and specific:
-   - Good: "Search the StyleVault product catalog by keyword. Returns matching products with name, price, category, and rating."
+   - Good: "Search the RetailZero product catalog by keyword. Returns matching products with name, price, category, and rating."
    - Bad: "Search products"
 
 3. Add MCP tool annotations where applicable:
@@ -457,7 +457,7 @@ Access tokens from Auth0 expire (default: 24 hours). The MCP spec expects server
 5. **ChatGPT integration:**
    - Add the server in ChatGPT
    - Complete the Auth0 login flow
-   - Ask ChatGPT to "search for leather jackets on StyleVault"
+   - Ask ChatGPT to "search for leather jackets on RetailZero"
    - Verify the tool call executes and returns real results
 
 ### Automated testing

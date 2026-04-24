@@ -1,6 +1,6 @@
-# Redis Setup for StyleVault Log Persistence
+# Redis Setup for RetailZero Log Persistence
 
-The StyleVault demo uses Redis to persist system log events with a 7-day TTL. Events are stored in a sorted set (`stylevault:logs`) and automatically pruned on each write.
+The RetailZero demo uses Redis to persist system log events with a 7-day TTL. Events are stored in a sorted set (`retailzero:logs`) and automatically pruned on each write.
 
 ## Quick Start (Local Development)
 
@@ -108,10 +108,10 @@ If `REDIS_URL` is not set, the app defaults to `redis://127.0.0.1:6379` (no auth
 
 | Operation | Redis Command | Description |
 |-----------|--------------|-------------|
-| Write event | `ZADD stylevault:logs <timestamp> <json>` | Scored by Unix timestamp for time-ordered retrieval |
-| Prune expired | `ZREMRANGEBYSCORE stylevault:logs -inf <7-days-ago>` | Runs on every write, removes entries older than 7 days |
-| Read history | `ZRANGE stylevault:logs 0 -1` | Returns all events in chronological order |
-| Clear all | `DEL stylevault:logs` | Wipes the log (triggered by the Clear button on `/logs`) |
+| Write event | `ZADD retailzero:logs <timestamp> <json>` | Scored by Unix timestamp for time-ordered retrieval |
+| Prune expired | `ZREMRANGEBYSCORE retailzero:logs -inf <7-days-ago>` | Runs on every write, removes entries older than 7 days |
+| Read history | `ZRANGE retailzero:logs 0 -1` | Returns all events in chronological order |
+| Clear all | `DEL retailzero:logs` | Wipes the log (triggered by the Clear button on `/logs`) |
 
 ## Limitations to Be Aware Of
 
@@ -129,14 +129,14 @@ If `REDIS_URL` is not set, the app defaults to `redis://127.0.0.1:6379` (no auth
 
 ```bash
 # Check how many log events are stored
-redis-cli ZCARD stylevault:logs
+redis-cli ZCARD retailzero:logs
 
 # View the 5 most recent events
-redis-cli ZREVRANGE stylevault:logs 0 4
+redis-cli ZREVRANGE retailzero:logs 0 4
 
 # Check Redis memory usage
 redis-cli INFO memory | grep used_memory_human
 
 # Flush all logs manually
-redis-cli DEL stylevault:logs
+redis-cli DEL retailzero:logs
 ```

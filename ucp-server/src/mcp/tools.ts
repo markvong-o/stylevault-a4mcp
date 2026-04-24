@@ -85,7 +85,7 @@ function emitToolResult(
 }
 
 /**
- * Register all StyleVault MCP tools on the server instance.
+ * Register all RetailZero MCP tools on the server instance.
  *
  * Each tool enforces scope-based authorization by checking the scopes
  * attached to the current session (passed via the session context by
@@ -100,7 +100,7 @@ export function registerTools(server: McpServer): void {
     {
       title: "Search Products",
       description:
-        "Search the StyleVault catalog by keyword, category, or price range. " +
+        "Search the RetailZero catalog by keyword, category, or price range. " +
         "Returns matching products with name, price, rating, and availability.",
       inputSchema: {
         query: z.string().optional().describe("Search keyword (e.g. 'leather bag')"),

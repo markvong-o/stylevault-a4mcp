@@ -116,7 +116,7 @@ function useDiagramData() {
         type: "actor",
         position: { x: 700, y: 0 },
         data: {
-          label: "StyleVault",
+          label: "RetailZero",
           subtitle: "MCP Server",
           detail: "Streamable HTTP",
           color: COLORS.server,
@@ -277,7 +277,7 @@ function useDiagramData() {
           step: 3,
           label: "OAuth 2.1 + PKCE + Consent",
           color: COLORS.auth0,
-          tooltip: "You log in through Auth0's secure login page and approve exactly what ChatGPT can do with your StyleVault account (e.g. browse products, place orders). OAuth 2.1 tightens the rules from 2.0: PKCE is now mandatory (it was optional), the implicit and password grants are removed entirely, and refresh tokens must be sender-constrained or rotated. The result is a smaller, harder-to-misuse spec that codifies what most secure implementations were already doing.",
+          tooltip: "You log in through Auth0's secure login page and approve exactly what ChatGPT can do with your RetailZero account (e.g. browse products, place orders). OAuth 2.1 tightens the rules from 2.0: PKCE is now mandatory (it was optional), the implicit and password grants are removed entirely, and refresh tokens must be sender-constrained or rotated. The result is a smaller, harder-to-misuse spec that codifies what most secure implementations were already doing.",
         },
       },
 

@@ -8,7 +8,7 @@ import { SecurityOverlay } from "./SecurityOverlay";
 import { IntroStep } from "./steps/IntroStep";
 import { ScenarioStep } from "./steps/ScenarioStep";
 import { ClosingStep } from "./steps/ClosingStep";
-import { StyleVaultWidget } from "@/components/clients/StyleVaultWidget";
+import { RetailZeroWidget } from "@/components/clients/RetailZeroWidget";
 
 export function DemoContent() {
   const {
@@ -173,9 +173,9 @@ export function DemoContent() {
         <p className="text-[10px] text-foreground/15 italic">This is a fictitious application created for demonstration purposes only. All data, identities, and scenarios are simulated.</p>
       </div>
 
-      {/* StyleVault AI floating widget -- positioned above footer */}
+      {/* RetailZero AI floating widget -- positioned above footer */}
       {(currentAct === 1 || currentAct === 2 || currentAct === 3) && (
-        <StyleVaultWidget onAddSecurityEvent={addSecurityEvent} />
+        <RetailZeroWidget onAddSecurityEvent={addSecurityEvent} />
       )}
 
       {/* Security overlay -- sits above footer */}

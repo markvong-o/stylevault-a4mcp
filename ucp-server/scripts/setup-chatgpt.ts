@@ -22,9 +22,9 @@ import { banner, step, done, info, warn, fail, spin, ask, askPassword, confirm, 
 
 // ── Constants ───────────────────────────────────────────────
 
-const API_NAME = "StyleVault MCP API";
+const API_NAME = "RetailZero MCP API";
 const API_IDENTIFIER = "https://api.stylevault.com";
-const APP_NAME = "StyleVault MCP Server";
+const APP_NAME = "RetailZero MCP Server";
 const TEST_USER_EMAIL = "alex@example.com";
 const TEST_USER_PASSWORD = "Demo-Pass-2026!";
 const DB_CONNECTION = "Username-Password-Authentication";
@@ -51,7 +51,7 @@ exports.onExecutePostLogin = async (event, api) => {
 
 async function main() {
   banner(
-    "StyleVault -- ChatGPT MCP Setup",
+    "RetailZero -- ChatGPT MCP Setup",
     "This script provisions Auth0 and generates your .env so the MCP server works with ChatGPT."
   );
 
@@ -175,7 +175,7 @@ async function main() {
   const actionSpinner = spin("Creating post-login Action...");
   try {
     const action = await createAction(token, domain, {
-      name: "StyleVault Bounded Authority",
+      name: "RetailZero Bounded Authority",
       code: BOUNDED_AUTHORITY_ACTION_CODE,
       supported_triggers: [{ id: "post-login", version: "v3" }],
     });
@@ -185,7 +185,7 @@ async function main() {
     await deployAction(token, domain, actionId);
     actionSpinner.succeed("  Action created and deployed");
     warn("Remember to add this Action to your Login Flow in the Auth0 Dashboard:");
-    info(`  Auth0 Dashboard > Actions > Flows > Login > Add "${c.bold("StyleVault Bounded Authority")}"`);
+    info(`  Auth0 Dashboard > Actions > Flows > Login > Add "${c.bold("RetailZero Bounded Authority")}"`);
   } catch (err) {
     actionSpinner.fail("  Failed to create Action");
     warn((err as Error).message);

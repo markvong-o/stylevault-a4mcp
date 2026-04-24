@@ -6,12 +6,12 @@ import { ChicletCard } from "./ChicletCard";
 const SECTIONS = [
   {
     title: "Demos",
-    subtitle: "Guided walkthroughs showing each agent platform connecting to StyleVault through Auth0.",
+    subtitle: "Guided walkthroughs showing each agent platform connecting to RetailZero through Auth0.",
     items: [
       {
         title: "ChatGPT App",
         description:
-          "Walk through a ChatGPT App connecting to StyleVault. ChatGPT Apps are built on MCP servers, the same foundation that powers OpenAI's ACP and Instant Checkout.",
+          "Walk through a ChatGPT App connecting to RetailZero. ChatGPT Apps are built on MCP servers, the same foundation that powers OpenAI's ACP and Instant Checkout.",
         href: "/demo/chatgpt",
         icon: MessageSquare,
         accentColor: "#10a37f",
@@ -20,7 +20,7 @@ const SECTIONS = [
       {
         title: "Gemini (UCP)",
         description:
-          "Walk through Gemini connecting to StyleVault via Google's Universal Commerce Protocol (UCP). REST-based commerce with its own discovery, checkout state machine, and escalation flow.",
+          "Walk through Gemini connecting to RetailZero via Google's Universal Commerce Protocol (UCP). REST-based commerce with its own discovery, checkout state machine, and escalation flow.",
         href: "/demo/gemini",
         icon: Bot,
         accentColor: "#4285f4",
@@ -61,8 +61,8 @@ export function DashboardView() {
       {/* Header */}
       <header className="shrink-0 border-b border-foreground/[0.06] px-8 py-6">
         <div className="max-w-6xl mx-auto">
-          <h1 className="font-display italic text-2xl text-foreground/85">
-            StyleVault
+          <h1 className="font-bold text-2xl text-foreground/85">
+            RetailZero
           </h1>
           <p className="text-sm text-foreground/40 mt-1">
             Auth0 Agentic Security Demo - Dashboard

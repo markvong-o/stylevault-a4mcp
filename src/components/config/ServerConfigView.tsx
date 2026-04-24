@@ -252,22 +252,26 @@ export function ServerConfigView() {
     };
   }, []);
 
-  // SSE for live session count
+  // Poll for live session count
   useEffect(() => {
-    const es = new EventSource(`${serverUrls().api}/api/events/stream`);
-
-    es.addEventListener("event", (e) => {
+    const poll = async () => {
       try {
-        const evt = JSON.parse(e.data);
-        if (evt.type === "session-init") {
-          setSessionCount((c) => c + 1);
-        } else if (evt.type === "session-close") {
-          setSessionCount((c) => Math.max(0, c - 1));
+        const res = await fetch("/api/events");
+        if (!res.ok) return;
+        const data = await res.json();
+        const events = data.events || [];
+        let count = 0;
+        for (const evt of events) {
+          if (evt.type === "session-init") count++;
+          else if (evt.type === "session-close") count--;
         }
+        setSessionCount(Math.max(0, count));
       } catch { /* skip */ }
-    });
+    };
 
-    return () => es.close();
+    poll();
+    const interval = setInterval(poll, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   // Loading / error states
@@ -468,7 +472,7 @@ export function ServerConfigView() {
         <div className="max-w-4xl mx-auto flex items-center gap-4 text-xs text-foreground/30">
           <span>API: /api/config</span>
           <span className="text-foreground/15">|</span>
-          <span>Events: /api/events/stream</span>
+          <span>Events: /api/events</span>
         </div>
       </footer>
     </div>

@@ -7,7 +7,7 @@ import { InfoTooltip } from "@/components/ui/info-tooltip";
 /* Invisible handle style */
 const H = "!bg-transparent !border-0 !w-0 !h-0";
 
-/* ─── Actor Node (User, ChatGPT, Gemini, StyleVault) ─── */
+/* ─── Actor Node (User, ChatGPT, Gemini, RetailZero) ─── */
 
 type ActorData = {
   label: string;

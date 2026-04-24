@@ -61,5 +61,5 @@ export function extractBearerToken(authHeader: string | undefined): string | nul
  * so they can discover Auth0 as the authorization server.
  */
 export function buildWwwAuthenticateHeader(baseUrl: string): string {
-  return `Bearer realm="stylevault-mcp", resource_metadata="${baseUrl}/.well-known/oauth-protected-resource"`;
+  return `Bearer realm="retailzero-mcp", resource_metadata="${baseUrl}/.well-known/oauth-protected-resource"`;
 }

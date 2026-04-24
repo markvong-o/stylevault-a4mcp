@@ -1,7 +1,7 @@
 {
-  "name": "stylevault-ucp-server",
+  "name": "retailzero-ucp-server",
   "version": "1.0.0",
-  "description": "StyleVault UCP-compliant merchant server secured by Auth0",
+  "description": "RetailZero UCP-compliant merchant server secured by Auth0",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",

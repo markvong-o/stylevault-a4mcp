@@ -81,7 +81,7 @@ export function Step4Escalation({ state, onSimulateApproval, onNext, onBack }: P
         <Auth0Placeholder
           variant="action"
           title="Auth0 CIBA (Client-Initiated Backchannel Authentication)"
-          description="In production, StyleVault calls Auth0's /bc-authorize endpoint with the buyer's email. Auth0 sends a push notification to the buyer's device via Auth0 Guardian. The buyer reviews and approves the transaction. Auth0 issues an escalation token that proves the buyer consented to this specific checkout session."
+          description="In production, RetailZero calls Auth0's /bc-authorize endpoint with the buyer's email. Auth0 sends a push notification to the buyer's device via Auth0 Guardian. The buyer reviews and approves the transaction. Auth0 issues an escalation token that proves the buyer consented to this specific checkout session."
         />
 
         {/* Session context */}

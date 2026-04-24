@@ -26,7 +26,7 @@ const TOUCHPOINTS = [
     num: 1,
     title: "UCP Manifest Discovery",
     description:
-      "Gemini fetches /.well-known/ucp from StyleVault to discover capabilities, supported actions, and the authorization server URL (Auth0).",
+      "Gemini fetches /.well-known/ucp from RetailZero to discover capabilities, supported actions, and the authorization server URL (Auth0).",
     auth0: false,
     color: "#4285f4",
   },
@@ -42,7 +42,7 @@ const TOUCHPOINTS = [
     num: 3,
     title: "Identity Linking + Consent",
     description:
-      "Gemini redirects the user to Auth0 Universal Login to link their Google identity to their StyleVault account. The user approves scopes for catalog access, checkout, and order management.",
+      "Gemini redirects the user to Auth0 Universal Login to link their Google identity to their RetailZero account. The user approves scopes for catalog access, checkout, and order management.",
     auth0: true,
   },
   {
@@ -56,7 +56,7 @@ const TOUCHPOINTS = [
     num: 5,
     title: "Authenticated UCP API Calls",
     description:
-      "Gemini sends REST API requests to StyleVault's UCP endpoints with the Bearer token. Every API call includes the token for validation.",
+      "Gemini sends REST API requests to RetailZero's UCP endpoints with the Bearer token. Every API call includes the token for validation.",
     auth0: false,
     color: "#4285f4",
   },
@@ -116,7 +116,7 @@ function useDiagramData() {
         type: "actor",
         position: { x: 700, y: 0 },
         data: {
-          label: "StyleVault",
+          label: "RetailZero",
           subtitle: "UCP Merchant",
           detail: "REST API",
           color: COLORS.server,
@@ -134,7 +134,7 @@ function useDiagramData() {
           line1: "/.well-known/ucp",
           line2: "Discovery Manifest",
           color: COLORS.google,
-          tooltip: "Gemini reads a public configuration file from StyleVault that lists what the store can do (search products, create checkouts, etc.) and where to authenticate. Like scanning a menu before ordering.",
+          tooltip: "Gemini reads a public configuration file from RetailZero that lists what the store can do (search products, create checkouts, etc.) and where to authenticate. Like scanning a menu before ordering.",
         },
       },
 
@@ -261,7 +261,7 @@ function useDiagramData() {
           step: 2,
           label: "Auth Server Discovery",
           color: COLORS.auth0,
-          tooltip: "The UCP manifest tells Gemini that Auth0 handles logins for StyleVault. Gemini fetches Auth0's configuration to learn where to send you for authentication.",
+          tooltip: "The UCP manifest tells Gemini that Auth0 handles logins for RetailZero. Gemini fetches Auth0's configuration to learn where to send you for authentication.",
         },
       },
 
@@ -277,7 +277,7 @@ function useDiagramData() {
           step: 3,
           label: "Identity Linking + Consent",
           color: COLORS.auth0,
-          tooltip: "You log in through Auth0 and connect your Google identity to your StyleVault account. You also approve what Gemini can do: browse products, start checkouts, view orders, etc.",
+          tooltip: "You log in through Auth0 and connect your Google identity to your RetailZero account. You also approve what Gemini can do: browse products, start checkouts, view orders, etc.",
         },
       },
 
@@ -294,7 +294,7 @@ function useDiagramData() {
           label: "Access Token (JWT)",
           color: COLORS.auth0,
           dashed: true,
-          tooltip: "Auth0 gives Gemini a signed digital pass that proves who you are, what you approved, and how much it can spend. Gemini attaches this pass to every request it makes to StyleVault.",
+          tooltip: "Auth0 gives Gemini a signed digital pass that proves who you are, what you approved, and how much it can spend. Gemini attaches this pass to every request it makes to RetailZero.",
         },
       },
 

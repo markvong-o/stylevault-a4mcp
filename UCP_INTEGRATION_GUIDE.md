@@ -1,6 +1,6 @@
 # UCP Production Integration Guide
 
-This guide covers what it takes to bring the StyleVault UCP server from its current demo state to a conformance-ready implementation that can pass Google's test suite and onboard to Google Merchant Center.
+This guide covers what it takes to bring the RetailZero UCP server from its current demo state to a conformance-ready implementation that can pass Google's test suite and onboard to Google Merchant Center.
 
 ---
 
@@ -232,7 +232,7 @@ When checkout enters `requires_escalation`:
    &client_secret={CLIENT_SECRET}
    &scope=openid
    &login_hint={buyer_email}
-   &binding_message=Approve+$269+purchase+from+StyleVault
+   &binding_message=Approve+$269+purchase+from+RetailZero
    ```
 
 2. Auth0 sends push notification to buyer via Auth0 Guardian
@@ -372,7 +372,7 @@ uv run pytest validation_test.py -v --server-url=http://localhost:3001
 12. Error handling (structured error responses)
 13. Binding operations
 
-**Note:** The tests expect a "flower shop" dataset. You'll need to either adapt the tests for StyleVault's product catalog or seed your database with the test fixtures from `conformance/test_data/flower_shop/`.
+**Note:** The tests expect a "flower shop" dataset. You'll need to either adapt the tests for RetailZero's product catalog or seed your database with the test fixtures from `conformance/test_data/flower_shop/`.
 
 ---
 

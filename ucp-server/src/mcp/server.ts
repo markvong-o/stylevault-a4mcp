@@ -22,11 +22,11 @@ export function getActiveSessions(): { active: number; ids: string[] } {
 }
 
 /**
- * Create a fresh McpServer instance with all StyleVault tools registered.
+ * Create a fresh McpServer instance with all RetailZero tools registered.
  */
 function createMcpServer(): McpServer {
   const server = new McpServer({
-    name: "StyleVault",
+    name: "RetailZero",
     version: "1.0.0",
   });
   registerTools(server);
@@ -163,7 +163,7 @@ export async function handleMcpPost(req: Request, res: Response): Promise<void> 
               clientInfo: body?.params?.clientInfo,
             },
             responseBody: {
-              serverInfo: { name: "StyleVault", version: "1.0.0" },
+              serverInfo: { name: "RetailZero", version: "1.0.0" },
               protocolVersion: "2025-03-26",
             },
             duration: Date.now() - startTime,

@@ -19,7 +19,7 @@ export function serverUrls(_port?: number) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   return {
     api: origin,
-    stream: `${origin}/api/events/stream`,
+    events: `${origin}/api/events`,
     health: `${origin}/health`,
     config: `${origin}/api/config`,
   };

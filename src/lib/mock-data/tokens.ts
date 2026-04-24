@@ -3,7 +3,7 @@ import type { MockToken } from "../types";
 export const MOCK_TOKENS: MockToken[] = [
   {
     scenarioId: "scenario-a",
-    label: "StyleVault AI (1st-party)",
+    label: "RetailZero AI (1st-party)",
     header: { alg: "RS256", typ: "JWT", kid: "auth0-mcp-key-1" },
     payload: {
       iss: "https://stylevault.us.auth0.com/",

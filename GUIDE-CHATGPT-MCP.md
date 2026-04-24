@@ -1,15 +1,15 @@
-# Connecting ChatGPT to StyleVault via MCP + Auth0
+# Connecting ChatGPT to RetailZero via MCP + Auth0
 
-This guide walks through setting up the StyleVault MCP server, configuring Auth0 as the authorization server, and connecting ChatGPT so it can search products, view wishlists, and place orders on behalf of your users.
+This guide walks through setting up the RetailZero MCP server, configuring Auth0 as the authorization server, and connecting ChatGPT so it can search products, view wishlists, and place orders on behalf of your users.
 
-By the end, you'll have a working integration where ChatGPT authenticates users through Auth0, receives scoped access tokens, and calls StyleVault tools with bounded authority enforcement.
+By the end, you'll have a working integration where ChatGPT authenticates users through Auth0, receives scoped access tokens, and calls RetailZero tools with bounded authority enforcement.
 
 ---
 
 ## Architecture Overview
 
 ```
-ChatGPT                     Auth0                      StyleVault MCP Server
+ChatGPT                     Auth0                      RetailZero MCP Server
   |                           |                              |
   |-- POST /mcp ------------->|                              |
   |<-- 401 + WWW-Authenticate |                              |
@@ -53,7 +53,7 @@ ChatGPT                     Auth0                      StyleVault MCP Server
 1. Go to **Auth0 Dashboard > Applications > APIs**
 2. Click **Create API**
 3. Fill in:
-   - **Name:** `StyleVault API`
+   - **Name:** `RetailZero API`
    - **Identifier:** `https://api.stylevault.com`
    - **Signing Algorithm:** RS256
 4. Click **Create**
@@ -75,8 +75,8 @@ On the API's **Permissions** tab, add these scopes:
 1. Go to **Applications > Applications**
 2. Click **Create Application**
 3. Choose **Machine to Machine Applications**
-4. Name it `StyleVault MCP Server`
-5. Authorize it for the `StyleVault API`
+4. Name it `RetailZero MCP Server`
+5. Authorize it for the `RetailZero API`
 6. Note the **Client ID** -- you'll need this for the `.env` file
 
 ### 1.4 Enable Dynamic Client Registration (DCR)
@@ -93,7 +93,7 @@ ChatGPT needs to register itself as an OAuth client when it first connects. Auth
 
 1. Go to **Branding > Universal Login**
 2. Ensure **New Universal Login** is selected (the modern, customizable experience)
-3. Optionally customize the login page with StyleVault branding
+3. Optionally customize the login page with RetailZero branding
 
 ### 1.6 Add a Test User
 
@@ -138,7 +138,7 @@ npm run dev
 You should see:
 
 ```
-StyleVault Server running on port 3001
+RetailZero Server running on port 3001
 
   MCP endpoint:       http://localhost:3001/mcp
   MCP metadata:       http://localhost:3001/.well-known/oauth-protected-resource
@@ -220,11 +220,11 @@ ChatGPT will initiate the OAuth flow:
 5. **Consent** -- Auth0 shows the consent screen with the requested scopes
 6. **Token Exchange** -- After consent, ChatGPT receives an access token
 
-Once authenticated, you'll see the StyleVault tools appear in ChatGPT.
+Once authenticated, you'll see the RetailZero tools appear in ChatGPT.
 
 ### 4.4 Configure Tool Permissions
 
-Back in ChatGPT settings, click the StyleVault connector to see the available tools:
+Back in ChatGPT settings, click the RetailZero connector to see the available tools:
 
 - **search_products** -- Search the catalog
 - **get_product_details** -- Get full product info
@@ -243,7 +243,7 @@ Start a new conversation in ChatGPT and try these prompts:
 
 ### Search the catalog
 
-> "Search StyleVault for leather bags under $300"
+> "Search RetailZero for leather bags under $300"
 
 ChatGPT should call `search_products` and return results like:
 - City Tote -- $199
@@ -252,13 +252,13 @@ ChatGPT should call `search_products` and return results like:
 
 ### View your wishlist
 
-> "Show me my StyleVault wishlist"
+> "Show me my RetailZero wishlist"
 
 ChatGPT should call `get_wishlist` and return 4 items including the Cashmere Wrap Scarf, Blue Denim Jacket, Leather Weekender Bag, and Meridian Automatic Watch.
 
 ### Place an order (within limit)
 
-> "Order the Compact Travel Satchel from StyleVault"
+> "Order the Compact Travel Satchel from RetailZero"
 
 ChatGPT should call `place_order` with `product_id: "bag_satchel_001"` and receive a confirmed order at $149.
 
@@ -270,7 +270,7 @@ ChatGPT should call `place_order` and receive a `bounded_authority_exceeded` err
 
 ### Update preferences
 
-> "Add 'leather bags' and 'weekend travel' to my StyleVault preferences"
+> "Add 'leather bags' and 'weekend travel' to my RetailZero preferences"
 
 ChatGPT should call `update_preferences` and confirm the preferences were added.
 

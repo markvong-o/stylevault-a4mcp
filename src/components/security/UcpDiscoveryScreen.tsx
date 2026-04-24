@@ -104,7 +104,7 @@ ${capabilities.map(c => `    "${c}": { "versions": ["1.0.0"] }`).join(",\n")}
           </div>
 
           <p className="text-xs text-muted-foreground mb-4">
-            StyleVault verifies the agent&apos;s identity via HTTP Message Signatures (RFC 9421). Auth0 handles Identity Linking when the user connects their account.
+            RetailZero verifies the agent&apos;s identity via HTTP Message Signatures (RFC 9421). Auth0 handles Identity Linking when the user connects their account.
           </p>
         </div>
 

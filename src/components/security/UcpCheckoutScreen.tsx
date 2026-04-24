@@ -95,7 +95,7 @@ export function UcpCheckoutScreen({ currentState, stateDescription, continueUrl,
 
           {currentState === "requires_escalation" && (
             <p className="text-xs text-gray-500 mb-4">
-              The checkout redirects to StyleVault's buyer approval flow via continue_url. StyleVault uses Auth0 CIBA to verify the buyer's identity and authorize the purchase.
+              The checkout redirects to RetailZero's buyer approval flow via continue_url. RetailZero uses Auth0 CIBA to verify the buyer's identity and authorize the purchase.
             </p>
           )}
         </div>

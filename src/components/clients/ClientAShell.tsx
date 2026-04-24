@@ -27,7 +27,7 @@ export function ClientAShell({ messages, visibleCount, typing, inputValue }: Cli
           <div className="w-6 h-6 rounded-full bg-[#4016A0]/10 flex items-center justify-center">
             <span className="text-xs font-bold text-[#4016A0]">S</span>
           </div>
-          <span className="text-sm font-medium text-[var(--client-text)]">StyleVault AI</span>
+          <span className="text-sm font-medium text-[var(--client-text)]">RetailZero AI</span>
         </div>
         <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-[var(--client-muted)] hover:bg-black/5 transition-colors cursor-pointer">
           + New chat
@@ -56,7 +56,7 @@ export function ClientAShell({ messages, visibleCount, typing, inputValue }: Cli
       {/* Main chat area */}
       <div className="flex-1 flex flex-col bg-[var(--client-bg)] min-h-0">
         <div className="flex items-center justify-center py-3 border-b">
-          <span className="text-sm font-medium text-[var(--client-text)]">StyleVault AI</span>
+          <span className="text-sm font-medium text-[var(--client-text)]">RetailZero AI</span>
           <svg className="ml-1 w-4 h-4 text-[var(--client-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
         </div>
 
@@ -64,7 +64,7 @@ export function ClientAShell({ messages, visibleCount, typing, inputValue }: Cli
           messages={messages}
           visibleCount={visibleCount}
           theme="dark"
-          clientName="StyleVault AI"
+          clientName="RetailZero AI"
           typing={typing}
           onUserTyping={handleUserTyping}
         />
@@ -72,7 +72,7 @@ export function ClientAShell({ messages, visibleCount, typing, inputValue }: Cli
         <div className="p-4">
           <div className="flex items-center gap-2 rounded-2xl bg-[var(--client-input)] px-4 py-3 border">
             <span className={`flex-1 text-sm ${userTyping.typing ? "text-[var(--client-text)]" : "text-[var(--client-muted)]"}`}>
-              {displayInput || "Message StyleVault AI..."}
+              {displayInput || "Message RetailZero AI..."}
               {userTyping.typing && <span className="animate-pulse">|</span>}
             </span>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${

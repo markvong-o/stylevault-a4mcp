@@ -297,7 +297,7 @@ function ToolCallTechnicalView({ event }: { event: SecurityEvent }) {
         <div>
           <span className="text-xs font-medium text-foreground/60">{isUcp ? "UCP Agent initiates commerce action" : "MCP Server receives tool call"}</span>
           <p className="text-xs text-foreground/40 mt-0.5">
-            {isUcp ? "Gemini invokes " : "Client invokes "}<span className="font-mono text-foreground/60">{td.toolName}</span>{isUcp ? " via Universal Commerce Protocol" : " on StyleVault MCP server"}
+            {isUcp ? "Gemini invokes " : "Client invokes "}<span className="font-mono text-foreground/60">{td.toolName}</span>{isUcp ? " via Universal Commerce Protocol" : " on RetailZero MCP server"}
           </p>
         </div>
       </div>
@@ -331,7 +331,7 @@ function ToolCallTechnicalView({ event }: { event: SecurityEvent }) {
             <span className="text-[10px] font-bold text-primary">{stepNum}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <span className="text-xs font-medium text-foreground/60">StyleVault API (with exchanged token)</span>
+            <span className="text-xs font-medium text-foreground/60">RetailZero API (with exchanged token)</span>
             <RequestResponseToggle request={td.downstreamApi.request} response={td.downstreamApi.response} />
           </div>
         </div>

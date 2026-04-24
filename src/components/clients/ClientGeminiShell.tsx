@@ -114,7 +114,7 @@ export function ClientGeminiShell({ messages, visibleCount, typing, inputValue, 
               <div className="w-4 h-4 rounded-full bg-[#4285f4] flex items-center justify-center shrink-0">
                 <span className="text-[7px] font-bold text-white">S</span>
               </div>
-              <span className="text-xs font-medium text-[#4285f4]">StyleVault</span>
+              <span className="text-xs font-medium text-[#4285f4]">RetailZero</span>
               <span className="text-[9px] text-[#4285f4]/70 font-medium">{transportLabel ?? "UCP"}</span>
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
             </div>

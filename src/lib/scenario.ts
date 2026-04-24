@@ -54,17 +54,17 @@ export function computeEffectiveSteps(
 }
 
 // =============================================
-// SCENARIO A - StyleVault AI (1st-party, broad)
+// SCENARIO A - RetailZero AI (1st-party, broad)
 // =============================================
 
-// StyleVault AI steps - used by the floating widget
-export const STYLEVAULT_AI_STEPS: DemoStep[] = [
+// RetailZero AI steps - used by the floating widget
+export const RETAILZERO_AI_STEPS: DemoStep[] = [
   {
     id: "a-1-connect",
     type: "chat",
     chat: {
       id: "a-1", role: "system",
-      content: "StyleVault AI is now connected to StyleVault via MCP.",
+      content: "RetailZero AI is now connected to RetailZero via MCP.",
       timestamp: "10:00:01",
     },
   },
@@ -75,8 +75,8 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     gateId: "consent-a",
     securityMoment: {
       kind: "consent",
-      clientName: "StyleVault AI",
-      productName: "StyleVault",
+      clientName: "RetailZero AI",
+      productName: "RetailZero",
       scopes: [
         { scope: "read:wishlist", label: "View your wishlist", icon: "heart" },
         { scope: "read:orders", label: "View your order history", icon: "package" },
@@ -90,8 +90,8 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     securityEvent: {
       id: "evt-a-consent", timestamp: "10:00:02", type: "consent", result: "granted",
       scenarioId: "scenario-a",
-      shortDescription: "Alex Morgan approved StyleVault AI to access their account with full shopping permissions.",
-      businessDescription: "Alex Morgan approved StyleVault AI to access their account with full shopping permissions. Auth0 captures this consent in the audit trail, giving you proof of authorization if disputes arise.",
+      shortDescription: "Alex Morgan approved RetailZero AI to access their account with full shopping permissions.",
+      businessDescription: "Alex Morgan approved RetailZero AI to access their account with full shopping permissions. Auth0 captures this consent in the audit trail, giving you proof of authorization if disputes arise.",
       technicalDetail: {
         protocol: "OAuth 2.1: Authorization Code + PKCE",
         request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=read:wishlist read:orders read:products write:preferences execute:purchase\n&client_id=cli_sv_ai_001\n&code_challenge=E9Melhoa2OwvFrEMTJg...\n&code_challenge_method=S256",
@@ -146,7 +146,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     type: "chat",
     chat: {
       id: "a-3", role: "system",
-      content: "Connected! StyleVault AI can now access your StyleVault data.",
+      content: "Connected! RetailZero AI can now access your RetailZero data.",
       timestamp: "10:00:05",
     },
   },
@@ -172,7 +172,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
           request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&subject_token_type=urn:ietf:params:oauth:token-type:access_token\n&audience=https://api.stylevault.com\n&scope=read:wishlist\n&client_id=mcp_server_sv_001",
           response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"read:wishlist\"\n}",
         },
-        { label: "StyleVault API", description: "GET /api/v1/users/alex_morgan/wishlist", status: "success",
+        { label: "RetailZero API", description: "GET /api/v1/users/alex_morgan/wishlist", status: "success",
           request: "GET /api/v1/users/alex_morgan/wishlist HTTP/1.1\nHost: api.stylevault.com\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...",
           response: "HTTP/1.1 200 OK\n{\n  \"items\": [\n    {\"name\": \"Cashmere Wrap Scarf\", \"price\": 189.00},\n    {\"name\": \"Blue Denim Jacket\", \"price\": 79.99},\n    ...\n  ]\n}",
         },
@@ -181,8 +181,8 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     securityEvent: {
       id: "evt-a-read", timestamp: "10:00:12", type: "tool-call", result: "granted",
       scenarioId: "scenario-a",
-      shortDescription: "Auth0 verified StyleVault AI has permission to view Alex Morgan's wishlist.",
-      businessDescription: "Auth0 verified StyleVault AI has permission to view Alex Morgan's wishlist. Permission checks happen at runtime, so if a customer revokes access later, the agent immediately loses capability.",
+      shortDescription: "Auth0 verified RetailZero AI has permission to view Alex Morgan's wishlist.",
+      businessDescription: "Auth0 verified RetailZero AI has permission to view Alex Morgan's wishlist. Permission checks happen at runtime, so if a customer revokes access later, the agent immediately loses capability.",
       technicalDetail: {
         protocol: "Tool Call Flow",
         toolName: "get_wishlist",
@@ -214,7 +214,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     securityMoment: {
       kind: "ciba",
       action: "Approve purchase: Blue Denim Jacket ($79.99)",
-      description: "StyleVault AI wants to place an order on your behalf.",
+      description: "RetailZero AI wants to place an order on your behalf.",
       approverName: "Alex Morgan",
     },
     securityEvent: {
@@ -242,7 +242,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
           request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&subject_token_type=urn:ietf:params:oauth:token-type:access_token\n&audience=https://api.stylevault.com\n&scope=execute:purchase\n&client_id=mcp_server_sv_001",
           response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"execute:purchase\"\n}",
         },
-        { label: "StyleVault API", description: "POST /api/v1/orders", status: "success",
+        { label: "RetailZero API", description: "POST /api/v1/orders", status: "success",
           request: "POST /api/v1/orders HTTP/1.1\nHost: api.stylevault.com\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\n\n{\"item_id\": \"jacket_denim_001\", \"amount\": 79.99}",
           response: "HTTP/1.1 201 Created\n{\n  \"order_id\": \"ord_8f3k2\",\n  \"status\": \"confirmed\"\n}",
         },
@@ -263,7 +263,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     type: "chat",
     chat: {
       id: "a-10", role: "assistant",
-      content: "I'd love to help, but the Meridian Automatic Watch is $2,400.00, which exceeds my $250 purchase authorization limit. For premium items like this, you can complete the purchase directly on StyleVault where additional verification protects high-value transactions.",
+      content: "I'd love to help, but the Meridian Automatic Watch is $2,400.00, which exceeds my $250 purchase authorization limit. For premium items like this, you can complete the purchase directly on RetailZero where additional verification protects high-value transactions.",
       timestamp: "10:00:42",
       toolCall: { name: "place_order", status: "denied", detail: "bounded_authority_exceeded: $250", steps: [
         { label: "MCP Server", description: "place_order called", status: "success" },
@@ -271,7 +271,7 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
           request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&subject_token_type=urn:ietf:params:oauth:token-type:access_token\n&audience=https://api.stylevault.com\n&scope=execute:purchase\n&client_id=mcp_server_sv_001",
           response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"execute:purchase\",\n  \"max_purchase_amount\": 250.00\n}",
         },
-        { label: "StyleVault API", description: "Rejected: $2,400 exceeds $250 token cap", status: "denied",
+        { label: "RetailZero API", description: "Rejected: $2,400 exceeds $250 token cap", status: "denied",
           request: "POST /api/v1/orders HTTP/1.1\nHost: api.stylevault.com\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\n\n{\"item_id\": \"watch_meridian_001\", \"amount\": 2400.00}",
           response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"$2,400.00 exceeds max $250.00\"\n}",
         },
@@ -280,8 +280,8 @@ export const STYLEVAULT_AI_STEPS: DemoStep[] = [
     securityEvent: {
       id: "evt-a-bounded", timestamp: "10:00:42", type: "bounded-authority", result: "denied",
       scenarioId: "scenario-a",
-      shortDescription: "Auth0 blocked a $2,400 watch purchase that exceeded StyleVault's $250 per-transaction policy.",
-      businessDescription: "Auth0 blocked a $2,400 watch purchase that exceeded StyleVault's $250 per-transaction policy. Policy enforcement at the security layer prevents unauthorized transactions from reaching your payment processor, reducing fraud losses and chargeback costs.",
+      shortDescription: "Auth0 blocked a $2,400 watch purchase that exceeded RetailZero's $250 per-transaction policy.",
+      businessDescription: "Auth0 blocked a $2,400 watch purchase that exceeded RetailZero's $250 per-transaction policy. Policy enforcement at the security layer prevents unauthorized transactions from reaching your payment processor, reducing fraud losses and chargeback costs.",
       technicalDetail: {
         protocol: "OAuth 2.1: Bounded Authority Claim",
         request: "POST /mcp/tools/place_order HTTP/1.1\nAuthorization: Bearer eyJhbG...\n\n{\"item_id\": \"watch_meridian_001\", \"amount\": 2400.00}",
@@ -324,11 +324,11 @@ const SCENARIO_B_STEPS: DemoStep[] = [
   // === CHAT 1: "Browse my wishlist" - discovery + DCR + login + consent + successful wishlist read ===
   {
     id: "b-0.1-discovery", type: "chat", conversation: CONV_B1,
-    chat: { id: "b-0.1", role: "system", content: "Discovering StyleVault MCP server and authorization requirements...", timestamp: "10:04:59" },
+    chat: { id: "b-0.1", role: "system", content: "Discovering RetailZero MCP server and authorization requirements...", timestamp: "10:04:59" },
     securityEvent: {
       id: "evt-b-discovery", timestamp: "10:04:59", type: "mcp-discovery", result: "granted", scenarioId: "scenario-b",
-      shortDescription: "ChatGPT discovered Auth0's authorization endpoints and available scopes via StyleVault's MCP metadata.",
-      businessDescription: "ChatGPT discovered Auth0's authorization endpoints and available scopes via StyleVault's MCP metadata. Standardized discovery eliminates manual per-agent configuration, accelerating new AI partnerships without security compromise.",
+      shortDescription: "ChatGPT discovered Auth0's authorization endpoints and available scopes via RetailZero's MCP metadata.",
+      businessDescription: "ChatGPT discovered Auth0's authorization endpoints and available scopes via RetailZero's MCP metadata. Standardized discovery eliminates manual per-agent configuration, accelerating new AI partnerships without security compromise.",
       technicalDetail: {
         protocol: "Protected Resource Metadata (RFC 9728) + Authorization Server Metadata (RFC 8414)",
         request: "// Step 1: Discover authorization server from resource\nGET /.well-known/oauth-protected-resource HTTP/1.1\nHost: mcp.stylevault.com\n\n// Step 2: Discover authorization server capabilities\nGET /.well-known/oauth-authorization-server HTTP/1.1\nHost: stylevault.us.auth0.com",
@@ -352,7 +352,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
   },
   {
     id: "b-1", type: "chat", conversation: CONV_B1,
-    chat: { id: "b-1", role: "system", content: "ChatGPT connected to StyleVault MCP server.", timestamp: "10:05:01" },
+    chat: { id: "b-1", role: "system", content: "ChatGPT connected to RetailZero MCP server.", timestamp: "10:05:01" },
   },
   {
     id: "b-1.5-login", type: "security-moment", gate: "login", gateId: "login-b", conversation: CONV_B1,
@@ -371,7 +371,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
   {
     id: "b-2-consent", type: "security-moment", gate: "consent", gateId: "consent-b", conversation: CONV_B1,
     securityMoment: {
-      kind: "consent", clientName: "ChatGPT", productName: "StyleVault",
+      kind: "consent", clientName: "ChatGPT", productName: "RetailZero",
       scopes: [
         { scope: "read:wishlist", label: "View your wishlist", icon: "heart" },
         { scope: "read:orders", label: "View your order history", icon: "package" },
@@ -430,17 +430,17 @@ const SCENARIO_B_STEPS: DemoStep[] = [
   },
   {
     id: "b-3", type: "chat", conversation: CONV_B1,
-    chat: { id: "b-3", role: "system", content: "Connected! ChatGPT can now access your StyleVault data.", timestamp: "10:05:05" },
+    chat: { id: "b-3", role: "system", content: "Connected! ChatGPT can now access your RetailZero data.", timestamp: "10:05:05" },
   },
   {
     id: "b-4", type: "chat", conversation: CONV_B1,
-    chat: { id: "b-4", role: "user", content: "What's on my StyleVault wishlist?", timestamp: "10:05:08" },
+    chat: { id: "b-4", role: "user", content: "What's on my RetailZero wishlist?", timestamp: "10:05:08" },
   },
   {
     id: "b-5", type: "chat", conversation: CONV_B1,
     chat: {
       id: "b-5", role: "assistant",
-      content: "Here's your StyleVault wishlist:\n\n1. Cashmere Wrap Scarf - $189.00\n2. Blue Denim Jacket (Limited Edition) - $79.99\n3. Leather Weekender Bag - $425.00\n4. Meridian Automatic Watch - $2,400.00\n\nNice collection! The Denim Jacket is a limited edition. Want me to check if it's still in stock?",
+      content: "Here's your RetailZero wishlist:\n\n1. Cashmere Wrap Scarf - $189.00\n2. Blue Denim Jacket (Limited Edition) - $79.99\n3. Leather Weekender Bag - $425.00\n4. Meridian Automatic Watch - $2,400.00\n\nNice collection! The Denim Jacket is a limited edition. Want me to check if it's still in stock?",
       timestamp: "10:05:10",
       toolCall: { name: "get_wishlist", status: "success", steps: [
         { label: "MCP Server", description: "get_wishlist called", status: "success" },
@@ -448,7 +448,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
           request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&subject_token_type=urn:ietf:params:oauth:token-type:access_token\n&audience=https://api.stylevault.com\n&scope=read:wishlist\n&client_id=mcp_server_sv_001",
           response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"read:wishlist\"\n}",
         },
-        { label: "StyleVault API", description: "GET /api/v1/users/alex_morgan/wishlist", status: "success",
+        { label: "RetailZero API", description: "GET /api/v1/users/alex_morgan/wishlist", status: "success",
           request: "GET /api/v1/users/alex_morgan/wishlist HTTP/1.1\nHost: api.stylevault.com\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...",
           response: "HTTP/1.1 200 OK\n{\n  \"items\": [\n    {\"name\": \"Cashmere Wrap Scarf\", \"price\": 189.00},\n    ...\n  ]\n}",
         },
@@ -482,7 +482,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     id: "b-7", type: "chat", conversation: CONV_B2,
     chat: {
       id: "b-7", role: "assistant",
-      content: "I found 3 leather bags under $300 on StyleVault:\n\n1. Heritage Duffle - $269.00 (4.7 stars, 93 reviews)\n2. City Tote - $199.00 (4.5 stars, 156 reviews)\n3. Compact Travel Satchel - $149.00 (4.8 stars, 72 reviews)\n\nThe Heritage Duffle is the closest match in style and capacity. Want me to compare them in detail?",
+      content: "I found 3 leather bags under $300 on RetailZero:\n\n1. Heritage Duffle - $269.00 (4.7 stars, 93 reviews)\n2. City Tote - $199.00 (4.5 stars, 156 reviews)\n3. Compact Travel Satchel - $149.00 (4.8 stars, 72 reviews)\n\nThe Heritage Duffle is the closest match in style and capacity. Want me to compare them in detail?",
       timestamp: "10:06:04",
       toolCall: { name: "search_products", status: "success", steps: [
         { label: "MCP Server", description: "search_products called", status: "success" },
@@ -490,7 +490,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
           request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&subject_token_type=urn:ietf:params:oauth:token-type:access_token\n&audience=https://api.stylevault.com\n&scope=read:products\n&client_id=mcp_server_sv_001",
           response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"read:products\"\n}",
         },
-        { label: "StyleVault API", description: "GET /api/v1/products/search?q=leather+bag&max_price=300", status: "success",
+        { label: "RetailZero API", description: "GET /api/v1/products/search?q=leather+bag&max_price=300", status: "success",
           request: "GET /api/v1/products/search?q=leather+bag&max_price=300 HTTP/1.1\nHost: api.stylevault.com\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...",
           response: "HTTP/1.1 200 OK\n{\n  \"results\": [\n    {\"name\": \"Heritage Duffle\", \"price\": 269.00},\n    ...\n  ]\n}",
         },
@@ -522,7 +522,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     id: "b-9", type: "chat", conversation: CONV_B2,
     chat: {
       id: "b-9", role: "assistant",
-      content: "Here are your recent StyleVault orders:\n\n1. Silk Blend Blazer - $299.00 (Delivered Mar 15)\n2. Canvas Sneakers - $89.00 (Delivered Mar 8)\n3. Linen Shirt Set - $145.00 (Delivered Feb 28)\n\nNo bags in your recent orders, you're clear! The Heritage Duffle would pair well with that Blazer, by the way.",
+      content: "Here are your recent RetailZero orders:\n\n1. Silk Blend Blazer - $299.00 (Delivered Mar 15)\n2. Canvas Sneakers - $89.00 (Delivered Mar 8)\n3. Linen Shirt Set - $145.00 (Delivered Feb 28)\n\nNo bags in your recent orders, you're clear! The Heritage Duffle would pair well with that Blazer, by the way.",
       timestamp: "10:06:13",
       toolCall: { name: "get_order_history", status: "success", steps: [
         { label: "MCP Server", description: "get_order_history called", status: "success" },
@@ -530,7 +530,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
           request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&subject_token_type=urn:ietf:params:oauth:token-type:access_token\n&audience=https://api.stylevault.com\n&scope=read:orders\n&client_id=mcp_server_sv_001",
           response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"read:orders\"\n}",
         },
-        { label: "StyleVault API", description: "GET /api/v1/users/alex_morgan/orders", status: "success",
+        { label: "RetailZero API", description: "GET /api/v1/users/alex_morgan/orders", status: "success",
           request: "GET /api/v1/users/alex_morgan/orders HTTP/1.1\nHost: api.stylevault.com\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...",
           response: "HTTP/1.1 200 OK\n{\n  \"orders\": [\n    {\"item\": \"Silk Blend Blazer\", \"amount\": 299.00},\n    ...\n  ]\n}",
         },
@@ -558,14 +558,14 @@ const SCENARIO_B_STEPS: DemoStep[] = [
   // === CHAT 3: "Buy the Heritage Duffle" - purchase succeeds via CIBA ===
   {
     id: "b-10", type: "chat", conversation: CONV_B3,
-    chat: { id: "b-10", role: "user", content: "I've decided. Buy me the Heritage Duffle from StyleVault.", timestamp: "10:07:01" },
+    chat: { id: "b-10", role: "user", content: "I've decided. Buy me the Heritage Duffle from RetailZero.", timestamp: "10:07:01" },
   },
   {
     id: "b-11-ciba", type: "security-moment", gate: "ciba", gateId: "ciba-b", conversation: CONV_B3,
     securityMoment: {
       kind: "ciba",
       action: "Approve purchase: Heritage Duffle ($269.00)",
-      description: "ChatGPT wants to place an order on your behalf via StyleVault.",
+      description: "ChatGPT wants to place an order on your behalf via RetailZero.",
       approverName: "Alex Morgan",
     },
     securityEvent: {
@@ -591,7 +591,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
           request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&subject_token_type=urn:ietf:params:oauth:token-type:access_token\n&audience=https://api.stylevault.com\n&scope=execute:purchase\n&client_id=mcp_server_sv_001",
           response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"execute:purchase\"\n}",
         },
-        { label: "StyleVault API", description: "POST /api/v1/orders", status: "success",
+        { label: "RetailZero API", description: "POST /api/v1/orders", status: "success",
           request: "POST /api/v1/orders HTTP/1.1\nHost: api.stylevault.com\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\n\n{\"item_id\": \"bag_heritage_001\", \"amount\": 269.00}",
           response: "HTTP/1.1 201 Created\n{\n  \"order_id\": \"ord_9x7m1\",\n  \"status\": \"confirmed\"\n}",
         },
@@ -619,13 +619,13 @@ const SCENARIO_B_STEPS: DemoStep[] = [
   // === CHAT 4: "Update my style preferences" - write succeeds ===
   {
     id: "b-13", type: "chat", conversation: CONV_B4,
-    chat: { id: "b-13", role: "user", content: "Can you save 'leather bags' and 'weekend travel' as style preferences on my StyleVault profile?", timestamp: "10:08:01" },
+    chat: { id: "b-13", role: "user", content: "Can you save 'leather bags' and 'weekend travel' as style preferences on my RetailZero profile?", timestamp: "10:08:01" },
   },
   {
     id: "b-14", type: "chat", conversation: CONV_B4,
     chat: {
       id: "b-14", role: "assistant",
-      content: "Done! I've updated your StyleVault style preferences:\n\n+ leather bags\n+ weekend travel\n\nThese have been added alongside your existing preferences. StyleVault will now surface more leather goods and travel-ready pieces in your recommendations.",
+      content: "Done! I've updated your RetailZero style preferences:\n\n+ leather bags\n+ weekend travel\n\nThese have been added alongside your existing preferences. RetailZero will now surface more leather goods and travel-ready pieces in your recommendations.",
       timestamp: "10:08:04",
       toolCall: { name: "update_preferences", status: "success", steps: [
         { label: "MCP Server", description: "update_preferences called", status: "success" },
@@ -633,7 +633,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
           request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&subject_token_type=urn:ietf:params:oauth:token-type:access_token\n&audience=https://api.stylevault.com\n&scope=write:preferences\n&client_id=mcp_server_sv_001",
           response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"write:preferences\"\n}",
         },
-        { label: "StyleVault API", description: "PUT /api/v1/users/alex_morgan/preferences", status: "success",
+        { label: "RetailZero API", description: "PUT /api/v1/users/alex_morgan/preferences", status: "success",
           request: "PUT /api/v1/users/alex_morgan/preferences HTTP/1.1\nHost: api.stylevault.com\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\n\n{\"add\": [\"leather bags\", \"weekend travel\"]}",
           response: "HTTP/1.1 200 OK\n{\n  \"preferences\": [\"leather bags\", \"weekend travel\", ...]\n}",
         },
@@ -667,7 +667,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     id: "b-16", type: "chat", conversation: CONV_B5,
     chat: {
       id: "b-16", role: "assistant",
-      content: "I'd love to help, but the Meridian Automatic Watch is $2,400.00, which exceeds my $250 purchase authorization limit. For premium items like this, you can complete the purchase directly on StyleVault where additional verification protects high-value transactions.",
+      content: "I'd love to help, but the Meridian Automatic Watch is $2,400.00, which exceeds my $250 purchase authorization limit. For premium items like this, you can complete the purchase directly on RetailZero where additional verification protects high-value transactions.",
       timestamp: "10:09:03",
       toolCall: { name: "place_order", status: "denied", detail: "bounded_authority_exceeded: $250", steps: [
         { label: "MCP Server", description: "place_order called", status: "success" },
@@ -675,7 +675,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
           request: "POST /oauth/token HTTP/1.1\nHost: stylevault.us.auth0.com\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token=eyJhbGciOiJSUzI1NiIs...\n&subject_token_type=urn:ietf:params:oauth:token-type:access_token\n&audience=https://api.stylevault.com\n&scope=execute:purchase\n&client_id=mcp_server_sv_001",
           response: "HTTP/1.1 200 OK\n{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"scope\": \"execute:purchase\",\n  \"max_purchase_amount\": 250.00\n}",
         },
-        { label: "StyleVault API", description: "Rejected: $2,400 exceeds $250 token cap", status: "denied",
+        { label: "RetailZero API", description: "Rejected: $2,400 exceeds $250 token cap", status: "denied",
           request: "POST /api/v1/orders HTTP/1.1\nHost: api.stylevault.com\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\n\n{\"item_id\": \"watch_meridian_001\", \"amount\": 2400.00}",
           response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"$2,400.00 exceeds max $250.00\"\n}",
         },
@@ -683,8 +683,8 @@ const SCENARIO_B_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-b-bounded", timestamp: "10:09:03", type: "bounded-authority", result: "denied", scenarioId: "scenario-b",
-      shortDescription: "Auth0 blocked a $2,400 watch purchase that exceeded StyleVault's $250 per-transaction policy.",
-      businessDescription: "Auth0 blocked a $2,400 watch purchase that exceeded StyleVault's $250 per-transaction policy. Policy enforcement at the security layer prevents unauthorized transactions from reaching your payment processor, reducing fraud losses and chargeback costs.",
+      shortDescription: "Auth0 blocked a $2,400 watch purchase that exceeded RetailZero's $250 per-transaction policy.",
+      businessDescription: "Auth0 blocked a $2,400 watch purchase that exceeded RetailZero's $250 per-transaction policy. Policy enforcement at the security layer prevents unauthorized transactions from reaching your payment processor, reducing fraud losses and chargeback costs.",
       technicalDetail: {
         protocol: "OAuth 2.1: Bounded Authority Claim",
         request: "POST /mcp/tools/place_order HTTP/1.1\nAuthorization: Bearer eyJhbG...\n\n{\"item_id\": \"watch_meridian_001\", \"amount\": 2400.00}",
@@ -707,7 +707,7 @@ const SCENARIO_B_STEPS: DemoStep[] = [
 // SCENARIO C - Gemini (3rd-party, UCP)
 // =============================================
 
-const CONV_C1 = "Discover StyleVault store";
+const CONV_C1 = "Discover RetailZero store";
 const CONV_C2 = "Find me a leather bag";
 const CONV_C3 = "Buy the Heritage Duffle";
 const CONV_C4 = "Track my order";
@@ -722,38 +722,38 @@ export const GEMINI_CONVERSATIONS = [
 ];
 
 const SCENARIO_C_STEPS: DemoStep[] = [
-  // === CHAT 1: "Discover StyleVault store" - UCP discovery + login + consent ===
+  // === CHAT 1: "Discover RetailZero store" - UCP discovery + login + consent ===
   {
     id: "c-0.1-manifest", type: "chat", conversation: CONV_C1,
-    chat: { id: "c-0.1", role: "system", content: "Resolving StyleVault UCP merchant manifest...", timestamp: "10:59:58" },
+    chat: { id: "c-0.1", role: "system", content: "Resolving RetailZero UCP merchant manifest...", timestamp: "10:59:58" },
     securityEvent: {
       id: "evt-c-manifest", timestamp: "10:59:58", type: "ucp-discovery", result: "granted", scenarioId: "scenario-c",
-      shortDescription: "Gemini fetched StyleVault's UCP merchant manifest to discover commerce capabilities and payment methods.",
-      businessDescription: "Gemini fetched StyleVault's UCP merchant manifest to discover commerce capabilities and payment methods. Standardized discovery eliminates custom integration work, letting you enable new AI partners in days instead of weeks.",
+      shortDescription: "Gemini fetched RetailZero's UCP merchant manifest to discover commerce capabilities and payment methods.",
+      businessDescription: "Gemini fetched RetailZero's UCP merchant manifest to discover commerce capabilities and payment methods. Standardized discovery eliminates custom integration work, letting you enable new AI partners in days instead of weeks.",
       technicalDetail: {
         protocol: "UCP: Merchant Manifest Discovery (/.well-known/ucp)",
-        request: "GET /.well-known/ucp HTTP/1.1\nHost: stylevault.com",
-        response: "HTTP/1.1 200 OK\n{\n  \"ucp\": { \"version\": \"2026-04-08\" },\n  \"name\": \"StyleVault\",\n  \"capabilities\": {\n    \"dev.ucp.shopping.checkout\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.catalog\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.orders\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.identity\": {\n      \"versions\": [\"1.0.0\"],\n      \"auth\": {\n        \"type\": \"oauth2\",\n        \"issuer\": \"https://stylevault.us.auth0.com\"\n      }\n    }\n  },\n  \"payment\": {\n    \"handlers\": [\n      { \"id\": \"com.stripe\", \"display_name\": \"Stripe\" },\n      { \"id\": \"com.google.pay\", \"display_name\": \"Google Pay\" }\n    ]\n  },\n  \"signing_keys\": [{ \"kid\": \"sv-ucp-key-001\", \"kty\": \"RSA\" }]\n}",
+        request: "GET /.well-known/ucp HTTP/1.1\nHost: retailzero.com",
+        response: "HTTP/1.1 200 OK\n{\n  \"ucp\": { \"version\": \"2026-04-08\" },\n  \"name\": \"RetailZero\",\n  \"capabilities\": {\n    \"dev.ucp.shopping.checkout\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.catalog\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.orders\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.identity\": {\n      \"versions\": [\"1.0.0\"],\n      \"auth\": {\n        \"type\": \"oauth2\",\n        \"issuer\": \"https://stylevault.us.auth0.com\"\n      }\n    }\n  },\n  \"payment\": {\n    \"handlers\": [\n      { \"id\": \"com.stripe\", \"display_name\": \"Stripe\" },\n      { \"id\": \"com.google.pay\", \"display_name\": \"Google Pay\" }\n    ]\n  },\n  \"signing_keys\": [{ \"kid\": \"sv-ucp-key-001\", \"kty\": \"RSA\" }]\n}",
       },
     },
   },
   {
     id: "c-0.2-profile", type: "chat", conversation: CONV_C1,
-    chat: { id: "c-0.2", role: "system", content: "Negotiating capabilities with StyleVault...", timestamp: "10:59:59" },
+    chat: { id: "c-0.2", role: "system", content: "Negotiating capabilities with RetailZero...", timestamp: "10:59:59" },
     securityEvent: {
       id: "evt-c-profile", timestamp: "10:59:59", type: "ucp-discovery", result: "granted", scenarioId: "scenario-c",
-      shortDescription: "Gemini and StyleVault exchanged capability profiles and verified identities via HTTP Message Signatures.",
-      businessDescription: "Gemini and StyleVault exchanged capability profiles and verified identities via HTTP Message Signatures. Mutual authentication ensures only trusted agents access your commerce APIs, and capability intersection guarantees the agent can only use what you support.",
+      shortDescription: "Gemini and RetailZero exchanged capability profiles and verified identities via HTTP Message Signatures.",
+      businessDescription: "Gemini and RetailZero exchanged capability profiles and verified identities via HTTP Message Signatures. Mutual authentication ensures only trusted agents access your commerce APIs, and capability intersection guarantees the agent can only use what you support.",
       technicalDetail: {
         protocol: "UCP: Agent Profile Exchange + Capability Negotiation (RFC 9421)",
-        request: "// Gemini sends its profile URL and signs all requests:\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(\"@method\" \"@target-uri\"); keyid=\"gemini-key-001\"; alg=\"rsa-v1_5-sha256\"\nrequest-id: req-c02-001\n\n// StyleVault fetches Gemini's profile:\nGET /.well-known/ucp HTTP/1.1\nHost: gemini.google.com",
+        request: "// Gemini sends its profile URL and signs all requests:\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(\"@method\" \"@target-uri\"); keyid=\"gemini-key-001\"; alg=\"rsa-v1_5-sha256\"\nrequest-id: req-c02-001\n\n// RetailZero fetches Gemini's profile:\nGET /.well-known/ucp HTTP/1.1\nHost: gemini.google.com",
         response: "HTTP/1.1 200 OK\n{\n  \"name\": \"Gemini Shopping\",\n  \"ucp\": { \"version\": \"2026-04-08\" },\n  \"capabilities\": {\n    \"dev.ucp.shopping.checkout\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.catalog\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.orders\": { \"versions\": [\"1.0.0\"] }\n  },\n  \"payment\": {\n    \"handlers\": [{ \"id\": \"com.google.pay\" }]\n  },\n  \"signing_keys\": [{ \"kid\": \"gemini-key-001\", \"kty\": \"RSA\" }]\n}\n\n// Negotiated intersection:\n// Capabilities: checkout, catalog, orders\n// Payment: com.google.pay",
       },
     },
   },
   {
     id: "c-1", type: "chat", conversation: CONV_C1,
-    chat: { id: "c-1", role: "system", content: "Gemini connected to StyleVault via Universal Commerce Protocol.", timestamp: "11:00:01" },
+    chat: { id: "c-1", role: "system", content: "Gemini connected to RetailZero via Universal Commerce Protocol.", timestamp: "11:00:01" },
   },
   {
     id: "c-1.5-login", type: "security-moment", gate: "login", gateId: "login-c", conversation: CONV_C1,
@@ -773,25 +773,25 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     id: "c-2-discovery", type: "security-moment", gate: "ucp-discovery", gateId: "ucp-discovery-c", conversation: CONV_C1,
     securityMoment: {
       kind: "ucp-discovery",
-      merchantName: "StyleVault",
+      merchantName: "RetailZero",
       capabilities: ["dev.ucp.shopping.checkout", "dev.ucp.shopping.catalog", "dev.ucp.shopping.orders", "dev.ucp.shopping.identity"],
-      manifestUrl: "https://stylevault.com/.well-known/ucp",
+      manifestUrl: "https://retailzero.com/.well-known/ucp",
     },
     securityEvent: {
       id: "evt-c-discovery", timestamp: "11:00:03", type: "ucp-discovery", result: "granted", scenarioId: "scenario-c",
-      shortDescription: "Gemini accessed StyleVault's UCP capabilities after Auth0 verified its request signature.",
-      businessDescription: "Gemini accessed StyleVault's UCP capabilities after Auth0 verified its request signature. Cryptographic verification ensures only the legitimate agent can invoke your commerce endpoints, eliminating the risk of impersonation.",
+      shortDescription: "Gemini accessed RetailZero's UCP capabilities after Auth0 verified its request signature.",
+      businessDescription: "Gemini accessed RetailZero's UCP capabilities after Auth0 verified its request signature. Cryptographic verification ensures only the legitimate agent can invoke your commerce endpoints, eliminating the risk of impersonation.",
       technicalDetail: {
         protocol: "UCP: Capability Discovery via /.well-known/ucp (RFC 9421)",
-        request: "GET /.well-known/ucp HTTP/1.1\nHost: stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(\"@method\" \"@target-uri\"); keyid=\"gemini-key-001\"\nrequest-id: req-c03-001",
-        response: "HTTP/1.1 200 OK\n{\n  \"ucp\": { \"version\": \"2026-04-08\" },\n  \"name\": \"StyleVault\",\n  \"capabilities\": {\n    \"dev.ucp.shopping.checkout\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.catalog\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.orders\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.identity\": {\n      \"auth\": { \"type\": \"oauth2\", \"issuer\": \"https://stylevault.us.auth0.com\" }\n    }\n  },\n  \"payment\": { \"handlers\": [{ \"id\": \"com.stripe\" }, { \"id\": \"com.google.pay\" }] },\n  \"signing_keys\": [{ \"kid\": \"sv-ucp-key-001\" }]\n}",
+        request: "GET /.well-known/ucp HTTP/1.1\nHost: retailzero.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(\"@method\" \"@target-uri\"); keyid=\"gemini-key-001\"\nrequest-id: req-c03-001",
+        response: "HTTP/1.1 200 OK\n{\n  \"ucp\": { \"version\": \"2026-04-08\" },\n  \"name\": \"RetailZero\",\n  \"capabilities\": {\n    \"dev.ucp.shopping.checkout\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.catalog\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.orders\": { \"versions\": [\"1.0.0\"] },\n    \"dev.ucp.shopping.identity\": {\n      \"auth\": { \"type\": \"oauth2\", \"issuer\": \"https://stylevault.us.auth0.com\" }\n    }\n  },\n  \"payment\": { \"handlers\": [{ \"id\": \"com.stripe\" }, { \"id\": \"com.google.pay\" }] },\n  \"signing_keys\": [{ \"kid\": \"sv-ucp-key-001\" }]\n}",
       },
     },
   },
   {
     id: "c-3-consent", type: "security-moment", gate: "consent", gateId: "consent-c", conversation: CONV_C1,
     securityMoment: {
-      kind: "consent", clientName: "Gemini", productName: "StyleVault",
+      kind: "consent", clientName: "Gemini", productName: "RetailZero",
       scopes: [
         { scope: "openid", label: "Verify your identity", icon: "user" },
         { scope: "profile", label: "Access your profile", icon: "user" },
@@ -849,17 +849,17 @@ const SCENARIO_C_STEPS: DemoStep[] = [
   },
   {
     id: "c-4", type: "chat", conversation: CONV_C1,
-    chat: { id: "c-4", role: "system", content: "Connected! Gemini can now shop StyleVault on your behalf via Universal Commerce Protocol.", timestamp: "11:00:08" },
+    chat: { id: "c-4", role: "system", content: "Connected! Gemini can now shop RetailZero on your behalf via Universal Commerce Protocol.", timestamp: "11:00:08" },
   },
   {
     id: "c-5", type: "chat", conversation: CONV_C1,
-    chat: { id: "c-5", role: "user", content: "What can you do on StyleVault for me?", timestamp: "11:00:12" },
+    chat: { id: "c-5", role: "user", content: "What can you do on RetailZero for me?", timestamp: "11:00:12" },
   },
   {
     id: "c-6", type: "chat", conversation: CONV_C1,
     chat: {
       id: "c-6", role: "assistant",
-      content: "I've connected to StyleVault through the Universal Commerce Protocol. Here's what I can help with:\n\n- Browse their product catalog and search for items\n- Start a checkout and purchase items on your behalf\n- Track your existing orders and shipments\n\nYour account is linked securely through Auth0. What would you like to do?",
+      content: "I've connected to RetailZero through the Universal Commerce Protocol. Here's what I can help with:\n\n- Browse their product catalog and search for items\n- Start a checkout and purchase items on your behalf\n- Track your existing orders and shipments\n\nYour account is linked securely through Auth0. What would you like to do?",
       timestamp: "11:00:14",
     },
   },
@@ -867,21 +867,21 @@ const SCENARIO_C_STEPS: DemoStep[] = [
   // === CHAT 2: "Find me a leather bag" - UCP catalog search ===
   {
     id: "c-7", type: "chat", conversation: CONV_C2,
-    chat: { id: "c-7", role: "user", content: "I'm looking for a leather bag under $300. What does StyleVault have?", timestamp: "11:01:01" },
+    chat: { id: "c-7", role: "user", content: "I'm looking for a leather bag under $300. What does RetailZero have?", timestamp: "11:01:01" },
   },
   {
     id: "c-8", type: "chat", conversation: CONV_C2,
     chat: {
       id: "c-8", role: "assistant",
-      content: "I found 3 leather bags under $300 on StyleVault:\n\n1. Heritage Duffle - $269.00 (4.7 stars, 93 reviews)\n2. City Tote - $199.00 (4.5 stars, 156 reviews)\n3. Compact Travel Satchel - $149.00 (4.8 stars, 72 reviews)\n\nThe Heritage Duffle is the highest-rated for travel. Want me to start a checkout for any of these?",
+      content: "I found 3 leather bags under $300 on RetailZero:\n\n1. Heritage Duffle - $269.00 (4.7 stars, 93 reviews)\n2. City Tote - $199.00 (4.5 stars, 156 reviews)\n3. Compact Travel Satchel - $149.00 (4.8 stars, 72 reviews)\n\nThe Heritage Duffle is the highest-rated for travel. Want me to start a checkout for any of these?",
       timestamp: "11:01:04",
       toolCall: { name: "ucp_catalog_search", status: "success", steps: [
         { label: "UCP Catalog", description: "dev.ucp.shopping.catalog query", status: "success" },
         { label: "HTTP Message Signature", description: "Agent signs request with private key (RFC 9421)", status: "success",
-          request: "// Gemini signs the request using its private key.\n// StyleVault verifies against Gemini's published\n// signing_keys from the agent profile.\n\nkeyid: gemini-key-001\nalg: rsa-v1_5-sha256\ncovered-components: \"@method\" \"@target-uri\" \"ucp-agent\"",
+          request: "// Gemini signs the request using its private key.\n// RetailZero verifies against Gemini's published\n// signing_keys from the agent profile.\n\nkeyid: gemini-key-001\nalg: rsa-v1_5-sha256\ncovered-components: \"@method\" \"@target-uri\" \"ucp-agent\"",
           response: "// Signature verified against agent's public key.\n// No OAuth token needed for catalog access --\n// catalog is a UCP capability authorized via\n// capability negotiation, not Identity Linking.",
         },
-        { label: "StyleVault UCP API", description: "GET /ucp/v1/catalog/search?q=leather+bag&max_price=300", status: "success",
+        { label: "RetailZero UCP API", description: "GET /ucp/v1/catalog/search?q=leather+bag&max_price=300", status: "success",
           request: "GET /ucp/v1/catalog/search?q=leather+bag&max_price=300 HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(\"@method\" \"@target-uri\" \"ucp-agent\"); keyid=\"gemini-key-001\"\nidempotency-key: idk-c8-001\nrequest-id: req-c08-001",
           response: "HTTP/1.1 200 OK\n{\n  \"results\": [\n    {\"name\": \"Heritage Duffle\", \"price\": 269.00, \"id\": \"bag_heritage_001\"},\n    {\"name\": \"City Tote\", \"price\": 199.00, \"id\": \"bag_city_001\"},\n    {\"name\": \"Compact Travel Satchel\", \"price\": 149.00, \"id\": \"bag_satchel_001\"}\n  ]\n}",
         },
@@ -889,14 +889,14 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-search", timestamp: "11:01:04", type: "tool-call", result: "granted", scenarioId: "scenario-c",
-      shortDescription: "Gemini searched StyleVault's product catalog via UCP, with access verified through request signatures.",
-      businessDescription: "Gemini searched StyleVault's product catalog via UCP, with access verified through request signatures. Catalog queries are authenticated independently of OAuth tokens, giving you flexibility to run commerce operations without consuming session state.",
+      shortDescription: "Gemini searched RetailZero's product catalog via UCP, with access verified through request signatures.",
+      businessDescription: "Gemini searched RetailZero's product catalog via UCP, with access verified through request signatures. Catalog queries are authenticated independently of OAuth tokens, giving you flexibility to run commerce operations without consuming session state.",
       technicalDetail: {
         protocol: "UCP: Catalog Search via dev.ucp.shopping.catalog (RFC 9421)",
         toolName: "ucp_catalog_search",
         tokenExchange: {
           request: "// No OAuth token exchange for catalog access.\n// Gemini authenticates via HTTP Message Signature:\n\nrequest-signature: sig1=(\"@method\" \"@target-uri\" \"ucp-agent\");\n  keyid=\"gemini-key-001\";\n  alg=\"rsa-v1_5-sha256\"",
-          response: "// StyleVault verifies signature against Gemini's\n// published public key from the agent profile.\n// Capability was authorized during negotiation.",
+          response: "// RetailZero verifies signature against Gemini's\n// published public key from the agent profile.\n// Capability was authorized during negotiation.",
         },
         downstreamApi: {
           request: "GET /ucp/v1/catalog/search?q=leather+bag&max_price=300 HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(\"@method\" \"@target-uri\" \"ucp-agent\"); keyid=\"gemini-key-001\"\nidempotency-key: idk-c8-001",
@@ -909,7 +909,7 @@ const SCENARIO_C_STEPS: DemoStep[] = [
   // === CHAT 3: "Buy the Heritage Duffle" - UCP checkout + CIBA escalation ===
   {
     id: "c-9", type: "chat", conversation: CONV_C3,
-    chat: { id: "c-9", role: "user", content: "Buy me the Heritage Duffle from StyleVault.", timestamp: "11:02:01" },
+    chat: { id: "c-9", role: "user", content: "Buy me the Heritage Duffle from RetailZero.", timestamp: "11:02:01" },
   },
   {
     id: "c-10", type: "chat", conversation: CONV_C3,
@@ -923,7 +923,7 @@ const SCENARIO_C_STEPS: DemoStep[] = [
           request: "// Gemini signs the checkout request with its private key.\n// Identity Linking token attached for buyer association.\n\nkeyid: gemini-key-001\nalg: rsa-v1_5-sha256\ncovered-components: \"@method\" \"@target-uri\" \"content-type\" \"ucp-agent\"",
           response: "// Signature verified. Buyer identity confirmed\n// via Identity Linking token (Auth0).\n// Merchant policy: $250 agent transaction limit.",
         },
-        { label: "StyleVault UCP API", description: "POST /ucp/v1/checkout/sessions", status: "success",
+        { label: "RetailZero UCP API", description: "POST /ucp/v1/checkout/sessions", status: "success",
           request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: gemini-shopping/1.0\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nidempotency-key: idk-c10-001\n\n{\n  \"line_items\": [{\"product_id\": \"bag_heritage_001\", \"quantity\": 1}],\n  \"buyer\": {\"email\": \"alex@example.com\"}\n}",
           response: "HTTP/1.1 201 Created\n{\n  \"session_id\": \"ucp_sess_7k2m9\",\n  \"status\": \"requires_escalation\",\n  \"total\": 269.00,\n  \"continue_url\": \"https://stylevault.com/ucp/escalate/7k2m9\",\n  \"messages\": [{\n    \"severity\": \"requires_buyer_input\",\n    \"text\": \"Amount $269.00 exceeds agent limit. Buyer approval required.\"\n  }]\n}",
         },
@@ -931,8 +931,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-checkout", timestamp: "11:02:03", type: "ucp-checkout-state", result: "pending", scenarioId: "scenario-c",
-      shortDescription: "Gemini created a checkout session for $269, triggering escalation past StyleVault's $250 agent limit.",
-      businessDescription: "Gemini created a checkout session for $269, triggering escalation past StyleVault's $250 agent limit. Policy-driven escalation prevents high-value transactions from executing without human approval, protecting your brand from unexpected liability.",
+      shortDescription: "Gemini created a checkout session for $269, triggering escalation past RetailZero's $250 agent limit.",
+      businessDescription: "Gemini created a checkout session for $269, triggering escalation past RetailZero's $250 agent limit. Policy-driven escalation prevents high-value transactions from executing without human approval, protecting your brand from unexpected liability.",
       technicalDetail: {
         protocol: "UCP: Checkout Session (requires_escalation + continue_url)",
         request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\n\n{\n  \"line_items\": [{\"product_id\": \"bag_heritage_001\", \"quantity\": 1}]\n}",
@@ -946,7 +946,7 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     securityMoment: {
       kind: "ciba",
       action: "Approve UCP checkout: Heritage Duffle ($269.00)",
-      description: "UCP returned a continue_url for buyer approval. StyleVault uses Auth0 CIBA behind this URL to verify your identity and authorize the purchase.",
+      description: "UCP returned a continue_url for buyer approval. RetailZero uses Auth0 CIBA behind this URL to verify your identity and authorize the purchase.",
       approverName: "Alex Morgan",
     },
     securityEvent: {
@@ -955,7 +955,7 @@ const SCENARIO_C_STEPS: DemoStep[] = [
       businessDescription: "Alex Morgan approved the $269.00 Heritage Duffle purchase, and the UCP checkout session completed. Auth0 CIBA powers the approval flow, so every transaction above your threshold has an auditable record of customer consent.",
       technicalDetail: {
         protocol: "Auth0 CIBA: Buyer Approval via continue_url",
-        request: "// UCP returned continue_url: https://stylevault.com/ucp/escalate/7k2m9\n// StyleVault handles buyer approval via Auth0 CIBA:\n\nPOST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"UCP Purchase: Heritage Duffle ($269.00) via Gemini\",\n  \"scope\": \"openid\"\n}",
+        request: "// UCP returned continue_url: https://stylevault.com/ucp/escalate/7k2m9\n// RetailZero handles buyer approval via Auth0 CIBA:\n\nPOST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"UCP Purchase: Heritage Duffle ($269.00) via Gemini\",\n  \"scope\": \"openid\"\n}",
         response: "HTTP/1.1 200 OK\n{\n  \"auth_req_id\": \"ciba-req-c01\",\n  \"expires_in\": 300,\n  \"interval\": 5\n}",
       },
     },
@@ -968,11 +968,11 @@ const SCENARIO_C_STEPS: DemoStep[] = [
       timestamp: "11:02:12",
       toolCall: { name: "ucp_complete_checkout", status: "success", steps: [
         { label: "UCP Checkout", description: "Session completed after buyer approval", status: "success" },
-        { label: "Buyer Approval (continue_url)", description: "StyleVault verified approval via Auth0 CIBA", status: "success",
-          request: "// StyleVault's continue_url flow completed.\n// Auth0 CIBA confirmed buyer identity.\n\nGET /oauth/token?auth_req_id=ciba-req-c01 HTTP/1.1\nHost: stylevault.us.auth0.com",
-          response: "HTTP/1.1 200 OK\n// StyleVault issues escalation token after\n// Auth0 CIBA confirms buyer approval.\n{\n  \"escalation_token\": \"esc_7k2m9_approved\"\n}",
+        { label: "Buyer Approval (continue_url)", description: "RetailZero verified approval via Auth0 CIBA", status: "success",
+          request: "// RetailZero's continue_url flow completed.\n// Auth0 CIBA confirmed buyer identity.\n\nGET /oauth/token?auth_req_id=ciba-req-c01 HTTP/1.1\nHost: stylevault.us.auth0.com",
+          response: "HTTP/1.1 200 OK\n// RetailZero issues escalation token after\n// Auth0 CIBA confirms buyer approval.\n{\n  \"escalation_token\": \"esc_7k2m9_approved\"\n}",
         },
-        { label: "StyleVault UCP API", description: "POST /ucp/v1/checkout/sessions/ucp_sess_7k2m9/complete", status: "success",
+        { label: "RetailZero UCP API", description: "POST /ucp/v1/checkout/sessions/ucp_sess_7k2m9/complete", status: "success",
           request: "POST /ucp/v1/checkout/sessions/ucp_sess_7k2m9/complete HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\nX-UCP-Escalation-Token: esc_7k2m9_approved\nidempotency-key: idk-c12-001",
           response: "HTTP/1.1 200 OK\n{\n  \"session_id\": \"ucp_sess_7k2m9\",\n  \"status\": \"completed\",\n  \"order_id\": \"ucp_ord_9x7m1\",\n  \"total\": 269.00\n}",
         },
@@ -986,7 +986,7 @@ const SCENARIO_C_STEPS: DemoStep[] = [
         protocol: "UCP: Checkout Completion (continue_url + Auth0 CIBA)",
         toolName: "ucp_complete_checkout",
         tokenExchange: {
-          request: "// Buyer approval obtained via continue_url flow.\n// StyleVault verified identity via Auth0 CIBA.\n// Escalation token issued to confirm approval.\n\nX-UCP-Escalation-Token: esc_7k2m9_approved",
+          request: "// Buyer approval obtained via continue_url flow.\n// RetailZero verified identity via Auth0 CIBA.\n// Escalation token issued to confirm approval.\n\nX-UCP-Escalation-Token: esc_7k2m9_approved",
           response: "// Escalation token validated. Checkout session\n// transitions: requires_escalation -> completed",
         },
         downstreamApi: {
@@ -1014,7 +1014,7 @@ const SCENARIO_C_STEPS: DemoStep[] = [
           request: "// Order data is user-specific, so this request\n// requires the Identity Linking token from Auth0.\n// HTTP Message Signature also included.\n\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\n(scope: openid profile email offline_access)",
           response: "// Auth0 token validated. User identity confirmed.\n// Order data scoped to auth0|alex_morgan.",
         },
-        { label: "StyleVault UCP API", description: "GET /ucp/v1/orders/ucp_ord_9x7m1", status: "success",
+        { label: "RetailZero UCP API", description: "GET /ucp/v1/orders/ucp_ord_9x7m1", status: "success",
           request: "GET /ucp/v1/orders/ucp_ord_9x7m1 HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...",
           response: "HTTP/1.1 200 OK\n{\n  \"order_id\": \"ucp_ord_9x7m1\",\n  \"status\": \"processing\",\n  \"items\": [{\"name\": \"Heritage Duffle\", \"price\": 269.00}],\n  \"shipment\": {\n    \"status\": \"label_created\",\n    \"estimated_delivery\": \"2026-04-14\"\n  }\n}",
         },
@@ -1048,7 +1048,7 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     id: "c-16", type: "chat", conversation: CONV_C5,
     chat: {
       id: "c-16", role: "assistant",
-      content: "I can't complete that purchase. The Meridian Automatic Watch is $2,400.00, which exceeds my $250 payment authorization limit through UCP. Even with buyer escalation, this amount falls outside the bounded authority configured for AI agents.\n\nFor premium purchases like this, you can buy directly on StyleVault where additional identity verification protects high-value transactions.",
+      content: "I can't complete that purchase. The Meridian Automatic Watch is $2,400.00, which exceeds my $250 payment authorization limit through UCP. Even with buyer escalation, this amount falls outside the bounded authority configured for AI agents.\n\nFor premium purchases like this, you can buy directly on RetailZero where additional identity verification protects high-value transactions.",
       timestamp: "11:04:03",
       toolCall: { name: "ucp_create_checkout", status: "denied", detail: "bounded_authority_exceeded: $250 merchant policy", steps: [
         { label: "UCP Checkout", description: "dev.ucp.shopping.checkout session attempted", status: "success" },
@@ -1056,7 +1056,7 @@ const SCENARIO_C_STEPS: DemoStep[] = [
           request: "// Gemini signs the checkout request.\n\nkeyid: gemini-key-001\nalg: rsa-v1_5-sha256\ncovered-components: \"@method\" \"@target-uri\" \"content-type\" \"ucp-agent\"",
           response: "// Signature verified. Request authenticated.\n// Merchant policy evaluation follows.",
         },
-        { label: "StyleVault UCP API", description: "Rejected: $2,400 exceeds $250 merchant policy", status: "denied",
+        { label: "RetailZero UCP API", description: "Rejected: $2,400 exceeds $250 merchant policy", status: "denied",
           request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nHost: api.stylevault.com\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\nidempotency-key: idk-c16-001\n\n{\n  \"line_items\": [{\"product_id\": \"watch_meridian_001\", \"quantity\": 1}]\n}",
           response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"bounded_authority_exceeded\",\n  \"error_description\": \"$2,400.00 exceeds merchant agent policy limit of $250.00\",\n  \"messages\": [{\n    \"severity\": \"unrecoverable\",\n    \"text\": \"Transaction amount exceeds merchant-configured agent transaction limit.\"\n  }]\n}",
         },
@@ -1064,8 +1064,8 @@ const SCENARIO_C_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-c-bounded", timestamp: "11:04:03", type: "bounded-authority", result: "denied", scenarioId: "scenario-c",
-      shortDescription: "Auth0 blocked a $2,400 watch purchase that exceeded StyleVault's $250 agent transaction policy.",
-      businessDescription: "Auth0 blocked a $2,400 watch purchase that exceeded StyleVault's $250 agent transaction policy. Policy enforcement at the security layer prevents unauthorized transactions from reaching your payment processor, reducing fraud losses and chargeback costs.",
+      shortDescription: "Auth0 blocked a $2,400 watch purchase that exceeded RetailZero's $250 agent transaction policy.",
+      businessDescription: "Auth0 blocked a $2,400 watch purchase that exceeded RetailZero's $250 agent transaction policy. Policy enforcement at the security layer prevents unauthorized transactions from reaching your payment processor, reducing fraud losses and chargeback costs.",
       technicalDetail: {
         protocol: "UCP: Merchant Agent Policy Enforcement",
         request: "POST /ucp/v1/checkout/sessions HTTP/1.1\nUCP-Agent: profile=\"https://gemini.google.com/.well-known/ucp\"\nrequest-signature: sig1=(...); keyid=\"gemini-key-001\"\n\n{\"line_items\": [{\"product_id\": \"watch_meridian_001\", \"quantity\": 1}]}",
@@ -1091,11 +1091,11 @@ const SCENARIO_C_STEPS: DemoStep[] = [
 export const CONSENT_DENIED_STEPS_A: DemoStep[] = [
   {
     id: "consent-denied-a", type: "chat",
-    chat: { id: "cd-a", role: "system", content: "Connection declined. StyleVault AI did not receive any access to your account.", timestamp: "10:00:04" },
+    chat: { id: "cd-a", role: "system", content: "Connection declined. RetailZero AI did not receive any access to your account.", timestamp: "10:00:04" },
     securityEvent: {
       id: "evt-consent-denied-a", timestamp: "10:00:04", type: "consent", result: "denied", scenarioId: "scenario-a",
-      shortDescription: "Alex Morgan denied StyleVault AI access. No token was issued, and no data was exposed.",
-      businessDescription: "Alex Morgan denied StyleVault AI access. No token was issued, and no data was exposed. Consent-first architecture means agents can only act when customers explicitly approve, giving you zero-risk deny paths.",
+      shortDescription: "Alex Morgan denied RetailZero AI access. No token was issued, and no data was exposed.",
+      businessDescription: "Alex Morgan denied RetailZero AI access. No token was issued, and no data was exposed. Consent-first architecture means agents can only act when customers explicitly approve, giving you zero-risk deny paths.",
       technicalDetail: { protocol: "OAuth 2.1", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"access_denied\",\n  \"error_description\": \"User denied the consent request\"\n}" },
     },
   },
@@ -1165,7 +1165,7 @@ const CIBA_DENIAL_STEPS_B: Record<string, DemoStep> = {
 const CONSENT_DENIED_STEPS_C: DemoStep[] = [
   {
     id: "consent-denied-c", type: "chat", conversation: CONV_C1,
-    chat: { id: "cd-c", role: "system", content: "Connection declined. Gemini did not receive any access to your StyleVault account via UCP.", timestamp: "11:00:07" },
+    chat: { id: "cd-c", role: "system", content: "Connection declined. Gemini did not receive any access to your RetailZero account via UCP.", timestamp: "11:00:07" },
     securityEvent: {
       id: "evt-consent-denied-c", timestamp: "11:00:07", type: "consent", result: "denied", scenarioId: "scenario-c",
       shortDescription: "Alex Morgan denied Gemini UCP access. No token was issued.",
@@ -1185,7 +1185,7 @@ const CIBA_DENIAL_STEPS_C: Record<string, DemoStep> = {
       toolCall: { name: "ucp_complete_checkout", status: "denied", detail: "ciba_denied", steps: [
         { label: "UCP Checkout", description: "Completion attempted", status: "success" },
         { label: "Auth0 CIBA", description: "User denied the authorization request", status: "denied",
-          request: "// StyleVault's continue_url buyer approval:\nPOST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"UCP Purchase: Heritage Duffle ($269.00)\",\n  \"scope\": \"openid\"\n}",
+          request: "// RetailZero's continue_url buyer approval:\nPOST /bc-authorize HTTP/1.1\nHost: stylevault.us.auth0.com\n\n{\n  \"login_hint\": \"alex@example.com\",\n  \"binding_message\": \"UCP Purchase: Heritage Duffle ($269.00)\",\n  \"scope\": \"openid\"\n}",
           response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"authorization_declined\"\n}",
         },
       ] },
@@ -1194,7 +1194,7 @@ const CIBA_DENIAL_STEPS_C: Record<string, DemoStep> = {
       id: "evt-ciba-denied-c", timestamp: "11:02:08", type: "ciba", result: "denied", scenarioId: "scenario-c",
       shortDescription: "Alex Morgan denied the approval. The UCP checkout session was canceled.",
       businessDescription: "Alex Morgan denied the approval. The UCP checkout session was canceled. Canceled transactions are audited the same as completed ones, creating a complete record for compliance and dispute resolution.",
-      technicalDetail: { protocol: "Auth0 CIBA (StyleVault Buyer Approval)", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"authorization_declined\"\n}" },
+      technicalDetail: { protocol: "Auth0 CIBA (RetailZero Buyer Approval)", response: "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"authorization_declined\"\n}" },
     },
   },
 };
@@ -1221,11 +1221,11 @@ const SCENARIO_D_STEPS: DemoStep[] = [
   // === CHAT 1: "Connect via MCP" - RFC 9728 discovery + OAuth 2.1 + PKCE + consent ===
   {
     id: "d-0.1-401", type: "chat", conversation: CONV_D1,
-    chat: { id: "d-0.1", role: "system", content: "Connecting to StyleVault MCP endpoint...", timestamp: "12:00:00" },
+    chat: { id: "d-0.1", role: "system", content: "Connecting to RetailZero MCP endpoint...", timestamp: "12:00:00" },
     securityEvent: {
       id: "evt-d-401", timestamp: "12:00:00", type: "mcp-discovery", result: "granted", scenarioId: "scenario-d",
-      shortDescription: "Gemini received a 401 challenge from StyleVault's MCP endpoint, discovering Auth0 as the authorization server via RFC 9728.",
-      businessDescription: "Gemini received a 401 challenge from StyleVault's MCP endpoint, discovering Auth0 as the authorization server via RFC 9728. Standardized resource metadata means every AI agent discovers your auth requirements automatically, eliminating custom integration work.",
+      shortDescription: "Gemini received a 401 challenge from RetailZero's MCP endpoint, discovering Auth0 as the authorization server via RFC 9728.",
+      businessDescription: "Gemini received a 401 challenge from RetailZero's MCP endpoint, discovering Auth0 as the authorization server via RFC 9728. Standardized resource metadata means every AI agent discovers your auth requirements automatically, eliminating custom integration work.",
       technicalDetail: {
         protocol: "Protected Resource Metadata (RFC 9728) + JSON-RPC over Streamable HTTP",
         request: "POST /gemini-mcp HTTP/1.1\nHost: mcp.stylevault.com\nContent-Type: application/json\n\n{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"initialize\",\n  \"id\": 1\n}",
@@ -1268,7 +1268,7 @@ const SCENARIO_D_STEPS: DemoStep[] = [
   {
     id: "d-2-consent", type: "security-moment", gate: "consent", gateId: "consent-d", conversation: CONV_D1,
     securityMoment: {
-      kind: "consent", clientName: "Gemini", productName: "StyleVault",
+      kind: "consent", clientName: "Gemini", productName: "RetailZero",
       scopes: [
         { scope: "read:products", label: "Browse and search products", icon: "search" },
         { scope: "execute:purchase", label: "Place orders on your behalf", icon: "shopping-cart" },
@@ -1278,8 +1278,8 @@ const SCENARIO_D_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-d-consent", timestamp: "12:00:05", type: "consent", result: "granted", scenarioId: "scenario-d",
-      shortDescription: "Alex Morgan approved Gemini to access StyleVault's MCP tools with scoped permissions.",
-      businessDescription: "Alex Morgan approved Gemini to access StyleVault's MCP tools with scoped permissions. These scopes map directly to UCP commerce capabilities exposed as MCP tools, so the same permission model covers both transport layers.",
+      shortDescription: "Alex Morgan approved Gemini to access RetailZero's MCP tools with scoped permissions.",
+      businessDescription: "Alex Morgan approved Gemini to access RetailZero's MCP tools with scoped permissions. These scopes map directly to UCP commerce capabilities exposed as MCP tools, so the same permission model covers both transport layers.",
       technicalDetail: {
         protocol: "OAuth 2.1: Authorization Code + PKCE (Consent)",
         request: "POST /authorize HTTP/1.1\nHost: stylevault.us.auth0.com\nresponse_type=code\n&scope=read:products execute:purchase read:orders\n&client_id=cli_gemini_mcp_004\n&code_challenge=Lk3xR9mT7vW2pN1jB0yQ4sF8hD5gE...\n&code_challenge_method=S256",
@@ -1314,17 +1314,17 @@ const SCENARIO_D_STEPS: DemoStep[] = [
   },
   {
     id: "d-3-connected", type: "chat", conversation: CONV_D1,
-    chat: { id: "d-3", role: "system", content: "MCP session established. Connected to StyleVault UCP-over-MCP server.", timestamp: "12:00:08" },
+    chat: { id: "d-3", role: "system", content: "MCP session established. Connected to RetailZero UCP-over-MCP server.", timestamp: "12:00:08" },
   },
   {
     id: "d-4-ask", type: "chat", conversation: CONV_D1,
-    chat: { id: "d-4", role: "user", content: "What can you do on StyleVault for me?", timestamp: "12:00:12" },
+    chat: { id: "d-4", role: "user", content: "What can you do on RetailZero for me?", timestamp: "12:00:12" },
   },
   {
     id: "d-5-response", type: "chat", conversation: CONV_D1,
     chat: {
       id: "d-5", role: "assistant",
-      content: "I've connected to StyleVault through MCP, with UCP commerce tools available as MCP tool calls. Here's what I can help with:\n\n- Discover the store's UCP manifest and capabilities\n- Search and browse their product catalog\n- Create checkout sessions and complete purchases\n- Track your existing orders\n\nAll requests flow through a single MCP endpoint as JSON-RPC calls, authenticated with your Auth0 token. What would you like to do?",
+      content: "I've connected to RetailZero through MCP, with UCP commerce tools available as MCP tool calls. Here's what I can help with:\n\n- Discover the store's UCP manifest and capabilities\n- Search and browse their product catalog\n- Create checkout sessions and complete purchases\n- Track your existing orders\n\nAll requests flow through a single MCP endpoint as JSON-RPC calls, authenticated with your Auth0 token. What would you like to do?",
       timestamp: "12:00:14",
     },
   },
@@ -1332,13 +1332,13 @@ const SCENARIO_D_STEPS: DemoStep[] = [
   // === CHAT 2: "Discover UCP capabilities" - ucp_discover tool call ===
   {
     id: "d-6-ask", type: "chat", conversation: CONV_D2,
-    chat: { id: "d-6", role: "user", content: "What kind of store is StyleVault? Show me their capabilities.", timestamp: "12:01:01" },
+    chat: { id: "d-6", role: "user", content: "What kind of store is RetailZero? Show me their capabilities.", timestamp: "12:01:01" },
   },
   {
     id: "d-7-discover", type: "chat", conversation: CONV_D2,
     chat: {
       id: "d-7", role: "assistant",
-      content: "StyleVault is a premium fashion retailer. Here's their UCP manifest, retrieved via the ucp_discover MCP tool:\n\n- Catalog: Full product search and browse\n- Checkout: State-machine checkout with escalation support\n- Orders: Order history and tracking\n- Auth: OAuth 2.0 via Auth0 (stylevault.us.auth0.com)\n- Bounded Authority: $250 per-transaction agent limit\n- Payment: Stripe and Google Pay\n\nThe manifest came through the MCP transport as a tool response, not a REST call to /.well-known/ucp. Same UCP semantics, different delivery mechanism.",
+      content: "RetailZero is a premium fashion retailer. Here's their UCP manifest, retrieved via the ucp_discover MCP tool:\n\n- Catalog: Full product search and browse\n- Checkout: State-machine checkout with escalation support\n- Orders: Order history and tracking\n- Auth: OAuth 2.0 via Auth0 (stylevault.us.auth0.com)\n- Bounded Authority: $250 per-transaction agent limit\n- Payment: Stripe and Google Pay\n\nThe manifest came through the MCP transport as a tool response, not a REST call to /.well-known/ucp. Same UCP semantics, different delivery mechanism.",
       timestamp: "12:01:04",
       toolCall: { name: "ucp_discover", status: "success", steps: [
         { label: "MCP JSON-RPC", description: "tools/call: ucp_discover", status: "success" },
@@ -1348,14 +1348,14 @@ const SCENARIO_D_STEPS: DemoStep[] = [
         },
         { label: "UCP Manifest", description: "Commerce capabilities returned as tool response", status: "success",
           request: "POST /gemini-mcp HTTP/1.1\nContent-Type: application/json\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIs...\nmcp-session-id: sess_d_001\n\n{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"tools/call\",\n  \"params\": { \"name\": \"ucp_discover\" },\n  \"id\": 2\n}",
-          response: "{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"content\": [{\n      \"type\": \"text\",\n      \"text\": \"{\\\"name\\\": \\\"StyleVault\\\", \\\"capabilities\\\": {\\\"catalog\\\": {...}, \\\"checkout\\\": {...}, \\\"orders\\\": {...}}, \\\"bounded_authority\\\": {\\\"max_agent_purchase\\\": 250}}\"\n    }]\n  },\n  \"id\": 2\n}",
+          response: "{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"content\": [{\n      \"type\": \"text\",\n      \"text\": \"{\\\"name\\\": \\\"RetailZero\\\", \\\"capabilities\\\": {\\\"catalog\\\": {...}, \\\"checkout\\\": {...}, \\\"orders\\\": {...}}, \\\"bounded_authority\\\": {\\\"max_agent_purchase\\\": 250}}\"\n    }]\n  },\n  \"id\": 2\n}",
         },
       ] },
     },
     securityEvent: {
       id: "evt-d-discover", timestamp: "12:01:04", type: "ucp-discovery", result: "granted", scenarioId: "scenario-d",
-      shortDescription: "Gemini retrieved StyleVault's UCP manifest via the ucp_discover MCP tool, with JWT validated against Auth0's JWKS.",
-      businessDescription: "Gemini retrieved StyleVault's UCP manifest via the ucp_discover MCP tool, with JWT validated against Auth0's JWKS. Delivering the manifest through MCP means the agent discovers commerce capabilities using the same protocol it uses for tool calls, simplifying the integration path.",
+      shortDescription: "Gemini retrieved RetailZero's UCP manifest via the ucp_discover MCP tool, with JWT validated against Auth0's JWKS.",
+      businessDescription: "Gemini retrieved RetailZero's UCP manifest via the ucp_discover MCP tool, with JWT validated against Auth0's JWKS. Delivering the manifest through MCP means the agent discovers commerce capabilities using the same protocol it uses for tool calls, simplifying the integration path.",
       technicalDetail: {
         protocol: "MCP: tools/call (ucp_discover) + Auth0 JWKS Validation",
         toolName: "ucp_discover",
@@ -1374,13 +1374,13 @@ const SCENARIO_D_STEPS: DemoStep[] = [
   // === CHAT 3: "Find me a leather bag" - ucp_catalog_search tool call ===
   {
     id: "d-8-ask", type: "chat", conversation: CONV_D3,
-    chat: { id: "d-8", role: "user", content: "I'm looking for a leather bag under $300. What does StyleVault have?", timestamp: "12:02:01" },
+    chat: { id: "d-8", role: "user", content: "I'm looking for a leather bag under $300. What does RetailZero have?", timestamp: "12:02:01" },
   },
   {
     id: "d-9-search", type: "chat", conversation: CONV_D3,
     chat: {
       id: "d-9", role: "assistant",
-      content: "I found 3 leather bags under $300 on StyleVault:\n\n1. Heritage Duffle - $269.00 (4.7 stars, 93 reviews)\n2. City Tote - $199.00 (4.5 stars, 156 reviews)\n3. Compact Travel Satchel - $149.00 (4.8 stars, 72 reviews)\n\nThe Heritage Duffle is the top-rated for travel. Want me to start a checkout?",
+      content: "I found 3 leather bags under $300 on RetailZero:\n\n1. Heritage Duffle - $269.00 (4.7 stars, 93 reviews)\n2. City Tote - $199.00 (4.5 stars, 156 reviews)\n3. Compact Travel Satchel - $149.00 (4.8 stars, 72 reviews)\n\nThe Heritage Duffle is the top-rated for travel. Want me to start a checkout?",
       timestamp: "12:02:04",
       toolCall: { name: "ucp_catalog_search", status: "success", steps: [
         { label: "MCP JSON-RPC", description: "tools/call: ucp_catalog_search", status: "success" },
@@ -1396,8 +1396,8 @@ const SCENARIO_D_STEPS: DemoStep[] = [
     },
     securityEvent: {
       id: "evt-d-search", timestamp: "12:02:04", type: "tool-call", result: "granted", scenarioId: "scenario-d",
-      shortDescription: "Gemini searched StyleVault's catalog via the ucp_catalog_search MCP tool, with read:products scope validated.",
-      businessDescription: "Gemini searched StyleVault's catalog via the ucp_catalog_search MCP tool, with read:products scope validated. Scope-based access control on MCP tools gives you the same granular permissions as REST API endpoints, without per-endpoint routing.",
+      shortDescription: "Gemini searched RetailZero's catalog via the ucp_catalog_search MCP tool, with read:products scope validated.",
+      businessDescription: "Gemini searched RetailZero's catalog via the ucp_catalog_search MCP tool, with read:products scope validated. Scope-based access control on MCP tools gives you the same granular permissions as REST API endpoints, without per-endpoint routing.",
       technicalDetail: {
         protocol: "MCP: tools/call (ucp_catalog_search) + OAuth 2.1 Scope Enforcement",
         toolName: "ucp_catalog_search",
@@ -1416,7 +1416,7 @@ const SCENARIO_D_STEPS: DemoStep[] = [
   // === CHAT 4: "Buy the Heritage Duffle" - checkout + escalation + CIBA ===
   {
     id: "d-10-ask", type: "chat", conversation: CONV_D4,
-    chat: { id: "d-10", role: "user", content: "Buy me the Heritage Duffle from StyleVault.", timestamp: "12:03:01" },
+    chat: { id: "d-10", role: "user", content: "Buy me the Heritage Duffle from RetailZero.", timestamp: "12:03:01" },
   },
   {
     id: "d-11-checkout", type: "chat", conversation: CONV_D4,
@@ -1513,7 +1513,7 @@ const SCENARIO_D_STEPS: DemoStep[] = [
     id: "d-15-denied", type: "chat", conversation: CONV_D5,
     chat: {
       id: "d-15", role: "assistant",
-      content: "I can't complete that purchase. The Meridian Automatic Watch is $2,400.00, which exceeds the $250 bounded authority limit in my access token. Even with buyer escalation, this amount falls outside the range configured for AI agent transactions.\n\nFor premium purchases like this, you can buy directly on StyleVault where additional identity verification protects high-value transactions.",
+      content: "I can't complete that purchase. The Meridian Automatic Watch is $2,400.00, which exceeds the $250 bounded authority limit in my access token. Even with buyer escalation, this amount falls outside the range configured for AI agent transactions.\n\nFor premium purchases like this, you can buy directly on RetailZero where additional identity verification protects high-value transactions.",
       timestamp: "12:04:03",
       toolCall: { name: "ucp_checkout_create", status: "denied", detail: "bounded_authority_exceeded: $250 JWT claim", steps: [
         { label: "MCP JSON-RPC", description: "tools/call: ucp_checkout_create", status: "success" },
@@ -1552,7 +1552,7 @@ const SCENARIO_D_STEPS: DemoStep[] = [
 const CONSENT_DENIED_STEPS_D: DemoStep[] = [
   {
     id: "consent-denied-d", type: "chat", conversation: CONV_D1,
-    chat: { id: "cd-d", role: "system", content: "Connection declined. Gemini did not receive any access to StyleVault's MCP tools.", timestamp: "12:00:07" },
+    chat: { id: "cd-d", role: "system", content: "Connection declined. Gemini did not receive any access to RetailZero's MCP tools.", timestamp: "12:00:07" },
     securityEvent: {
       id: "evt-consent-denied-d", timestamp: "12:00:07", type: "consent", result: "denied", scenarioId: "scenario-d",
       shortDescription: "Alex Morgan denied Gemini MCP access. No token was issued.",
