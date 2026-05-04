@@ -154,8 +154,8 @@ The `/.well-known/ucp` manifest needs to match the production schema.
     "id": "dev.ucp.shopping",
     "version": "1.0",
     "transport": "rest",
-    "endpoint": "https://api.stylevault.com/",
-    "schema": { "$ref": "https://api.stylevault.com/openapi.json" }
+    "endpoint": "https://app.retailzero.mvbuilt.com/api/",
+    "schema": { "$ref": "https://app.retailzero.mvbuilt.com/api/openapi.json" }
   }],
   "capabilities": [{
     "id": "dev.ucp.shopping.checkout",
@@ -283,10 +283,10 @@ This is where Auth0 provides the most direct value. Instead of building OAuth fr
 Auth0 automatically serves `/.well-known/openid-configuration`. Map this to what UCP expects at `/.well-known/oauth-authorization-server`:
 ```json
 {
-  "issuer": "https://stylevault.us.auth0.com",
-  "authorization_endpoint": "https://stylevault.us.auth0.com/authorize",
-  "token_endpoint": "https://stylevault.us.auth0.com/oauth/token",
-  "revocation_endpoint": "https://stylevault.us.auth0.com/oauth/revoke",
+  "issuer": "https://retailzero.us.auth0.com",
+  "authorization_endpoint": "https://retailzero.us.auth0.com/authorize",
+  "token_endpoint": "https://retailzero.us.auth0.com/oauth/token",
+  "revocation_endpoint": "https://retailzero.us.auth0.com/oauth/revoke",
   "grant_types_supported": ["authorization_code", "refresh_token"],
   "token_endpoint_auth_methods_supported": ["client_secret_basic"]
 }
@@ -297,7 +297,7 @@ Auth0 automatically serves `/.well-known/openid-configuration`. Map this to what
 Replace the placeholder `auth.ts` with real Auth0 JWT validation.
 
 **What to build:**
-- JWKS fetching from `https://stylevault.us.auth0.com/.well-known/jwks.json`
+- JWKS fetching from `https://retailzero.us.auth0.com/.well-known/jwks.json`
 - JWT signature verification using `jose` library
 - Issuer, audience, and expiration validation
 - Scope extraction and enforcement per endpoint
@@ -308,13 +308,13 @@ Replace the placeholder `auth.ts` with real Auth0 JWT validation.
 import { jwtVerify, createRemoteJWKSet } from "jose";
 
 const JWKS = createRemoteJWKSet(
-  new URL("https://stylevault.us.auth0.com/.well-known/jwks.json")
+  new URL("https://retailzero.us.auth0.com/.well-known/jwks.json")
 );
 
 // In middleware:
 const { payload } = await jwtVerify(token, JWKS, {
-  issuer: "https://stylevault.us.auth0.com/",
-  audience: "https://api.stylevault.com",
+  issuer: "https://retailzero.us.auth0.com/",
+  audience: "https://app.retailzero.mvbuilt.com/api",
 });
 
 // Enforce bounded authority

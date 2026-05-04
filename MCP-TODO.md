@@ -11,7 +11,7 @@ The MCP server code is ready, but the Auth0 side needs to be set up manually in 
 ### Create the API
 
 - [ ] Go to **Applications > APIs > Create API**
-- [ ] Set identifier to `https://api.stylevault.com`
+- [ ] Set identifier to `https://app.retailzero.mvbuilt.com/api`
 - [ ] Use RS256 signing algorithm
 
 ### Add Scopes to the API
@@ -45,8 +45,8 @@ ChatGPT needs to register itself as an OAuth client on first connection.
 ## 2. Environment Variables
 
 - [ ] Copy `ucp-server/.env.example` to `ucp-server/.env`
-- [ ] Set `AUTH0_DOMAIN` to your actual tenant (e.g., `stylevault.us.auth0.com`)
-- [ ] Set `AUTH0_AUDIENCE` to `https://api.stylevault.com`
+- [ ] Set `AUTH0_DOMAIN` to your actual tenant (e.g., `retailzero.us.auth0.com`)
+- [ ] Set `AUTH0_AUDIENCE` to `https://app.retailzero.mvbuilt.com/api`
 
 Until this is done, the server runs in **demo mode** (no authentication required, no OAuth flow).
 

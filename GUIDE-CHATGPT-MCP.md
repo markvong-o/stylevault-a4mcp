@@ -54,7 +54,7 @@ ChatGPT                     Auth0                      RetailZero MCP Server
 2. Click **Create API**
 3. Fill in:
    - **Name:** `RetailZero API`
-   - **Identifier:** `https://api.stylevault.com`
+   - **Identifier:** `https://app.retailzero.mvbuilt.com/api`
    - **Signing Algorithm:** RS256
 4. Click **Create**
 
@@ -67,8 +67,10 @@ On the API's **Permissions** tab, add these scopes:
 | `read:products` | Search and view product catalog |
 | `read:wishlist` | View saved wishlist items |
 | `read:orders` | View order history |
+| `read:cart` | View the current shopping cart |
+| `write:cart` | Add, update, remove items in the cart |
 | `write:preferences` | Update style preferences |
-| `execute:purchase` | Place orders (up to $250 limit) |
+| `execute:purchase` | Check out the cart (CIBA step-up required above $100) |
 
 ### 1.3 Create a Machine-to-Machine Application (for the MCP server)
 
@@ -123,7 +125,7 @@ Edit `.env` with your Auth0 values:
 
 ```
 AUTH0_DOMAIN=your-tenant.us.auth0.com
-AUTH0_AUDIENCE=https://api.stylevault.com
+AUTH0_AUDIENCE=https://app.retailzero.mvbuilt.com/api
 PORT=3001
 ```
 
@@ -228,9 +230,12 @@ Back in ChatGPT settings, click the RetailZero connector to see the available to
 
 - **search_products** -- Search the catalog
 - **get_product_details** -- Get full product info
-- **get_wishlist** -- View saved items
+- **get_wishlist**, **add_to_wishlist**, **remove_from_wishlist** -- Manage saved items
+- **get_recommendations** -- Personalized suggestions
 - **get_order_history** -- View past orders
-- **place_order** -- Purchase products (up to $250)
+- **add_to_cart**, **view_cart**, **update_cart_item**, **remove_from_cart**, **clear_cart** -- Manage the shopping cart
+- **checkout_cart** -- Check out the cart (triggers CIBA above $100)
+- **complete_ciba_checkout** -- Finalize the order after the user approves on their device
 - **update_preferences** -- Update style preferences
 
 Enable or disable tools as needed.
@@ -256,17 +261,17 @@ ChatGPT should call `search_products` and return results like:
 
 ChatGPT should call `get_wishlist` and return 4 items including the Cashmere Wrap Scarf, Blue Denim Jacket, Leather Weekender Bag, and Meridian Automatic Watch.
 
-### Place an order (within limit)
+### Place an order (under CIBA threshold)
 
-> "Order the Compact Travel Satchel from RetailZero"
+> "Add the Canvas Sneakers to my cart, then check out"
 
-ChatGPT should call `place_order` with `product_id: "bag_satchel_001"` and receive a confirmed order at $149.
+ChatGPT should call `add_to_cart` with `product_id: "sneakers_canvas_001"`, then `checkout_cart`. Because the total ($89) is under the $100 threshold, the order is confirmed immediately without a CIBA step-up.
 
-### Bounded authority enforcement
+### CIBA step-up for high-value checkout
 
-> "Buy the Meridian Automatic Watch"
+> "Add the Heritage Duffle to my cart and buy it"
 
-ChatGPT should call `place_order` and receive a `bounded_authority_exceeded` error because $2,400 exceeds the $250 agent transaction limit. ChatGPT will explain that this purchase requires direct buyer approval.
+ChatGPT should call `add_to_cart`, then `checkout_cart`. The $269 total exceeds the $100 threshold, so the server initiates a CIBA push to the user's device and returns `auth_req_id`. After the user approves on their device, ChatGPT calls `complete_ciba_checkout` with the auth_req_id to finalize the order.
 
 ### Update preferences
 
@@ -280,13 +285,13 @@ ChatGPT should call `update_preferences` and confirm the preferences were added.
 
 ### Token Scopes
 
-Each MCP tool maps to an OAuth scope. Auth0 issues access tokens with only the scopes the user consented to. If a user denied the `execute:purchase` scope during consent, the `place_order` tool would fail with a permission error.
+Each MCP tool maps to an OAuth scope. Auth0 issues access tokens with only the scopes the user consented to. If a user denied the `execute:purchase` scope during consent, the `checkout_cart` tool would fail with a permission error.
 
-### Bounded Authority
+### CIBA Step-Up at $100
 
-The $250 per-transaction limit is a server-side merchant policy, not a token claim. Even with a valid `execute:purchase` scope, the MCP server enforces this ceiling. Purchases above $250 require direct buyer approval (which would use Auth0 CIBA in a production setup).
+The $100 threshold is a server-side merchant policy, not a token claim. Any cart checkout above $100 routes through Auth0 CIBA: the server calls `/bc-authorize` with the user's `sub` as `login_hint` and a human-readable `binding_message` that describes the exact amount and merchant. Auth0 pushes that message to the user's enrolled Guardian device. The MCP server does not finalize the order until the user approves on their own device, and the LLM receives a structured `auth_req_id` that it passes to `complete_ciba_checkout` to poll for the result.
 
-This separation matters: the scope grants the *capability* to purchase, while bounded authority limits the *magnitude*. Together, they create a defense-in-depth model where neither prompt injection nor token theft can authorize a high-value transaction without the human buyer's explicit approval.
+This separation matters: the scope grants the *capability* to purchase, while the CIBA gate controls the *magnitude*. Together, they create a defense-in-depth model where neither prompt injection nor token theft can authorize a high-value transaction without the human buyer's explicit approval on a second channel.
 
 ### Protected Resource Metadata (RFC 9728)
 
@@ -294,7 +299,7 @@ The `/.well-known/oauth-protected-resource` endpoint is the linchpin. Without it
 
 ```json
 {
-  "resource": "https://api.stylevault.com",
+  "resource": "https://app.retailzero.mvbuilt.com/api",
   "authorization_servers": ["https://your-tenant.us.auth0.com"],
   "scopes_supported": ["read:products", "read:wishlist", ...],
   "bearer_methods_supported": ["header"]
@@ -338,15 +343,24 @@ The `/.well-known/oauth-protected-resource` endpoint is the linchpin. Without it
 | `search_products` | `query?`, `category?`, `max_price?`, `min_price?` | Array of matching products |
 | `get_product_details` | `product_id` | Full product details |
 | `get_wishlist` | (none) | User's wishlisted items |
+| `add_to_wishlist` | `product_id` | Updated wishlist |
+| `remove_from_wishlist` | `product_id` | Updated wishlist |
+| `get_recommendations` | `limit?` | Personalized product suggestions |
 | `get_order_history` | (none) | User's past orders |
-| `place_order` | `product_id`, `quantity?` | Order confirmation or bounded authority error |
+| `add_to_cart` | `product_id`, `quantity?` | Updated cart |
+| `view_cart` | (none) | Current cart line items and total |
+| `update_cart_item` | `product_id`, `quantity` | Updated cart (quantity 0 removes) |
+| `remove_from_cart` | `product_id` | Updated cart |
+| `clear_cart` | (none) | Empty cart confirmation |
+| `checkout_cart` | (none) | Order confirmation, or `step_up_required` with `auth_req_id` when total > $100 |
+| `complete_ciba_checkout` | `auth_req_id` | Order confirmation, or `authorization_pending` to retry |
 | `update_preferences` | `add` (string array) | Updated preferences list |
 
 ---
 
 ## Next Steps
 
-- **Add Auth0 Actions** to embed `max_purchase_amount` in the access token as a custom claim, allowing per-user bounded authority limits
-- **Enable Auth0 CIBA** for the escalation flow when purchases exceed the bounded authority limit
+- **Add Auth0 Actions** to embed per-user CIBA thresholds in the access token as a custom claim, replacing the single $100 server-side default with per-segment policies
+- **Tune the Auth0 CIBA application** (`AUTH0_CIBA_CLIENT_ID` / `AUTH0_CIBA_CLIENT_SECRET`) and enroll the buyer's device with Auth0 Guardian before running the high-value demo path
 - **Deploy to production** with a real domain, SSL certificate, and database-backed storage
 - **Add more tools** like `add_to_wishlist`, `track_order`, or `get_recommendations`

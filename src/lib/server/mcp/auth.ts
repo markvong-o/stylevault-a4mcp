@@ -4,7 +4,7 @@ import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
 export type { AuthInfo };
 
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN || "your-tenant.us.auth0.com";
-const AUTH0_MCP_AUDIENCE = process.env.AUTH0_MCP_AUDIENCE || "https://app.stylevault.mvbuilt.com/mcp";
+const AUTH0_MCP_AUDIENCE = process.env.AUTH0_MCP_AUDIENCE || "https://app.retailzero.mvbuilt.com/mcp";
 
 /**
  * JWKS client -- fetches and caches Auth0's public keys for JWT verification.

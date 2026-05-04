@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import type { DemoStep } from "@/lib/types";
 import { serverUrls } from "@/hooks/useServerPort";
+import { getDemoSessionId } from "@/lib/demo-session";
 
 /**
  * Fire-and-forget hook that sends real API calls as demo steps progress.
@@ -59,6 +60,7 @@ export function useDemoLiveCalls(
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Accept: "application/json, text/event-stream",
+      "X-Demo-Session": getDemoSessionId(),
     };
     if (sessionId) headers["mcp-session-id"] = sessionId;
 
@@ -126,7 +128,10 @@ export function useDemoLiveCalls(
       const url = `${serverUrls().api}${path}`;
       await fetch(url, {
         method: "DELETE",
-        headers: { "mcp-session-id": sid },
+        headers: {
+          "mcp-session-id": sid,
+          "X-Demo-Session": getDemoSessionId(),
+        },
         signal: AbortSignal.timeout(5000),
       });
     } catch {
@@ -175,7 +180,10 @@ export function useDemoLiveCalls(
   async function ucpGet(path: string) {
     try {
       const url = `${serverUrls().api}${path}`;
-      await fetch(url, { signal: AbortSignal.timeout(5000) });
+      await fetch(url, {
+        headers: { "X-Demo-Session": getDemoSessionId() },
+        signal: AbortSignal.timeout(5000),
+      });
     } catch {
       // fire-and-forget
     }
@@ -186,7 +194,10 @@ export function useDemoLiveCalls(
       const url = `${serverUrls().api}${path}`;
       return await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Demo-Session": getDemoSessionId(),
+        },
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(5000),
       });
@@ -205,7 +216,10 @@ export function useDemoLiveCalls(
   ) {
     fetch(`${serverUrls().api}/api/events`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Demo-Session": getDemoSessionId(),
+      },
       body: JSON.stringify({ type, result, summary, details }),
       signal: AbortSignal.timeout(5000),
     }).catch(() => {});
@@ -268,6 +282,7 @@ export function useDemoLiveCalls(
             headers: {
               "Content-Type": "application/json",
               "X-UCP-Escalation-Token": `esc_${sid}_approved`,
+              "X-Demo-Session": getDemoSessionId(),
             },
             body: JSON.stringify({}),
             signal: AbortSignal.timeout(5000),
@@ -403,7 +418,10 @@ export function useDemoLiveCalls(
       if (ep && sid) {
         fetch(`${serverUrls().api}${ep}`, {
           method: "DELETE",
-          headers: { "mcp-session-id": sid },
+          headers: {
+            "mcp-session-id": sid,
+            "X-Demo-Session": getDemoSessionId(),
+          },
           keepalive: true,
         }).catch(() => {});
         sessionRef.current = null;

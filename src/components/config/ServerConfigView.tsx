@@ -252,20 +252,14 @@ export function ServerConfigView() {
     };
   }, []);
 
-  // Poll for live session count
+  // Poll for live session count (scope-free global metric)
   useEffect(() => {
     const poll = async () => {
       try {
-        const res = await fetch("/api/events");
+        const res = await fetch("/api/sessions");
         if (!res.ok) return;
         const data = await res.json();
-        const events = data.events || [];
-        let count = 0;
-        for (const evt of events) {
-          if (evt.type === "session-init") count++;
-          else if (evt.type === "session-close") count--;
-        }
-        setSessionCount(Math.max(0, count));
+        setSessionCount(data.total ?? 0);
       } catch { /* skip */ }
     };
 
@@ -472,7 +466,7 @@ export function ServerConfigView() {
         <div className="max-w-4xl mx-auto flex items-center gap-4 text-xs text-foreground/30">
           <span>API: /api/config</span>
           <span className="text-foreground/15">|</span>
-          <span>Events: /api/events</span>
+          <span>Sessions: /api/sessions</span>
         </div>
       </footer>
     </div>

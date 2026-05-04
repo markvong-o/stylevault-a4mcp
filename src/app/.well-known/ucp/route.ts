@@ -32,7 +32,7 @@ export async function GET(request: Request) {
         {
           name: "shopping",
           version: "1.0.0",
-          endpoint: "https://api.stylevault.com/shopping",
+          endpoint: "https://app.retailzero.mvbuilt.com/api/shopping",
         },
       ],
     },
@@ -60,15 +60,15 @@ export async function GET(request: Request) {
           order: "GET /ucp/v1/orders/:id",
           list: "GET /ucp/v1/orders",
         },
-        webhooks: "https://api.stylevault.com/webhooks/orders",
+        webhooks: "https://app.retailzero.mvbuilt.com/api/webhooks/orders",
       },
       "dev.ucp.shopping.identity": {
         versions: ["1.0.0"],
         auth: {
           type: "oauth2",
-          issuer: "https://stylevault.us.auth0.com",
-          authorization_endpoint: "https://stylevault.us.auth0.com/authorize",
-          token_endpoint: "https://stylevault.us.auth0.com/oauth/token",
+          issuer: "https://retailzero.us.auth0.com",
+          authorization_endpoint: "https://retailzero.us.auth0.com/authorize",
+          token_endpoint: "https://retailzero.us.auth0.com/oauth/token",
         },
       },
     },

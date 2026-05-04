@@ -101,7 +101,14 @@ export async function GET(request: NextRequest) {
       expiresAt: Date.now() + (tokens.expires_in || 3600) * 1000,
     });
 
-    const response = NextResponse.redirect(`${BASE_URL}/profile`);
+    const safeReturnTo =
+      pkceState.returnTo &&
+      pkceState.returnTo.startsWith("/") &&
+      !pkceState.returnTo.startsWith("//")
+        ? pkceState.returnTo
+        : "/profile";
+
+    const response = NextResponse.redirect(`${BASE_URL}${safeReturnTo}`);
     response.cookies.set(sessionCookieOptions(sessionJwe));
     response.cookies.set(clearPkceCookie());
     return response;

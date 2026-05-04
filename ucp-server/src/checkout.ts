@@ -85,7 +85,7 @@ app.post("/ucp/v1/checkout/sessions", async (c) => {
   // Check bounded authority
   if (total > MAX_AGENT_PURCHASE) {
     status = "requires_escalation";
-    continue_url = `https://stylevault.com/ucp/escalate/${sessionId}`;
+    continue_url = `https://retailzero.com/ucp/escalate/${sessionId}`;
     messages.push({
       severity: "requires_buyer_input",
       text: `Amount $${total.toFixed(2)} exceeds agent limit of $${MAX_AGENT_PURCHASE}. Buyer approval required.`,

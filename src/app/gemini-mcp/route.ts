@@ -2,9 +2,11 @@ import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
+import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { registerGeminiUCPTools } from "@/lib/server/mcp/tools-gemini-ucp";
 import { verifyToken, extractBearerToken, buildWwwAuthenticateHeader, toAuthInfo } from "@/lib/server/mcp/auth";
-import { eventBus } from "@/lib/server/event-bus";
+import { eventBus, type McpLogEvent } from "@/lib/server/event-bus";
+import { scopeContext, type EventScope } from "@/lib/server/scope-context";
 
 /* ------------------------------------------------------------------ */
 /*  Module-level state (survives warm invocations on Vercel)           */
@@ -40,20 +42,36 @@ function jsonResponse(status: number, data: unknown, headers?: Record<string, st
   });
 }
 
-async function authenticate(req: Request) {
-  const authHeader = req.headers.get("authorization") || undefined;
-  const token = extractBearerToken(authHeader);
+type PendingEvent = Omit<McpLogEvent, "id" | "timestamp">;
+
+type AuthResult =
+  | { kind: "user"; scope: EventScope; authInfo: AuthInfo; events: PendingEvent[] }
+  | { kind: "demoRejected"; scope: EventScope; errorResponse: Response; events: PendingEvent[] }
+  | { kind: "rejected"; errorResponse: Response };
+
+async function authenticate(req: Request): Promise<AuthResult> {
+  const demoSid = req.headers.get("x-demo-session") || undefined;
+  const demoScope: EventScope | undefined = demoSid ? { type: "demo", sid: demoSid } : undefined;
+  const token = extractBearerToken(req.headers.get("authorization") || undefined);
+  const events: PendingEvent[] = [];
 
   const auth0Domain = process.env.AUTH0_DOMAIN;
   if (!auth0Domain || auth0Domain === "your-tenant.us.auth0.com") {
-    return { authInfo: toAuthInfo("anonymous", { sub: "anonymous", scopes: [], claims: {} }) };
+    return {
+      kind: "rejected",
+      errorResponse: jsonResponse(500, {
+        jsonrpc: "2.0",
+        error: { code: -32002, message: "Server misconfigured: AUTH0_DOMAIN is not set." },
+        id: null,
+      }),
+    };
   }
 
   if (!token) {
     const baseUrl = getBaseUrl(req);
     const wwwAuth = buildWwwAuthenticateHeader(baseUrl);
 
-    eventBus.push({
+    events.push({
       type: "auth-challenge",
       result: "info",
       summary: "[UCP-over-MCP] Auth challenge sent -- no Bearer token provided",
@@ -64,20 +82,21 @@ async function authenticate(req: Request) {
       },
     });
 
-    return {
-      errorResponse: jsonResponse(401, {
-        jsonrpc: "2.0",
-        error: { code: -32001, message: "Authentication required" },
-        id: null,
-      }, { "WWW-Authenticate": wwwAuth }),
-    };
+    const errorResponse = jsonResponse(401, {
+      jsonrpc: "2.0",
+      error: { code: -32001, message: "Authentication required" },
+      id: null,
+    }, { "WWW-Authenticate": wwwAuth });
+
+    if (demoScope) return { kind: "demoRejected", scope: demoScope, errorResponse, events };
+    return { kind: "rejected", errorResponse };
   }
 
   try {
     const tokenInfo = await verifyToken(token);
     const sessionId = req.headers.get("mcp-session-id") || undefined;
 
-    eventBus.push({
+    events.push({
       type: "token-verified",
       result: "success",
       summary: `[UCP-over-MCP] Token verified for ${tokenInfo.sub}`,
@@ -90,11 +109,16 @@ async function authenticate(req: Request) {
       },
     });
 
-    return { authInfo: toAuthInfo(token, tokenInfo) };
+    return {
+      kind: "user",
+      scope: { type: "user", sub: tokenInfo.sub },
+      authInfo: toAuthInfo(token, tokenInfo),
+      events,
+    };
   } catch (err) {
     const baseUrl = getBaseUrl(req);
 
-    eventBus.push({
+    events.push({
       type: "token-rejected",
       result: "denied",
       summary: `[UCP-over-MCP] Token rejected: ${(err as Error).message}`,
@@ -105,14 +129,19 @@ async function authenticate(req: Request) {
       },
     });
 
-    return {
-      errorResponse: jsonResponse(401, {
-        jsonrpc: "2.0",
-        error: { code: -32001, message: `Invalid token: ${(err as Error).message}` },
-        id: null,
-      }, { "WWW-Authenticate": buildWwwAuthenticateHeader(baseUrl) }),
-    };
+    const errorResponse = jsonResponse(401, {
+      jsonrpc: "2.0",
+      error: { code: -32001, message: `Invalid token: ${(err as Error).message}` },
+      id: null,
+    }, { "WWW-Authenticate": buildWwwAuthenticateHeader(baseUrl) });
+
+    if (demoScope) return { kind: "demoRejected", scope: demoScope, errorResponse, events };
+    return { kind: "rejected", errorResponse };
   }
+}
+
+function replayEvents(events: PendingEvent[]): void {
+  for (const e of events) eventBus.push(e);
 }
 
 /* ------------------------------------------------------------------ */
@@ -122,112 +151,138 @@ async function authenticate(req: Request) {
 export async function POST(request: Request) {
   const startTime = Date.now();
   const auth = await authenticate(request);
-  if ("errorResponse" in auth) return auth.errorResponse;
 
-  const sessionId = request.headers.get("mcp-session-id") || undefined;
-  let transport: WebStandardStreamableHTTPServerTransport;
+  if (auth.kind === "rejected") return auth.errorResponse;
+  if (auth.kind === "demoRejected") {
+    scopeContext.run(auth.scope, () => replayEvents(auth.events));
+    return auth.errorResponse;
+  }
 
-  const body = await request.json();
-  const rpcMethod: string | undefined = body?.method;
-  const rpcId = body?.id;
+  return scopeContext.run(auth.scope, async () => {
+    replayEvents(auth.events);
 
-  if (sessionId && transports[sessionId]) {
-    transport = transports[sessionId];
-  } else if (!sessionId && isInitializeRequest(body)) {
-    transport = new WebStandardStreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
-      enableJsonResponse: true,
-      onsessioninitialized: (id) => {
-        transports[id] = transport;
-        eventBus.push({
-          type: "session-init",
-          result: "success",
-          summary: "[UCP-over-MCP] MCP session initialized",
-          details: {
-            method: "POST",
-            path: "/gemini-mcp",
-            sessionId: id,
-            requestBody: {
-              protocolVersion: body?.params?.protocolVersion,
-              clientInfo: body?.params?.clientInfo,
+    const sessionId = request.headers.get("mcp-session-id") || undefined;
+    let transport: WebStandardStreamableHTTPServerTransport;
+
+    const body = await request.json();
+    const rpcMethod: string | undefined = body?.method;
+    const rpcId = body?.id;
+
+    if (sessionId && transports[sessionId]) {
+      transport = transports[sessionId];
+    } else if (!sessionId && isInitializeRequest(body)) {
+      transport = new WebStandardStreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+        enableJsonResponse: true,
+        onsessioninitialized: (id) => {
+          transports[id] = transport;
+          eventBus.push({
+            type: "session-init",
+            result: "success",
+            summary: "[UCP-over-MCP] MCP session initialized",
+            details: {
+              method: "POST",
+              path: "/gemini-mcp",
+              sessionId: id,
+              requestBody: {
+                protocolVersion: body?.params?.protocolVersion,
+                clientInfo: body?.params?.clientInfo,
+              },
+              responseBody: { serverInfo: { name: "RetailZero UCP-over-MCP", version: "1.0.0" }, protocolVersion: "2025-03-26" },
+              duration: Date.now() - startTime,
             },
-            responseBody: { serverInfo: { name: "RetailZero UCP-over-MCP", version: "1.0.0" }, protocolVersion: "2025-03-26" },
-            duration: Date.now() - startTime,
-          },
-        });
-      },
-    });
-
-    transport.onclose = () => {
-      if (transport.sessionId) {
-        eventBus.push({ type: "session-close", result: "info", summary: "[UCP-over-MCP] MCP session closed", details: { sessionId: transport.sessionId } });
-        delete transports[transport.sessionId];
-      }
-    };
-
-    const server = createMcpServer();
-    await server.connect(transport);
-  } else {
-    return jsonResponse(400, {
-      jsonrpc: "2.0",
-      error: { code: -32000, message: "Bad Request: No valid session ID provided" },
-      id: null,
-    });
-  }
-
-  if (rpcMethod === "tools/list") {
-    eventBus.push({
-      type: "tool-list",
-      result: "success",
-      summary: "[UCP-over-MCP] Client requested UCP tool listing",
-      details: {
-        method: "POST",
-        path: "/gemini-mcp",
-        sessionId,
-        requestBody: { jsonrpc: "2.0", id: rpcId, method: "tools/list" },
-        responseBody: {
-          tools: ["ucp_discover", "ucp_catalog_search", "ucp_product_details", "ucp_checkout_create", "ucp_checkout_status", "ucp_checkout_complete", "ucp_get_orders"],
+          });
         },
-        duration: Date.now() - startTime,
-      },
-    });
-  }
+      });
 
-  return transport.handleRequest(request, { parsedBody: body, authInfo: auth.authInfo });
+      transport.onclose = () => {
+        if (transport.sessionId) {
+          eventBus.push({ type: "session-close", result: "info", summary: "[UCP-over-MCP] MCP session closed", details: { sessionId: transport.sessionId } });
+          delete transports[transport.sessionId];
+        }
+      };
+
+      const server = createMcpServer();
+      await server.connect(transport);
+    } else {
+      return jsonResponse(400, {
+        jsonrpc: "2.0",
+        error: { code: -32000, message: "Bad Request: No valid session ID provided" },
+        id: null,
+      });
+    }
+
+    if (rpcMethod === "tools/list") {
+      eventBus.push({
+        type: "tool-list",
+        result: "success",
+        summary: "[UCP-over-MCP] Client requested UCP tool listing",
+        details: {
+          method: "POST",
+          path: "/gemini-mcp",
+          sessionId,
+          requestBody: { jsonrpc: "2.0", id: rpcId, method: "tools/list" },
+          responseBody: {
+            tools: ["ucp_discover", "ucp_catalog_search", "ucp_product_details", "ucp_checkout_create", "ucp_checkout_status", "ucp_checkout_complete", "ucp_get_orders"],
+          },
+          duration: Date.now() - startTime,
+        },
+      });
+    }
+
+    return transport.handleRequest(request, { parsedBody: body, authInfo: auth.authInfo });
+  });
 }
 
 export async function GET(request: Request) {
   const auth = await authenticate(request);
-  if ("errorResponse" in auth) return auth.errorResponse;
-
-  const sessionId = request.headers.get("mcp-session-id") || undefined;
-  if (!sessionId || !transports[sessionId]) {
-    return jsonResponse(400, {
-      jsonrpc: "2.0",
-      error: { code: -32000, message: "Invalid or missing session ID" },
-      id: null,
-    });
+  if (auth.kind === "rejected") return auth.errorResponse;
+  if (auth.kind === "demoRejected") {
+    scopeContext.run(auth.scope, () => replayEvents(auth.events));
+    return auth.errorResponse;
   }
 
-  return transports[sessionId].handleRequest(request, { authInfo: auth.authInfo });
+  return scopeContext.run(auth.scope, async () => {
+    replayEvents(auth.events);
+
+    const sessionId = request.headers.get("mcp-session-id") || undefined;
+    if (!sessionId || !transports[sessionId]) {
+      return jsonResponse(400, {
+        jsonrpc: "2.0",
+        error: { code: -32000, message: "Invalid or missing session ID" },
+        id: null,
+      });
+    }
+
+    return transports[sessionId].handleRequest(request, { authInfo: auth.authInfo });
+  });
 }
 
 export async function DELETE(request: Request) {
-  const sessionId = request.headers.get("mcp-session-id") || undefined;
-  if (!sessionId || !transports[sessionId]) {
-    return jsonResponse(400, {
-      jsonrpc: "2.0",
-      error: { code: -32000, message: "Invalid or missing session ID" },
-      id: null,
+  const auth = await authenticate(request);
+  if (auth.kind === "rejected") return auth.errorResponse;
+
+  const scope = auth.scope;
+
+  return scopeContext.run(scope, async () => {
+    replayEvents(auth.events);
+
+    const sessionId = request.headers.get("mcp-session-id") || undefined;
+    if (!sessionId || !transports[sessionId]) {
+      return jsonResponse(400, {
+        jsonrpc: "2.0",
+        error: { code: -32000, message: "Invalid or missing session ID" },
+        id: null,
+      });
+    }
+
+    eventBus.push({
+      type: "session-close",
+      result: "info",
+      summary: "[UCP-over-MCP] Client requested session close",
+      details: { sessionId, method: "DELETE", path: "/gemini-mcp" },
     });
-  }
 
-  eventBus.push({
-    type: "session-close",
-    result: "info",
-    summary: "[UCP-over-MCP] Client requested session close",
-    details: { sessionId, method: "DELETE", path: "/gemini-mcp" },
+    return transports[sessionId].handleRequest(request);
   });
-
-  return transports[sessionId].handleRequest(request);
 }

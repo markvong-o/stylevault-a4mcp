@@ -2,9 +2,14 @@ import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
+import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { registerTools } from "@/lib/server/mcp/tools";
 import { verifyToken, extractBearerToken, buildWwwAuthenticateHeader, toAuthInfo } from "@/lib/server/mcp/auth";
-import { eventBus } from "@/lib/server/event-bus";
+import { eventBus, type McpLogEvent } from "@/lib/server/event-bus";
+import { scopeContext, type EventScope } from "@/lib/server/scope-context";
+
+// Allow up to 30s so complete_ciba_checkout can poll for user approval.
+export const maxDuration = 30;
 
 /* ------------------------------------------------------------------ */
 /*  Module-level state (survives warm invocations on Vercel)           */
@@ -35,8 +40,8 @@ function getBaseUrl(req: Request): string {
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id",
+  "Access-Control-Allow-Methods": "POST, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, X-Demo-Session",
   "Access-Control-Expose-Headers": "Mcp-Session-Id, WWW-Authenticate",
   "Access-Control-Max-Age": "86400",
 };
@@ -59,20 +64,49 @@ export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
-async function authenticate(req: Request) {
-  const authHeader = req.headers.get("authorization") || undefined;
-  const token = extractBearerToken(authHeader);
+type PendingEvent = Omit<McpLogEvent, "id" | "timestamp">;
+
+/**
+ * Identify the request and derive the event scope under which all
+ * downstream logging should happen. Does NOT emit events directly; it
+ * collects them into `events` so the caller can replay them inside
+ * `scopeContext.run(scope, ...)`.
+ *
+ * Scope resolution:
+ *  - Valid Bearer token  -> { type: "user", sub }
+ *  - No/invalid token + X-Demo-Session present -> { type: "demo", sid }
+ *    (caller returns 401 to the client, but the auth-challenge event is
+ *     still recorded under the demo scope)
+ *  - Neither              -> no scope; 401/500 returned without logging.
+ */
+type AuthResult =
+  | { kind: "user"; scope: EventScope; authInfo: AuthInfo; events: PendingEvent[] }
+  | { kind: "demoRejected"; scope: EventScope; errorResponse: Response; events: PendingEvent[] }
+  | { kind: "rejected"; errorResponse: Response };
+
+async function authenticate(req: Request): Promise<AuthResult> {
+  const demoSid = req.headers.get("x-demo-session") || undefined;
+  const demoScope: EventScope | undefined = demoSid ? { type: "demo", sid: demoSid } : undefined;
+  const token = extractBearerToken(req.headers.get("authorization") || undefined);
+  const events: PendingEvent[] = [];
 
   const auth0Domain = process.env.AUTH0_DOMAIN;
   if (!auth0Domain || auth0Domain === "your-tenant.us.auth0.com") {
-    return { authInfo: toAuthInfo("anonymous", { sub: "anonymous", scopes: [], claims: {} }) };
+    return {
+      kind: "rejected",
+      errorResponse: jsonResponse(500, {
+        jsonrpc: "2.0",
+        error: { code: -32002, message: "Server misconfigured: AUTH0_DOMAIN is not set. MCP access requires a real Auth0 tenant." },
+        id: null,
+      }),
+    };
   }
 
   if (!token) {
     const baseUrl = getBaseUrl(req);
     const wwwAuth = buildWwwAuthenticateHeader(baseUrl);
 
-    eventBus.push({
+    events.push({
       type: "auth-challenge",
       result: "info",
       summary: "Auth challenge sent -- no Bearer token provided",
@@ -83,20 +117,21 @@ async function authenticate(req: Request) {
       },
     });
 
-    return {
-      errorResponse: jsonResponse(401, {
-        jsonrpc: "2.0",
-        error: { code: -32001, message: "Authentication required" },
-        id: null,
-      }, { "WWW-Authenticate": wwwAuth }),
-    };
+    const errorResponse = jsonResponse(401, {
+      jsonrpc: "2.0",
+      error: { code: -32001, message: "Authentication required" },
+      id: null,
+    }, { "WWW-Authenticate": wwwAuth });
+
+    if (demoScope) return { kind: "demoRejected", scope: demoScope, errorResponse, events };
+    return { kind: "rejected", errorResponse };
   }
 
   try {
     const tokenInfo = await verifyToken(token);
     const sessionId = req.headers.get("mcp-session-id") || undefined;
 
-    eventBus.push({
+    events.push({
       type: "token-verified",
       result: "success",
       summary: `Token verified for ${tokenInfo.sub}`,
@@ -109,11 +144,16 @@ async function authenticate(req: Request) {
       },
     });
 
-    return { authInfo: toAuthInfo(token, tokenInfo) };
+    return {
+      kind: "user",
+      scope: { type: "user", sub: tokenInfo.sub },
+      authInfo: toAuthInfo(token, tokenInfo),
+      events,
+    };
   } catch (err) {
     const baseUrl = getBaseUrl(req);
 
-    eventBus.push({
+    events.push({
       type: "token-rejected",
       result: "denied",
       summary: `Token rejected: ${(err as Error).message}`,
@@ -124,14 +164,19 @@ async function authenticate(req: Request) {
       },
     });
 
-    return {
-      errorResponse: jsonResponse(401, {
-        jsonrpc: "2.0",
-        error: { code: -32001, message: `Invalid token: ${(err as Error).message}` },
-        id: null,
-      }, { "WWW-Authenticate": buildWwwAuthenticateHeader(baseUrl) }),
-    };
+    const errorResponse = jsonResponse(401, {
+      jsonrpc: "2.0",
+      error: { code: -32001, message: `Invalid token: ${(err as Error).message}` },
+      id: null,
+    }, { "WWW-Authenticate": buildWwwAuthenticateHeader(baseUrl) });
+
+    if (demoScope) return { kind: "demoRejected", scope: demoScope, errorResponse, events };
+    return { kind: "rejected", errorResponse };
   }
+}
+
+function replayEvents(events: PendingEvent[]): void {
+  for (const e of events) eventBus.push(e);
 }
 
 /* ------------------------------------------------------------------ */
@@ -141,112 +186,129 @@ async function authenticate(req: Request) {
 export async function POST(request: Request) {
   const startTime = Date.now();
   const auth = await authenticate(request);
-  if ("errorResponse" in auth) return auth.errorResponse;
 
-  const sessionId = request.headers.get("mcp-session-id") || undefined;
-  let transport: WebStandardStreamableHTTPServerTransport;
+  if (auth.kind === "rejected") return auth.errorResponse;
+  if (auth.kind === "demoRejected") {
+    // Demo path: client expected 401, but we still log the auth-challenge
+    // under the demo scope so the demo UI sees it in its event stream.
+    scopeContext.run(auth.scope, () => replayEvents(auth.events));
+    return auth.errorResponse;
+  }
 
-  const body = await request.json();
-  const rpcMethod: string | undefined = body?.method;
-  const rpcId = body?.id;
+  return scopeContext.run(auth.scope, async () => {
+    replayEvents(auth.events);
 
-  if (sessionId && transports[sessionId]) {
-    transport = transports[sessionId];
-  } else if (!sessionId && isInitializeRequest(body)) {
-    transport = new WebStandardStreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
-      enableJsonResponse: true,
-      onsessioninitialized: (id) => {
-        transports[id] = transport;
-        eventBus.push({
-          type: "session-init",
-          result: "success",
-          summary: "MCP session initialized",
-          details: {
-            method: "POST",
-            path: "/mcp",
-            sessionId: id,
-            requestBody: {
-              protocolVersion: body?.params?.protocolVersion,
-              clientInfo: body?.params?.clientInfo,
+    const sessionId = request.headers.get("mcp-session-id") || undefined;
+    let transport: WebStandardStreamableHTTPServerTransport;
+
+    const body = await request.json();
+    const rpcMethod: string | undefined = body?.method;
+    const rpcId = body?.id;
+
+    if (sessionId && transports[sessionId]) {
+      transport = transports[sessionId];
+    } else if (!sessionId && isInitializeRequest(body)) {
+      transport = new WebStandardStreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+        enableJsonResponse: true,
+        onsessioninitialized: (id) => {
+          transports[id] = transport;
+          eventBus.push({
+            type: "session-init",
+            result: "success",
+            summary: "MCP session initialized",
+            details: {
+              method: "POST",
+              path: "/mcp",
+              sessionId: id,
+              requestBody: {
+                protocolVersion: body?.params?.protocolVersion,
+                clientInfo: body?.params?.clientInfo,
+              },
+              responseBody: { serverInfo: { name: "RetailZero", version: "1.0.0" }, protocolVersion: "2025-03-26" },
+              duration: Date.now() - startTime,
             },
-            responseBody: { serverInfo: { name: "RetailZero", version: "1.0.0" }, protocolVersion: "2025-03-26" },
-            duration: Date.now() - startTime,
-          },
-        });
-      },
-    });
-
-    transport.onclose = () => {
-      if (transport.sessionId) {
-        eventBus.push({ type: "session-close", result: "info", summary: "MCP session closed", details: { sessionId: transport.sessionId } });
-        delete transports[transport.sessionId];
-      }
-    };
-
-    const server = createMcpServer();
-    await server.connect(transport);
-  } else {
-    return jsonResponse(400, {
-      jsonrpc: "2.0",
-      error: { code: -32000, message: "Bad Request: No valid session ID provided" },
-      id: null,
-    });
-  }
-
-  if (rpcMethod === "tools/list") {
-    eventBus.push({
-      type: "tool-list",
-      result: "success",
-      summary: "Client requested tool listing",
-      details: {
-        method: "POST",
-        path: "/mcp",
-        sessionId,
-        requestBody: { jsonrpc: "2.0", id: rpcId, method: "tools/list" },
-        responseBody: {
-          tools: ["search_products", "get_product_details", "get_wishlist", "add_to_wishlist", "remove_from_wishlist", "get_recommendations", "get_order_history", "place_order", "update_preferences"],
+          });
         },
-        duration: Date.now() - startTime,
-      },
-    });
-  }
+      });
 
-  return withCors(await transport.handleRequest(request, { parsedBody: body, authInfo: auth.authInfo }));
+      transport.onclose = () => {
+        if (transport.sessionId) {
+          eventBus.push({ type: "session-close", result: "info", summary: "MCP session closed", details: { sessionId: transport.sessionId } });
+          delete transports[transport.sessionId];
+        }
+      };
+
+      const server = createMcpServer();
+      await server.connect(transport);
+    } else {
+      return jsonResponse(400, {
+        jsonrpc: "2.0",
+        error: { code: -32000, message: "Bad Request: No valid session ID provided" },
+        id: null,
+      });
+    }
+
+    if (rpcMethod === "tools/list") {
+      eventBus.push({
+        type: "tool-list",
+        result: "success",
+        summary: "Client requested tool listing",
+        details: {
+          method: "POST",
+          path: "/mcp",
+          sessionId,
+          requestBody: { jsonrpc: "2.0", id: rpcId, method: "tools/list" },
+          duration: Date.now() - startTime,
+        },
+      });
+    }
+
+    return withCors(await transport.handleRequest(request, { parsedBody: body, authInfo: auth.authInfo }));
+  });
 }
 
-export async function GET(request: Request) {
-  const auth = await authenticate(request);
-  if ("errorResponse" in auth) return auth.errorResponse;
-
-  const sessionId = request.headers.get("mcp-session-id") || undefined;
-  if (!sessionId || !transports[sessionId]) {
-    return jsonResponse(400, {
-      jsonrpc: "2.0",
-      error: { code: -32000, message: "Invalid or missing session ID" },
-      id: null,
-    });
-  }
-
-  return withCors(await transports[sessionId].handleRequest(request, { authInfo: auth.authInfo }));
+/**
+ * GET on /mcp is reserved for the MCP Streamable HTTP SSE stream.
+ * This server operates in JSON-only mode (enableJsonResponse: true) and
+ * does not deliver server-initiated notifications, so the GET stream is
+ * intentionally disabled. Clients should rely on POST request/response
+ * only.
+ */
+export async function GET() {
+  return jsonResponse(405, {
+    jsonrpc: "2.0",
+    error: { code: -32000, message: "Streaming GET not supported. This server uses JSON-only POST responses." },
+    id: null,
+  }, { Allow: "POST, DELETE, OPTIONS" });
 }
 
 export async function DELETE(request: Request) {
-  const sessionId = request.headers.get("mcp-session-id") || undefined;
-  if (!sessionId || !transports[sessionId]) {
-    return jsonResponse(400, {
-      jsonrpc: "2.0",
-      error: { code: -32000, message: "Invalid or missing session ID" },
-      id: null,
+  const auth = await authenticate(request);
+  if (auth.kind === "rejected") return auth.errorResponse;
+
+  const scope = auth.kind === "user" ? auth.scope : auth.scope;
+
+  return scopeContext.run(scope, async () => {
+    if (auth.kind === "user") replayEvents(auth.events);
+    else replayEvents(auth.events); // demoRejected: also log and continue
+
+    const sessionId = request.headers.get("mcp-session-id") || undefined;
+    if (!sessionId || !transports[sessionId]) {
+      return jsonResponse(400, {
+        jsonrpc: "2.0",
+        error: { code: -32000, message: "Invalid or missing session ID" },
+        id: null,
+      });
+    }
+
+    eventBus.push({
+      type: "session-close",
+      result: "info",
+      summary: "Client requested session close",
+      details: { sessionId, method: "DELETE", path: "/mcp" },
     });
-  }
 
-  eventBus.push({
-    type: "session-close",
-    result: "info",
-    summary: "Client requested session close",
-    details: { sessionId, method: "DELETE", path: "/mcp" },
+    return withCors(await transports[sessionId].handleRequest(request));
   });
-
-  return withCors(await transports[sessionId].handleRequest(request));
 }

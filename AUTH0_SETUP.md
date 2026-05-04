@@ -43,7 +43,7 @@ npm run setup:chatgpt
 ```
 
 This creates:
-- **API (Resource Server)**: `https://api.stylevault.com` with 5 scopes
+- **API (Resource Server)**: `https://app.retailzero.mvbuilt.com/api` with 5 scopes
 - **MCP Server Application**: `RetailZero MCP Server` (M2M, `client_credentials` grant)
 - **Client Grant**: Links the app to the API with all scopes
 - **Test User**: `alex@example.com` / `Demo-Pass-2026!`
@@ -82,7 +82,7 @@ After both scripts finish, `ucp-server/.env` should look like:
 
 ```env
 AUTH0_DOMAIN=your-tenant.us.auth0.com
-AUTH0_AUDIENCE=https://api.stylevault.com
+AUTH0_AUDIENCE=https://app.retailzero.mvbuilt.com/api
 AUTH0_CLIENT_ID=<mcp-client-id>
 AUTH0_CLIENT_SECRET=<mcp-client-secret>
 
@@ -105,7 +105,7 @@ If you prefer to configure everything by hand, follow these steps.
 1. Go to **Auth0 Dashboard > Applications > APIs > Create API**
 2. Configure:
    - **Name**: `RetailZero MCP API`
-   - **Identifier**: `https://api.stylevault.com`
+   - **Identifier**: `https://app.retailzero.mvbuilt.com/api`
    - **Signing Algorithm**: RS256
 3. Under the **Permissions** tab, add these scopes:
 
@@ -171,7 +171,7 @@ This Action injects a spending limit into every access token. The MCP/UCP server
 
 ```javascript
 exports.onExecutePostLogin = async (event, api) => {
-  const namespace = "https://api.stylevault.com";
+  const namespace = "https://app.retailzero.mvbuilt.com/api";
   api.accessToken.setCustomClaim(`${namespace}/max_purchase_amount`, 250);
   api.accessToken.setCustomClaim(`${namespace}/currency`, "USD");
 };
@@ -200,7 +200,7 @@ Create `ucp-server/.env` with your values:
 ```env
 # Auth0 Core
 AUTH0_DOMAIN=your-tenant.us.auth0.com
-AUTH0_AUDIENCE=https://api.stylevault.com
+AUTH0_AUDIENCE=https://app.retailzero.mvbuilt.com/api
 
 # MCP Server Application
 AUTH0_CLIENT_ID=<your-mcp-client-id>
@@ -284,10 +284,10 @@ Same auth flow as MCP (401 + RFC 9728 discovery), but the tools exposed are UCP 
 
 | Item | Value |
 |------|-------|
-| API Identifier / Audience | `https://api.stylevault.com` |
-| Custom Claim Namespace | `https://api.stylevault.com` |
-| Bounded Authority Claim | `https://api.stylevault.com/max_purchase_amount` |
-| Currency Claim | `https://api.stylevault.com/currency` |
+| API Identifier / Audience | `https://app.retailzero.mvbuilt.com/api` |
+| Custom Claim Namespace | `https://app.retailzero.mvbuilt.com/api` |
+| Bounded Authority Claim | `https://app.retailzero.mvbuilt.com/api/max_purchase_amount` |
+| Currency Claim | `https://app.retailzero.mvbuilt.com/api/currency` |
 | Bounded Authority Limit | `$250 USD` |
 | Test User Email | `alex@example.com` |
 | Test User Password | `Demo-Pass-2026!` |
@@ -324,7 +324,7 @@ Same auth flow as MCP (401 + RFC 9728 discovery), but the tools exposed are UCP 
 
 **401 on every tool call**: Check that the Action is wired into the Login Flow and that the API identifier matches `AUTH0_AUDIENCE` in your `.env`.
 
-**"Invalid audience" errors**: The token's `aud` claim must match `https://api.stylevault.com`. Verify the API identifier in Auth0 matches exactly.
+**"Invalid audience" errors**: The token's `aud` claim must match `https://app.retailzero.mvbuilt.com/api`. Verify the API identifier in Auth0 matches exactly.
 
 **CIBA not working**: Confirm your Auth0 plan supports CIBA, Guardian is enabled, and the test user has enrolled a device. If CIBA is unavailable, set `CIBA_ENABLED=false` -- the demos will simulate escalation approval.
 

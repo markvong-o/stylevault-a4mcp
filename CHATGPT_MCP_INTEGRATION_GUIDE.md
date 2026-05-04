@@ -60,7 +60,7 @@ The MCP spec requires OAuth 2.1 with PKCE. Auth0 supports this natively, which m
 1. Set up environment variables:
    ```
    AUTH0_DOMAIN=your-tenant.auth0.com
-   AUTH0_AUDIENCE=https://api.stylevault.com
+   AUTH0_AUDIENCE=https://app.retailzero.mvbuilt.com/api
    AUTH0_CLIENT_ID=...
    AUTH0_CLIENT_SECRET=...
    ```
@@ -129,7 +129,7 @@ The MCP spec requires OAuth 2.1 with PKCE. Auth0 supports this natively, which m
 1. Go to Auth0 Dashboard > Applications > APIs
 2. Create a new API:
    - **Name:** RetailZero MCP API
-   - **Identifier (Audience):** `https://api.stylevault.com`
+   - **Identifier (Audience):** `https://app.retailzero.mvbuilt.com/api`
    - **Signing Algorithm:** RS256
 3. Under the **Permissions** tab, add scopes:
    - `read:products` - Browse the product catalog
@@ -234,7 +234,7 @@ The MCP spec requires resource indicators so that tokens issued for your server 
 1. In the protected resource metadata (Phase 2), your `resource` field already declares the resource identifier
 2. ChatGPT will include `resource=https://your-server.com` in the authorization request
 3. Auth0 will scope the token's `aud` claim to your API identifier
-4. Your JWT validation (Phase 1) already checks the `audience` parameter -- verify it matches your API identifier (`https://api.stylevault.com`)
+4. Your JWT validation (Phase 1) already checks the `audience` parameter -- verify it matches your API identifier (`https://app.retailzero.mvbuilt.com/api`)
 
 This mostly works out of the box with Auth0. The key is making sure the `audience` parameter in your jose verification matches what Auth0 issues.
 
@@ -308,7 +308,7 @@ railway up
 Set environment variables in the provider's dashboard:
 ```
 AUTH0_DOMAIN=your-tenant.auth0.com
-AUTH0_AUDIENCE=https://api.stylevault.com
+AUTH0_AUDIENCE=https://app.retailzero.mvbuilt.com/api
 AUTH0_CLIENT_ID=...
 AUTH0_CLIENT_SECRET=...
 PORT=3001
@@ -443,7 +443,7 @@ Access tokens from Auth0 expire (default: 24 hours). The MCP spec expects server
      -d '{
        "client_id": "...",
        "client_secret": "...",
-       "audience": "https://api.stylevault.com",
+       "audience": "https://app.retailzero.mvbuilt.com/api",
        "grant_type": "client_credentials"
      }' | jq -r '.access_token')
    

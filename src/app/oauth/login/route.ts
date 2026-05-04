@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { randomBytes, createHash } from "node:crypto";
 import { setPkceState, pkceCookieOptions } from "@/lib/server/auth-session";
 
 const AUTH0_DOMAIN = process.env.AUTH0_LOGIN_DOMAIN || process.env.AUTH0_DOMAIN || "";
-const AUTH0_MCP_AUDIENCE = process.env.AUTH0_MCP_AUDIENCE || "https://app.stylevault.mvbuilt.com/mcp";
+const AUTH0_MCP_AUDIENCE = process.env.AUTH0_MCP_AUDIENCE || "https://app.retailzero.mvbuilt.com/mcp";
 const BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000";
 
 // Tool-level scopes the agent requests. With enforce_policies=true on the
@@ -15,14 +15,27 @@ const TOOL_SCOPES = [
   "tool:remove_from_wishlist",
   "tool:get_recommendations",
   "tool:get_order_history",
-  "tool:place_order",
   "tool:update_preferences",
+  "tool:add_to_cart",
+  "tool:view_cart",
+  "tool:update_cart_item",
+  "tool:remove_from_cart",
+  "tool:clear_cart",
+  "tool:checkout_cart",
 ].join(" ");
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   if (!AUTH0_DOMAIN) {
     return NextResponse.json({ error: "AUTH0_LOGIN_DOMAIN not configured" }, { status: 500 });
   }
+
+  // Accept an optional ?returnTo= that must be a same-origin path. Anything
+  // else is silently discarded to prevent open-redirect abuse.
+  const rawReturnTo = new URL(request.url).searchParams.get("returnTo");
+  const returnTo =
+    rawReturnTo && rawReturnTo.startsWith("/") && !rawReturnTo.startsWith("//")
+      ? rawReturnTo
+      : undefined;
 
   // Generate PKCE code verifier + challenge
   const codeVerifier = randomBytes(32).toString("base64url");
@@ -32,7 +45,7 @@ export async function GET() {
   const state = randomBytes(16).toString("base64url");
 
   // Encrypt and store PKCE state in a cookie
-  const pkceCookie = await setPkceState({ codeVerifier, state });
+  const pkceCookie = await setPkceState({ codeVerifier, state, returnTo });
 
   // CIMD client_id is the metadata document URL
   const clientId = `${BASE_URL}/client-metadata.json`;

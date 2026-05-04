@@ -1,21 +1,15 @@
-import Redis from "ioredis";
+import { Redis } from "@upstash/redis";
 
-const REDIS_URL = process.env.REDIS_URL;
+const REST_URL = process.env.UPSTASH_REDIS_REST_URL;
+const REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 let redis: Redis | null = null;
 
-if (REDIS_URL) {
-  redis = new Redis(REDIS_URL, {
-    maxRetriesPerRequest: 3,
-    lazyConnect: true,
-  });
-
-  redis.on("connect", () => console.log("[redis] connected to", REDIS_URL));
-  redis.on("error", (err) => console.error("[redis] error:", err.message));
-
-  redis.connect().catch(() => {});
+if (REST_URL && REST_TOKEN) {
+  redis = new Redis({ url: REST_URL, token: REST_TOKEN });
+  console.log("[redis] connected via Upstash REST");
 } else {
-  console.log("[redis] REDIS_URL not set, using in-memory storage");
+  console.log("[redis] UPSTASH_REDIS_REST_URL/TOKEN not set, using in-memory storage");
 }
 
 export { redis };

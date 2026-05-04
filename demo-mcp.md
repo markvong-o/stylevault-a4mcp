@@ -33,7 +33,7 @@ Click Approve on the passkey login.
 
 Click to the consent screen.
 
-"This is where user control actually lives. Alex sees exactly what ChatGPT is requesting: five OAuth 2.1 scopes covering wishlist access, product search, order placement, preference updates, and order history. The user decides what the AI can do, not the developer, not the model. Auth0 enforces those boundaries on every request that follows."
+"This is where user control actually lives. Alex sees exactly what ChatGPT is requesting: OAuth 2.1 scopes covering wishlist access, product search, shopping cart management, checkout, preference updates, and order history. The user decides what the AI can do, not the developer, not the model. Auth0 enforces those boundaries on every request that follows."
 
 Click Approve.
 
@@ -44,9 +44,9 @@ Click Approve.
 
 Show the Under the Hood panel. Select the Technical tab.
 
-"Two tokens come back. The access token carries the scopes Alex approved, a bounded authority claim (the $250 transaction cap), and ChatGPT's identity. The ID token proves who logged in: Alex Morgan, verified email, session timestamp."
+"Two tokens come back. The access token carries the scopes Alex approved and ChatGPT's identity. The ID token proves who logged in: Alex Morgan, verified email, session timestamp."
 
-"Both are cryptographically signed JWTs. The scopes and transaction cap are stated explicitly in the claims, so there's no ambiguity about what this token authorizes."
+"Both are cryptographically signed JWTs. The scopes are stated explicitly in the claims, so there's no ambiguity about what this token authorizes. Any cart checkout above $100 triggers a CIBA step-up regardless of the granted scopes, so the human stays in the loop for high-value transactions."
 
 Click through the Access Token and ID Token claim tabs.
 
@@ -61,31 +61,31 @@ Switch to the Business tab.
 
 Click through conversations 1 and 2.
 
-"Alex browses the wishlist and searches for leather bags under $300. Every tool call is validated against the token's scopes and bounded authority claims, so the security layer is always active even though the user never sees it."
+"Alex browses the wishlist and searches for leather bags under $300. Every tool call is validated against the token's scopes and the server performs an RFC 8693 token exchange behind the scenes, so each call runs under a narrow, short-lived token scoped to just that operation."
 
 
-## Purchase with CIBA Approval
+## Cart and Checkout with CIBA Approval
 
 Click to conversation 3.
 
-"Alex asks ChatGPT to buy the Heritage Duffle ($269). ChatGPT has the purchase scope, so Auth0 triggers a CIBA push notification to Alex's device. The AI initiates; the human authorizes."
+"Alex adds the Heritage Duffle ($269) to the cart via the add_to_cart tool, reviews the cart with view_cart, then asks ChatGPT to check out. The cart total is over the $100 auto-approval threshold, so checkout_cart triggers an Auth0 CIBA push notification to Alex's device. ChatGPT receives an auth_req_id and waits. The AI initiates; the human authorizes."
 
 "This is human-in-the-loop at scale. No custom notification infrastructure required. Auth0 handles backchannel authentication, polling, and token issuance automatically."
 
 Click Approve.
 
-"Order confirmed. The entire flow (tool call, token exchange, CIBA approval, downstream API) is logged and auditable."
+"ChatGPT calls complete_ciba_checkout with the auth_req_id, the poll returns a bearer token, and the order is finalized. The entire flow (tool calls, token exchange, CIBA approval, order placement) is logged and auditable."
 
 
-## Bounded Authority: Enforcement Without Friction
+## Threshold Gating: Enforcement Without Friction
 
 Click to conversation 5.
 
-"Now the key moment. Alex asks ChatGPT to buy a $2,400 watch. ChatGPT has the purchase scope. The request syntax is valid. Watch what happens."
+"Now the key moment. Alex asks ChatGPT to check out a cart worth $2,400. ChatGPT has the execute:purchase scope. The request syntax is valid. Watch what happens."
 
-"The access token contains a $250 transaction cap as a bounded authority claim. The request is blocked before the MCP server sees it through infrastructure-level enforcement. No prompt injection can override a cryptographic claim, and no model hallucination bypasses a token constraint."
+"Every cart checkout above $100 routes through CIBA. The MCP server sends the push to Alex's enrolled device, describes the exact amount and vendor in the binding message, and refuses to finalize until the user approves on their own device. No prompt injection can forge a CIBA approval, and no model hallucination bypasses the step-up path."
 
-"ChatGPT gracefully explains the limit and suggests completing the purchase directly on RetailZero instead of crashing or failing silently."
+"ChatGPT explains what the user needs to approve, surfaces the binding message, and waits. The human stays in control at the moment it matters most."
 
 
 ## The Business Case

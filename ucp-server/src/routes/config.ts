@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { getActiveSessions } from "../mcp/server.js";
 
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN || "your-tenant.us.auth0.com";
-const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE || "https://api.stylevault.com";
+const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE || "https://app.retailzero.mvbuilt.com/api";
 
 const app = new Hono();
 

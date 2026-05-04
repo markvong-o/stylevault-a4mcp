@@ -44,3 +44,6 @@ next-env.d.ts
 
 # turbo
 .turbo/
+
+# auth0 template
+auth0-universal-login.html

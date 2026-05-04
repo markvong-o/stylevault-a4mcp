@@ -214,7 +214,7 @@ Your `mcp/auth.ts` already has the jose-based JWT verification pattern. Port it 
 2. Required Auth0 config (environment variables):
    ```
    AUTH0_DOMAIN=your-tenant.auth0.com
-   AUTH0_AUDIENCE=https://api.stylevault.com
+   AUTH0_AUDIENCE=https://app.retailzero.mvbuilt.com/api
    AUTH0_CLIENT_ID=...
    AUTH0_CLIENT_SECRET=...
    ```
@@ -254,7 +254,7 @@ When checkout enters `requires_escalation`:
 
 ### 6c. Auth0 Dashboard Setup
 
-1. Create an API in Auth0 (identifier: `https://api.stylevault.com`)
+1. Create an API in Auth0 (identifier: `https://app.retailzero.mvbuilt.com/api`)
 2. Define scopes: `read:products`, `read:wishlist`, `read:orders`, `write:preferences`, `execute:purchase`
 3. Enable CIBA grant type on your application
 4. Set up Auth0 Guardian for push notifications

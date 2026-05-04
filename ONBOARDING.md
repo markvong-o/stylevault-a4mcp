@@ -193,7 +193,7 @@ brew install redis && brew services start redis
 
 ```
 AUTH0_DOMAIN=your-tenant.us.auth0.com
-AUTH0_AUDIENCE=https://api.stylevault.com
+AUTH0_AUDIENCE=https://app.retailzero.mvbuilt.com/api
 AUTH0_CLIENT_ID=<mcp-client-id>
 AUTH0_CLIENT_SECRET=<mcp-client-secret>
 AUTH0_UCP_CLIENT_ID=<ucp-client-id>

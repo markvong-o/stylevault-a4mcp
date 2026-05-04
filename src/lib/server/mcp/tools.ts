@@ -4,14 +4,35 @@ import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { PRODUCTS, WISHLISTS, PREFERENCES } from "@/lib/server/products";
 import { eventBus } from "@/lib/server/event-bus";
 import { exchangeToken } from "@/lib/server/token-exchange";
+import {
+  getCart,
+  addToCart,
+  updateCartItem,
+  removeFromCart,
+  clearCart,
+  type Cart,
+} from "@/lib/server/cart";
+import { initiateCiba, pollCiba } from "@/lib/server/ciba";
 
 /**
- * Merchant-configured agent transaction limit.
- * Matches the $250 limit in checkout.ts. When a purchase exceeds this,
- * the tool returns a bounded_authority_exceeded error rather than silently
- * proceeding, so the LLM can communicate the limit to the user.
+ * Threshold above which checkout requires CIBA step-up approval from the
+ * buyer. Totals at or below this value proceed without interaction.
  */
-const MAX_AGENT_PURCHASE = 250;
+const CIBA_REQUIRED_ABOVE = 100;
+
+/**
+ * In-memory map of pending CIBA checkouts, keyed by auth_req_id. Holds the
+ * cart snapshot captured at initiate time so complete_ciba_checkout can
+ * finalize the exact same order the user approved on their device, even
+ * if the cart was mutated afterward.
+ */
+interface PendingCibaCheckout {
+  user_email: string;
+  items: Cart["items"];
+  total: number;
+  initiated_at: string;
+}
+const pendingCibaCheckouts = new Map<string, PendingCibaCheckout>();
 
 // In-memory order store (shared with orders.ts for consistency)
 const orders = new Map<
@@ -130,6 +151,15 @@ async function authorizeToolCall(
  */
 function getUserEmail(authInfo: AuthInfo | undefined): string {
   return (authInfo?.extra?.email as string) || "alex@example.com";
+}
+
+/**
+ * Extract the Auth0 `sub` claim for use as a CIBA login_hint. Required so
+ * Auth0 can route the push notification to the correct enrolled device.
+ */
+function getUserSub(authInfo: AuthInfo | undefined): string | null {
+  const sub = authInfo?.extra?.sub as string | undefined;
+  return sub && sub !== "anonymous" ? sub : null;
 }
 
 /**
@@ -333,99 +363,417 @@ export function registerTools(server: McpServer): void {
     }
   );
 
-  // ── place_order ──────────────────────────────────────────────────
+  // ── add_to_cart ──────────────────────────────────────────────────
   server.registerTool(
-    "place_order",
+    "add_to_cart",
     {
-      title: "Place Order",
+      title: "Add to Cart",
       description:
-        "Place an order for a product. Enforces a $250 per-transaction limit " +
-        "(bounded authority). Orders exceeding this limit will be rejected. " +
-        "Requires the execute:purchase scope.",
+        "Add a product (and quantity) to the authenticated user's shopping cart. " +
+        "The cart accumulates items across calls and is used by checkout_cart " +
+        "to place an order. Requires the write:cart scope.",
       inputSchema: {
-        product_id: z.string().describe("The product ID to purchase"),
-        quantity: z.number().int().positive().default(1).describe("Quantity to order (default: 1)"),
+        product_id: z.string().describe("The product ID to add (e.g. 'bag_heritage_001')"),
+        quantity: z.number().int().positive().default(1).describe("Quantity to add (default: 1)"),
       },
     },
     async ({ product_id, quantity }, { authInfo }) => {
       const start = Date.now();
-
-      // Authorize: tool scope check + OBO exchange
-      const auth = await authorizeToolCall(authInfo, "tool:place_order", "execute:purchase", "place_order");
+      const auth = await authorizeToolCall(authInfo, "tool:add_to_cart", "write:cart", "add_to_cart");
       if ("denied" in auth) {
-        emitToolResult("place_order", { error: "permission_denied" }, auth.denied, true, start);
+        emitToolResult("add_to_cart", { error: "permission_denied" }, auth.denied, true, start);
         return { content: [{ type: "text" as const, text: JSON.stringify({ error: "permission_denied", message: auth.denied }) }], isError: true };
       }
 
-      const product = PRODUCTS.find((p) => p.id === product_id);
-      if (!product) {
-        emitToolResult("place_order", { error: "not_found" }, `Product '${product_id}' not found`, true, start);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify({ error: "not_found", message: `Product '${product_id}' not found` }),
-            },
-          ],
-          isError: true,
-        };
+      const userEmail = getUserEmail(authInfo);
+      const result = addToCart(userEmail, product_id, quantity);
+
+      if ("error" in result) {
+        emitToolResult("add_to_cart", result, result.message, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(result) }], isError: true };
       }
 
-      if (!product.in_stock) {
-        emitToolResult("place_order", { error: "out_of_stock" }, `'${product.name}' is out of stock`, true, start);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify({ error: "out_of_stock", message: `'${product.name}' is currently out of stock` }),
-            },
-          ],
-          isError: true,
-        };
-      }
+      const data = {
+        user: userEmail,
+        cart: {
+          items: result.items,
+          total: result.total,
+          item_count: result.items.reduce((s, i) => s + i.quantity, 0),
+        },
+        message: `Added ${quantity}x ${product_id} to your cart.`,
+      };
+      emitToolResult("add_to_cart", data, `Cart now $${result.total.toFixed(2)}`, false, start);
+      return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
+    }
+  );
 
-      const total = product.price * quantity;
-
-      // Enforce bounded authority
-      if (total > MAX_AGENT_PURCHASE) {
-        const err = {
-          error: "bounded_authority_exceeded",
-          message: `$${total.toFixed(2)} exceeds the agent transaction limit of $${MAX_AGENT_PURCHASE.toFixed(2)}. This purchase requires direct buyer approval.`,
-          requested_amount: total,
-          max_allowed: MAX_AGENT_PURCHASE,
-        };
-        emitToolResult("place_order", err, `Bounded authority exceeded ($${total.toFixed(2)} > $${MAX_AGENT_PURCHASE})`, true, start);
-        return {
-          content: [{ type: "text" as const, text: JSON.stringify(err) }],
-          isError: true,
-        };
+  // ── view_cart ────────────────────────────────────────────────────
+  server.registerTool(
+    "view_cart",
+    {
+      title: "View Cart",
+      description:
+        "Return the authenticated user's current shopping cart, including line " +
+        "items, quantities, and running total. Requires the read:cart scope.",
+      inputSchema: {},
+    },
+    async (_params, { authInfo }) => {
+      const start = Date.now();
+      const auth = await authorizeToolCall(authInfo, "tool:view_cart", "read:cart", "view_cart");
+      if ("denied" in auth) {
+        emitToolResult("view_cart", { error: "permission_denied" }, auth.denied, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "permission_denied", message: auth.denied }) }], isError: true };
       }
 
       const userEmail = getUserEmail(authInfo);
+      const cart = getCart(userEmail);
+      const data = {
+        user: userEmail,
+        items: cart.items,
+        total: cart.total,
+        item_count: cart.items.reduce((s, i) => s + i.quantity, 0),
+        ciba_required_above: CIBA_REQUIRED_ABOVE,
+      };
+      emitToolResult("view_cart", data, `${cart.items.length} line item(s), $${cart.total.toFixed(2)}`, false, start);
+      return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
+    }
+  );
+
+  // ── update_cart_item ─────────────────────────────────────────────
+  server.registerTool(
+    "update_cart_item",
+    {
+      title: "Update Cart Item",
+      description:
+        "Change the quantity of a product already in the cart. Set quantity " +
+        "to 0 to remove the line entirely. Requires the write:cart scope.",
+      inputSchema: {
+        product_id: z.string().describe("The product ID whose quantity should change"),
+        quantity: z.number().int().min(0).describe("New quantity (0 removes the item)"),
+      },
+    },
+    async ({ product_id, quantity }, { authInfo }) => {
+      const start = Date.now();
+      const auth = await authorizeToolCall(authInfo, "tool:update_cart_item", "write:cart", "update_cart_item");
+      if ("denied" in auth) {
+        emitToolResult("update_cart_item", { error: "permission_denied" }, auth.denied, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "permission_denied", message: auth.denied }) }], isError: true };
+      }
+
+      const userEmail = getUserEmail(authInfo);
+      const result = updateCartItem(userEmail, product_id, quantity);
+      if ("error" in result) {
+        emitToolResult("update_cart_item", result, result.message, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(result) }], isError: true };
+      }
+
+      const data = {
+        user: userEmail,
+        cart: { items: result.items, total: result.total, item_count: result.items.reduce((s, i) => s + i.quantity, 0) },
+        message: quantity === 0 ? `Removed ${product_id} from cart.` : `Updated ${product_id} to quantity ${quantity}.`,
+      };
+      emitToolResult("update_cart_item", data, `Cart now $${result.total.toFixed(2)}`, false, start);
+      return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
+    }
+  );
+
+  // ── remove_from_cart ─────────────────────────────────────────────
+  server.registerTool(
+    "remove_from_cart",
+    {
+      title: "Remove from Cart",
+      description:
+        "Remove a product entirely from the authenticated user's cart. " +
+        "Requires the write:cart scope.",
+      inputSchema: {
+        product_id: z.string().describe("The product ID to remove"),
+      },
+    },
+    async ({ product_id }, { authInfo }) => {
+      const start = Date.now();
+      const auth = await authorizeToolCall(authInfo, "tool:remove_from_cart", "write:cart", "remove_from_cart");
+      if ("denied" in auth) {
+        emitToolResult("remove_from_cart", { error: "permission_denied" }, auth.denied, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "permission_denied", message: auth.denied }) }], isError: true };
+      }
+
+      const userEmail = getUserEmail(authInfo);
+      const result = removeFromCart(userEmail, product_id);
+      if ("error" in result) {
+        emitToolResult("remove_from_cart", result, result.message, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(result) }], isError: true };
+      }
+
+      const data = {
+        user: userEmail,
+        cart: { items: result.items, total: result.total, item_count: result.items.reduce((s, i) => s + i.quantity, 0) },
+        message: `Removed ${product_id} from cart.`,
+      };
+      emitToolResult("remove_from_cart", data, `Cart now $${result.total.toFixed(2)}`, false, start);
+      return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
+    }
+  );
+
+  // ── clear_cart ───────────────────────────────────────────────────
+  server.registerTool(
+    "clear_cart",
+    {
+      title: "Clear Cart",
+      description:
+        "Empty the authenticated user's shopping cart. Requires the write:cart scope.",
+      inputSchema: {},
+    },
+    async (_params, { authInfo }) => {
+      const start = Date.now();
+      const auth = await authorizeToolCall(authInfo, "tool:clear_cart", "write:cart", "clear_cart");
+      if ("denied" in auth) {
+        emitToolResult("clear_cart", { error: "permission_denied" }, auth.denied, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "permission_denied", message: auth.denied }) }], isError: true };
+      }
+
+      const userEmail = getUserEmail(authInfo);
+      clearCart(userEmail);
+      const data = { user: userEmail, message: "Cart cleared." };
+      emitToolResult("clear_cart", data, "Cart cleared", false, start);
+      return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
+    }
+  );
+
+  // ── checkout_cart ────────────────────────────────────────────────
+  server.registerTool(
+    "checkout_cart",
+    {
+      title: "Checkout Cart",
+      description:
+        "Place an order for every item in the authenticated user's cart. " +
+        `If the cart total exceeds $${CIBA_REQUIRED_ABOVE}, this tool triggers ` +
+        "an Auth0 CIBA push to the user's enrolled device and returns an " +
+        "auth_req_id. The user must approve the push, after which the caller " +
+        "invokes complete_ciba_checkout({ auth_req_id }) to finalize the order. " +
+        "Requires the execute:purchase scope.",
+      inputSchema: {},
+    },
+    async (_params, { authInfo }) => {
+      const start = Date.now();
+      const auth = await authorizeToolCall(authInfo, "tool:checkout_cart", "execute:purchase", "checkout_cart");
+      if ("denied" in auth) {
+        emitToolResult("checkout_cart", { error: "permission_denied" }, auth.denied, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "permission_denied", message: auth.denied }) }], isError: true };
+      }
+
+      const userEmail = getUserEmail(authInfo);
+      const cart = getCart(userEmail);
+
+      if (cart.items.length === 0) {
+        const err = { error: "cart_empty", message: "Cart is empty. Add items before checking out." };
+        emitToolResult("checkout_cart", err, "Cart empty", true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(err) }], isError: true };
+      }
+
+      // Stock validation
+      for (const item of cart.items) {
+        const product = PRODUCTS.find((p) => p.id === item.product_id);
+        if (!product || !product.in_stock) {
+          const err = {
+            error: "out_of_stock",
+            message: `'${item.name}' is no longer available. Remove it to continue.`,
+            product_id: item.product_id,
+          };
+          emitToolResult("checkout_cart", err, `Out of stock: ${item.name}`, true, start);
+          return { content: [{ type: "text" as const, text: JSON.stringify(err) }], isError: true };
+        }
+      }
+
+      // Under threshold: finalize immediately
+      if (cart.total <= CIBA_REQUIRED_ABOVE) {
+        const orderId = generateId("ord");
+        const order = {
+          order_id: orderId,
+          status: "confirmed",
+          items: cart.items.map((i) => ({ name: i.name, price: i.price, quantity: i.quantity })),
+          total: cart.total,
+          buyer_email: userEmail,
+          created_at: new Date().toISOString(),
+        };
+        orders.set(orderId, order);
+        clearCart(userEmail);
+
+        const data = {
+          order_id: orderId,
+          status: "confirmed",
+          items: order.items,
+          total: order.total,
+          ciba_required: false,
+          message: `Order ${orderId} confirmed for $${order.total.toFixed(2)}.`,
+        };
+        emitToolResult("checkout_cart", data, `Order ${orderId} confirmed -- $${order.total.toFixed(2)}`, false, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
+      }
+
+      // Over threshold: initiate CIBA
+      const sub = getUserSub(authInfo);
+      if (!sub) {
+        const err = {
+          error: "step_up_unavailable",
+          message: "Authenticated user has no sub claim; cannot initiate CIBA approval.",
+        };
+        emitToolResult("checkout_cart", err, "Missing sub claim", true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(err) }], isError: true };
+      }
+
+      try {
+        const bindingMessage = `Approve ${cart.total.toFixed(2)} USD purchase at RetailZero`;
+        const ciba = await initiateCiba({
+          login_hint_sub: sub,
+          scope: "execute:purchase",
+          binding_message: bindingMessage,
+        });
+
+        pendingCibaCheckouts.set(ciba.auth_req_id, {
+          user_email: userEmail,
+          items: cart.items.map((i) => ({ ...i })),
+          total: cart.total,
+          initiated_at: new Date().toISOString(),
+        });
+
+        const data = {
+          error: "step_up_required",
+          message:
+            `This purchase is $${cart.total.toFixed(2)}, which exceeds the $${CIBA_REQUIRED_ABOVE} ` +
+            "auto-approval threshold. A push notification was just sent to the " +
+            "buyer's enrolled device. Tell the user to approve the push on their " +
+            "device, then immediately call complete_ciba_checkout with the " +
+            "auth_req_id below -- that tool will block and poll for up to 25s " +
+            "until the user approves. Do not wait for the user to reply first.",
+          auth_req_id: ciba.auth_req_id,
+          expires_in: ciba.expires_in,
+          interval: ciba.interval,
+          binding_message: bindingMessage,
+          total: cart.total,
+          ciba_required: true,
+        };
+        emitToolResult("checkout_cart", data, `CIBA initiated for $${cart.total.toFixed(2)}`, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }], isError: true };
+      } catch (err) {
+        const payload = { error: "ciba_initiate_failed", message: (err as Error).message };
+        emitToolResult("checkout_cart", payload, payload.message, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(payload) }], isError: true };
+      }
+    }
+  );
+
+  // ── complete_ciba_checkout ───────────────────────────────────────
+  server.registerTool(
+    "complete_ciba_checkout",
+    {
+      title: "Complete CIBA Checkout",
+      description:
+        "Finalize a high-value checkout after the user has approved the CIBA " +
+        "push notification. Pass the auth_req_id returned by checkout_cart. " +
+        "If the user has not yet approved, this returns status 'pending' with " +
+        "a recommended wait interval; retry after that interval. Requires the " +
+        "execute:purchase scope.",
+      inputSchema: {
+        auth_req_id: z.string().describe("The auth_req_id returned by checkout_cart"),
+      },
+    },
+    async ({ auth_req_id }, { authInfo }) => {
+      const start = Date.now();
+      const auth = await authorizeToolCall(authInfo, "tool:checkout_cart", "execute:purchase", "complete_ciba_checkout");
+      if ("denied" in auth) {
+        emitToolResult("complete_ciba_checkout", { error: "permission_denied" }, auth.denied, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "permission_denied", message: auth.denied }) }], isError: true };
+      }
+
+      const pending = pendingCibaCheckouts.get(auth_req_id);
+      if (!pending) {
+        const err = {
+          error: "unknown_auth_req_id",
+          message: "No pending CIBA checkout matches that auth_req_id. Start a new checkout with checkout_cart.",
+        };
+        emitToolResult("complete_ciba_checkout", err, "Unknown auth_req_id", true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(err) }], isError: true };
+      }
+
+      const userEmail = getUserEmail(authInfo);
+      if (pending.user_email !== userEmail) {
+        const err = {
+          error: "auth_req_id_owner_mismatch",
+          message: "auth_req_id belongs to a different user.",
+        };
+        emitToolResult("complete_ciba_checkout", err, "Owner mismatch", true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(err) }], isError: true };
+      }
+
+      // Poll for up to ~25s so Claude can call this tool once and block until
+      // the user either approves on their device or we time out. When we time
+      // out still pending, we return status "pending" so Claude can retry.
+      const maxWaitMs = 25_000;
+      const deadline = Date.now() + maxWaitMs;
+      let intervalMs = 2_000;
+      let outcome;
+      try {
+        while (true) {
+          outcome = await pollCiba(auth_req_id);
+          if (outcome.status !== "pending" && outcome.status !== "slow_down") break;
+          if (outcome.status === "slow_down") {
+            intervalMs = Math.max(intervalMs, (outcome.recommendedIntervalSeconds || 10) * 1000);
+          }
+          if (Date.now() + intervalMs >= deadline) break;
+          await new Promise((r) => setTimeout(r, intervalMs));
+        }
+      } catch (err) {
+        const payload = { error: "ciba_poll_failed", message: (err as Error).message };
+        emitToolResult("complete_ciba_checkout", payload, payload.message, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(payload) }], isError: true };
+      }
+
+      if (outcome.status === "pending" || outcome.status === "slow_down") {
+        const data = {
+          error: "authorization_pending",
+          status: outcome.status,
+          message: "The user has not approved the push yet. Wait the recommended interval, then call complete_ciba_checkout again with the same auth_req_id.",
+          retry_in_seconds: outcome.recommendedIntervalSeconds,
+        };
+        emitToolResult("complete_ciba_checkout", data, `CIBA ${outcome.status}`, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }], isError: true };
+      }
+
+      if (outcome.status === "denied" || outcome.status === "expired" || outcome.status === "error") {
+        pendingCibaCheckouts.delete(auth_req_id);
+        const data = {
+          error: outcome.status === "denied" ? "access_denied" : outcome.status,
+          message: outcome.reason,
+        };
+        emitToolResult("complete_ciba_checkout", data, outcome.reason, true, start);
+        return { content: [{ type: "text" as const, text: JSON.stringify(data) }], isError: true };
+      }
+
+      // status === "approved" -- finalize the order using the snapshot
       const orderId = generateId("ord");
       const order = {
         order_id: orderId,
         status: "confirmed",
-        items: [{ name: product.name, price: product.price, quantity }],
-        total,
+        items: pending.items.map((i) => ({ name: i.name, price: i.price, quantity: i.quantity })),
+        total: pending.total,
         buyer_email: userEmail,
         created_at: new Date().toISOString(),
       };
       orders.set(orderId, order);
+      pendingCibaCheckouts.delete(auth_req_id);
+      clearCart(userEmail);
 
       const data = {
         order_id: orderId,
         status: "confirmed",
-        item: product.name,
-        quantity,
-        total,
-        message: `Order placed successfully for ${quantity}x ${product.name} at $${total.toFixed(2)}.`,
+        items: order.items,
+        total: order.total,
+        ciba_required: true,
+        ciba_approved: true,
+        message: `Order ${orderId} confirmed for $${order.total.toFixed(2)} after CIBA approval.`,
       };
-      emitToolResult("place_order", data, `Order ${orderId} confirmed -- $${total.toFixed(2)}`, false, start);
-
-      return {
-        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-      };
+      emitToolResult("complete_ciba_checkout", data, `Order ${orderId} confirmed via CIBA`, false, start);
+      return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
     }
   );
 

@@ -35,7 +35,7 @@ const RELEVANT_TYPES = new Set([
 
 const POLL_INTERVAL = 2000;
 
-function LiveEventLog() {
+function LiveEventLog({ accessToken }: { accessToken: string | null }) {
   const [events, setEvents] = useState<McpLogEvent[]>([]);
   const [status, setStatus] = useState<"polling" | "connected" | "error">("polling");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -43,8 +43,14 @@ function LiveEventLog() {
 
   useEffect(() => {
     const poll = async () => {
+      if (!accessToken) {
+        setStatus("polling");
+        return;
+      }
       try {
-        const res = await fetch("/api/events");
+        const res = await fetch("/api/events", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const incoming: McpLogEvent[] = data.events || [];
@@ -69,7 +75,7 @@ function LiveEventLog() {
     poll();
     const interval = setInterval(poll, POLL_INTERVAL);
     return () => clearInterval(interval);
-  }, []);
+  }, [accessToken]);
 
   // Auto-scroll
   useEffect(() => {
@@ -81,7 +87,11 @@ function LiveEventLog() {
   const handleClear = () => {
     setEvents([]);
     seenRef.current = new Set();
-    fetch("/api/events", { method: "DELETE" }).catch(() => {});
+    if (!accessToken) return;
+    fetch("/api/events", {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }).catch(() => {});
   };
 
   const statusColor = status === "connected" ? "bg-emerald-400" : status === "polling" ? "bg-amber-400" : "bg-red-400";
@@ -120,6 +130,118 @@ function LiveEventLog() {
               </div>
             ))}
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Result unwrapping + formatting                                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * MCP tool calls return a JSON-RPC envelope:
+ *   { jsonrpc, id, result: { content: [{ type: "text", text: "<json string>" }], structuredContent? } }
+ * Prefer structuredContent, then parsed content[0].text, then the raw envelope.
+ */
+function unwrapToolResult(raw: unknown): { pretty: string; language: "json" | "text"; unwrapped: boolean } {
+  if (raw == null) return { pretty: "", language: "text", unwrapped: false };
+
+  const envelope = raw as { result?: unknown; error?: unknown };
+
+  if (envelope?.error != null) {
+    return { pretty: JSON.stringify(envelope.error, null, 2), language: "json", unwrapped: true };
+  }
+
+  const result = envelope?.result as
+    | { structuredContent?: unknown; content?: Array<{ type?: string; text?: string }> }
+    | undefined;
+
+  if (result?.structuredContent !== undefined) {
+    return { pretty: JSON.stringify(result.structuredContent, null, 2), language: "json", unwrapped: true };
+  }
+
+  const textBlocks = result?.content?.filter((c) => c?.type === "text" && typeof c.text === "string") ?? [];
+  if (textBlocks.length > 0) {
+    const parsedParts = textBlocks.map((block) => {
+      const text = block.text ?? "";
+      const trimmed = text.trim();
+      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        try {
+          return JSON.stringify(JSON.parse(trimmed), null, 2);
+        } catch {
+          return text;
+        }
+      }
+      return text;
+    });
+
+    const combined = parsedParts.join("\n\n");
+    const firstTrim = parsedParts[0]?.trim() ?? "";
+    const looksJson = firstTrim.startsWith("{") || firstTrim.startsWith("[");
+    return { pretty: combined, language: looksJson ? "json" : "text", unwrapped: true };
+  }
+
+  return { pretty: JSON.stringify(raw, null, 2), language: "json", unwrapped: false };
+}
+
+function ResultPanel({ result }: { result: unknown }) {
+  const [view, setView] = useState<"pretty" | "raw">("pretty");
+  const unwrapped = unwrapToolResult(result);
+  const rawText = JSON.stringify(result, null, 2);
+  const showToggle = unwrapped.unwrapped;
+  const code = view === "pretty" ? unwrapped.pretty : rawText;
+  const isPlainText = view === "pretty" && unwrapped.language === "text";
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code).catch(() => {});
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-xs font-medium text-foreground/40 uppercase tracking-wider">Result</h3>
+        <div className="flex items-center gap-2">
+          {showToggle && (
+            <div className="flex rounded-md border border-foreground/[0.08] overflow-hidden">
+              <button
+                onClick={() => setView("pretty")}
+                className={`text-[10px] px-2 py-1 transition-colors cursor-pointer ${
+                  view === "pretty"
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground/40 hover:text-foreground/60 hover:bg-foreground/[0.03]"
+                }`}
+              >
+                Pretty
+              </button>
+              <button
+                onClick={() => setView("raw")}
+                className={`text-[10px] px-2 py-1 transition-colors cursor-pointer border-l border-foreground/[0.08] ${
+                  view === "raw"
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground/40 hover:text-foreground/60 hover:bg-foreground/[0.03]"
+                }`}
+              >
+                Raw
+              </button>
+            </div>
+          )}
+          <button
+            onClick={handleCopy}
+            className="text-[10px] px-2 py-1 rounded border border-foreground/[0.08] text-foreground/40 hover:text-foreground/60 hover:bg-foreground/[0.03] transition-colors cursor-pointer"
+          >
+            Copy
+          </button>
+        </div>
+      </div>
+      <div className="rounded-lg border border-foreground/[0.06]">
+        {isPlainText ? (
+          <pre className="text-xs bg-black/[0.04] rounded p-3 font-mono whitespace-pre-wrap break-words leading-relaxed text-foreground/70">
+            {code}
+          </pre>
+        ) : (
+          <CodeBlock code={code} />
         )}
       </div>
     </div>
@@ -237,12 +359,46 @@ function ToolInputForm({
 /* ------------------------------------------------------------------ */
 
 interface LiveMCPPlaygroundProps {
-  accessToken: string;
-  user: { sub: string; name?: string; email?: string; picture?: string };
+  accessToken: string | null;
+  user: { sub: string; name?: string; email?: string; picture?: string } | null;
 }
 
+const LOGIN_RETURN_PATH = "/playground/live";
+
 export function LiveMCPPlayground({ accessToken, user }: LiveMCPPlaygroundProps) {
-  const { state, selectTool, setToolArgs, reset, initSession, callTool } = useLiveMCPState(accessToken);
+  const { state, selectTool, setToolArgs, reset, initSession, callTool } = useLiveMCPState(
+    accessToken ?? ""
+  );
+
+  const handleInitSession = () => {
+    if (!accessToken) {
+      window.location.href = `/oauth/login?returnTo=${encodeURIComponent(LOGIN_RETURN_PATH)}`;
+      return;
+    }
+    initSession();
+  };
+
+  const handleReinitialize = () => {
+    // /oauth/login always sets prompt=login, so Auth0 forces a fresh login.
+    window.location.href = `/oauth/login?returnTo=${encodeURIComponent(LOGIN_RETURN_PATH)}`;
+  };
+
+  // Auto-initialize the MCP session once we have an access token. This covers
+  // both the post-login redirect ("user just signed in, skip the extra click")
+  // and the pre-auth case where they already had a cookie session.
+  const autoInitAttempted = useRef(false);
+  useEffect(() => {
+    if (
+      accessToken &&
+      !state.sessionId &&
+      !state.loading &&
+      !state.error &&
+      !autoInitAttempted.current
+    ) {
+      autoInitAttempted.current = true;
+      initSession();
+    }
+  }, [accessToken, state.sessionId, state.loading, state.error, initSession]);
 
   const handleCallTool = () => {
     if (!state.selectedTool) return;
@@ -269,16 +425,32 @@ export function LiveMCPPlayground({ accessToken, user }: LiveMCPPlaygroundProps)
         <header className="shrink-0 px-6 py-4 border-b border-foreground/[0.06]">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-base font-semibold text-foreground/80">Live MCP Playground</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-base font-semibold text-foreground/80">Live MCP Playground</h1>
+                {accessToken && (
+                  <button
+                    onClick={handleReinitialize}
+                    className="text-[10px] px-2 py-1 rounded border border-foreground/[0.08] text-foreground/50 hover:text-foreground/80 hover:bg-foreground/[0.03] transition-colors cursor-pointer"
+                  >
+                    Reinitialize Session
+                  </button>
+                )}
+              </div>
               <p className="text-[11px] text-foreground/30 mt-0.5">
                 Authenticated tool calls with real-time token exchange
               </p>
             </div>
             <div className="flex items-center gap-3">
-              {user.picture && (
-                <img src={user.picture} alt="" className="w-6 h-6 rounded-full" />
+              {user ? (
+                <>
+                  {user.picture && (
+                    <img src={user.picture} alt="" className="w-6 h-6 rounded-full" />
+                  )}
+                  <span className="text-xs text-foreground/40">{user.email || user.sub}</span>
+                </>
+              ) : (
+                <span className="text-xs text-foreground/30">Not signed in</span>
               )}
-              <span className="text-xs text-foreground/40">{user.email || user.sub}</span>
               {state.sessionId && (
                 <button
                   onClick={reset}
@@ -292,9 +464,9 @@ export function LiveMCPPlayground({ accessToken, user }: LiveMCPPlaygroundProps)
         </header>
 
         {/* Content */}
-        <div className="flex-1 overflow-auto px-6 py-5">
-          {!state.sessionId ? (
-            /* Step 1: Initialize */
+        {!state.sessionId ? (
+          /* Step 1: Initialize */
+          <div className="flex-1 overflow-auto px-6 py-5">
             <div className="max-w-md mx-auto text-center mt-16">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                 <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -303,11 +475,12 @@ export function LiveMCPPlayground({ accessToken, user }: LiveMCPPlaygroundProps)
               </div>
               <h2 className="text-lg font-medium text-foreground/70 mb-2">Start a Session</h2>
               <p className="text-sm text-foreground/40 mb-6">
-                Initialize an MCP session with your access token. The event stream on the right
-                will show each authentication step in real time.
+                {accessToken
+                  ? "Initialize an MCP session with your access token. The event stream on the right will show each authentication step in real time."
+                  : "Sign in with Auth0 to initialize an MCP session. The event stream on the right will show each authentication step in real time."}
               </p>
               <button
-                onClick={initSession}
+                onClick={handleInitSession}
                 disabled={state.loading}
                 className="px-6 py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 disabled:opacity-40 transition-colors cursor-pointer"
               >
@@ -316,84 +489,76 @@ export function LiveMCPPlayground({ accessToken, user }: LiveMCPPlaygroundProps)
                     <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     Initializing...
                   </span>
-                ) : (
+                ) : accessToken ? (
                   "Initialize Session"
+                ) : (
+                  "Sign in and Initialize"
                 )}
               </button>
               {state.error && (
                 <p className="text-xs text-red-500 mt-3">{state.error}</p>
               )}
             </div>
-          ) : (
-            /* Step 2: Tool selection + execution */
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-center gap-2 mb-4">
+          </div>
+        ) : (
+          /* Step 2: Tools column + center column, each scrolls independently */
+          <div className="flex-1 flex min-h-0">
+            {/* Tools column */}
+            <div className="w-[300px] shrink-0 border-r border-foreground/[0.06] overflow-auto px-5 py-5">
+              <div className="flex items-center gap-2 mb-2">
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-mono">
                   session active
                 </span>
-                <span className="text-[10px] text-foreground/25 font-mono">{state.sessionId}</span>
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-                {/* Tool list */}
-                <div>
-                  <h2 className="text-xs font-medium text-foreground/40 uppercase tracking-wider mb-3">
-                    Available Tools ({state.tools.length})
-                  </h2>
-                  <div className="space-y-2">
-                    {state.tools.map((tool) => (
-                      <ToolCard
-                        key={tool.name}
-                        tool={tool}
-                        isSelected={state.selectedTool?.name === tool.name}
-                        onSelect={() => selectTool(tool)}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Call form + result */}
-                <div className="flex justify-center">
-                  {state.selectedTool ? (
-                    <div className="space-y-4 w-full max-w-[515px]">
-                      <ToolInputForm
-                        tool={state.selectedTool}
-                        args={state.toolArgs}
-                        onArgsChange={setToolArgs}
-                        onCall={handleCallTool}
-                        loading={state.loading}
-                      />
-
-                      {state.error && (
-                        <p className="text-xs text-red-500">{state.error}</p>
-                      )}
-
-                      {state.toolResult != null && (
-                        <div>
-                          <h3 className="text-xs font-medium text-foreground/40 uppercase tracking-wider mb-2">
-                            Result
-                          </h3>
-                          <div className="max-h-[500px] overflow-auto rounded-lg border border-foreground/[0.06]">
-                            <CodeBlock code={JSON.stringify(state.toolResult, null, 2)} />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center h-40 text-foreground/20 text-sm">
-                      Select a tool to get started
-                    </div>
-                  )}
-                </div>
+              <div className="text-[10px] text-foreground/25 font-mono mb-4 truncate">
+                {state.sessionId}
+              </div>
+              <h2 className="text-xs font-medium text-foreground/40 uppercase tracking-wider mb-3">
+                Available Tools ({state.tools.length})
+              </h2>
+              <div className="space-y-2">
+                {state.tools.map((tool) => (
+                  <ToolCard
+                    key={tool.name}
+                    tool={tool}
+                    isSelected={state.selectedTool?.name === tool.name}
+                    onSelect={() => selectTool(tool)}
+                  />
+                ))}
               </div>
             </div>
-          )}
-        </div>
+
+            {/* Center column: tool name, query, call button, result */}
+            <div className="flex-1 min-w-0 overflow-auto px-6 py-5">
+              {state.selectedTool ? (
+                <div className="space-y-4 w-full max-w-[640px] mx-auto">
+                  <ToolInputForm
+                    tool={state.selectedTool}
+                    args={state.toolArgs}
+                    onArgsChange={setToolArgs}
+                    onCall={handleCallTool}
+                    loading={state.loading}
+                  />
+
+                  {state.error && (
+                    <p className="text-xs text-red-500">{state.error}</p>
+                  )}
+
+                  {state.toolResult != null && <ResultPanel result={state.toolResult} />}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-40 text-foreground/20 text-sm">
+                  Select a tool to get started
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right panel: Live event log */}
       <div className="w-[593px] shrink-0 bg-foreground/[0.01]">
-        <LiveEventLog />
+        <LiveEventLog accessToken={accessToken} />
       </div>
     </div>
   );

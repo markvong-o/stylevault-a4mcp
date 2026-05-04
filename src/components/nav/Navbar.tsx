@@ -217,20 +217,18 @@ export function Navbar() {
               )}
               {user.name || user.email || "Profile"}
             </Link>
-            <a
-              href="/oauth/logout"
-              className="text-[12px] px-3 py-1.5 rounded-md text-foreground/40 hover:text-foreground/65 hover:bg-foreground/[0.03] transition-colors"
-            >
-              Log out
-            </a>
           </>
         ) : (
-          <a
-            href="/oauth/login"
-            className="text-[12px] px-3 py-1.5 rounded-md border border-primary/20 text-primary hover:bg-primary/[0.06] transition-colors"
+          <Link
+            href="/playground/live"
+            className={`text-[12px] px-3 py-1.5 rounded-md transition-colors ${
+              isActive(pathname, "/playground/live")
+                ? "bg-primary/[0.08] text-primary font-medium"
+                : "text-foreground/40 hover:text-foreground/65 hover:bg-foreground/[0.03]"
+            }`}
           >
-            Log in
-          </a>
+            Live Playground
+          </Link>
         )}
       </div>
     </nav>

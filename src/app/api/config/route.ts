@@ -3,8 +3,8 @@ import { getActiveSessions } from "@/app/mcp/route";
 import { getActiveGeminiSessions } from "@/app/gemini-mcp/route";
 
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN || "your-tenant.us.auth0.com";
-const AUTH0_MCP_AUDIENCE = process.env.AUTH0_MCP_AUDIENCE || "https://app.stylevault.mvbuilt.com/mcp";
-const AUTH0_RESOURCE_AUDIENCE = process.env.AUTH0_AUDIENCE || "https://api.stylevault.com";
+const AUTH0_MCP_AUDIENCE = process.env.AUTH0_MCP_AUDIENCE || "https://app.retailzero.mvbuilt.com/mcp";
+const AUTH0_RESOURCE_AUDIENCE = process.env.AUTH0_AUDIENCE || "https://app.retailzero.mvbuilt.com/api";
 
 export function GET() {
   const mcp = getActiveSessions();
@@ -28,8 +28,13 @@ export function GET() {
           { name: "tool:remove_from_wishlist", description: "Remove products from the wishlist" },
           { name: "tool:get_recommendations", description: "Get personalized product recommendations" },
           { name: "tool:get_order_history", description: "View order history" },
-          { name: "tool:place_order", description: "Place orders on behalf of user" },
           { name: "tool:update_preferences", description: "Update style preferences" },
+          { name: "tool:add_to_cart", description: "Add items to the shopping cart" },
+          { name: "tool:view_cart", description: "View the current shopping cart" },
+          { name: "tool:update_cart_item", description: "Update cart item quantities" },
+          { name: "tool:remove_from_cart", description: "Remove items from the cart" },
+          { name: "tool:clear_cart", description: "Empty the cart" },
+          { name: "tool:checkout_cart", description: "Check out the cart (CIBA step-up above $100)" },
         ],
       },
       resourceApi: {
@@ -39,8 +44,10 @@ export function GET() {
           { name: "read:wishlist", description: "Read the user's saved wishlist" },
           { name: "write:wishlist", description: "Modify the user's wishlist" },
           { name: "read:orders", description: "View order history and status" },
+          { name: "read:cart", description: "Read the user's shopping cart" },
+          { name: "write:cart", description: "Modify the user's shopping cart" },
           { name: "write:preferences", description: "Update style preferences" },
-          { name: "execute:purchase", description: "Place orders on behalf of user" },
+          { name: "execute:purchase", description: "Check out the cart (CIBA step-up above $100)" },
         ],
       },
     },
@@ -60,7 +67,13 @@ export function GET() {
           { name: "remove_from_wishlist", title: "Remove from Wishlist", description: "Remove a product from the user's wishlist.", inputSchema: { product_id: { type: "string", required: true } }, toolScope: "tool:remove_from_wishlist", resourceScope: "write:wishlist" },
           { name: "get_recommendations", title: "Get Recommendations", description: "Personalized suggestions based on wishlist and purchase history.", inputSchema: { limit: { type: "number", required: false } }, toolScope: "tool:get_recommendations", resourceScopes: ["read:wishlist", "read:orders"] },
           { name: "get_order_history", title: "Get Order History", description: "Retrieve the authenticated user's past orders.", inputSchema: {}, toolScope: "tool:get_order_history", resourceScope: "read:orders" },
-          { name: "place_order", title: "Place Order", description: "Place an order for a product. Enforces a $250 per-transaction limit.", inputSchema: { product_id: { type: "string", required: true }, quantity: { type: "number", required: false } }, toolScope: "tool:place_order", resourceScope: "execute:purchase" },
+          { name: "add_to_cart", title: "Add to Cart", description: "Add a product to the user's cart.", inputSchema: { product_id: { type: "string", required: true }, quantity: { type: "number", required: false } }, toolScope: "tool:add_to_cart", resourceScope: "write:cart" },
+          { name: "view_cart", title: "View Cart", description: "Return the current cart with line items and total.", inputSchema: {}, toolScope: "tool:view_cart", resourceScope: "read:cart" },
+          { name: "update_cart_item", title: "Update Cart Item", description: "Change the quantity of a cart line (0 removes it).", inputSchema: { product_id: { type: "string", required: true }, quantity: { type: "number", required: true } }, toolScope: "tool:update_cart_item", resourceScope: "write:cart" },
+          { name: "remove_from_cart", title: "Remove from Cart", description: "Remove a product from the cart.", inputSchema: { product_id: { type: "string", required: true } }, toolScope: "tool:remove_from_cart", resourceScope: "write:cart" },
+          { name: "clear_cart", title: "Clear Cart", description: "Empty the cart.", inputSchema: {}, toolScope: "tool:clear_cart", resourceScope: "write:cart" },
+          { name: "checkout_cart", title: "Checkout Cart", description: "Check out the cart. Triggers CIBA step-up when total > $100.", inputSchema: {}, toolScope: "tool:checkout_cart", resourceScope: "execute:purchase" },
+          { name: "complete_ciba_checkout", title: "Complete CIBA Checkout", description: "Finalize a checkout after the user approves the CIBA push.", inputSchema: { auth_req_id: { type: "string", required: true } }, toolScope: "tool:checkout_cart", resourceScope: "execute:purchase" },
           { name: "update_preferences", title: "Update Preferences", description: "Add style preferences to the user's profile.", inputSchema: { add: { type: "string[]", required: true } }, toolScope: "tool:update_preferences", resourceScope: "write:preferences" },
         ],
       },
@@ -103,9 +116,9 @@ export function GET() {
     ],
     sessions,
     boundedAuthority: {
-      maxAgentPurchase: 250,
+      cibaThreshold: 100,
       currency: "USD",
-      description: "Agent transactions exceeding this limit are rejected. The purchase requires direct buyer approval via escalation.",
+      description: "Cart checkouts at or below this amount are auto-approved. Totals above trigger an Auth0 CIBA push to the buyer's enrolled device before the order is placed.",
     },
   });
 }

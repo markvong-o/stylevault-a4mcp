@@ -1,6 +1,7 @@
 import { EventEmitter } from "node:events";
 import { randomUUID } from "node:crypto";
 import { redis } from "./redis";
+import { currentScope, scopeKey, type EventScope } from "./scope-context";
 
 export interface McpLogEvent {
   id: string;
@@ -40,12 +41,16 @@ export interface McpLogEvent {
   };
 }
 
-const REDIS_KEY = "retailzero:logs";
 const TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const MAX_HISTORY = 200;
 
 class McpEventBus extends EventEmitter {
-  private memory: McpLogEvent[] = [];
+  /**
+   * In-memory fallback when Redis is not configured. Keyed by scope
+   * string so the same `clear(scope)` / `getHistory(scope)` semantics
+   * hold regardless of backend.
+   */
+  private memory: Map<string, McpLogEvent[]> = new Map();
 
   emit(event: "mcp-log", data: McpLogEvent): boolean;
   emit(event: string, ...args: unknown[]): boolean {
@@ -58,50 +63,74 @@ class McpEventBus extends EventEmitter {
     return super.on(event, listener);
   }
 
-  push(event: Omit<McpLogEvent, "id" | "timestamp">): McpLogEvent {
+  /**
+   * Push an event. Reads the active scope from AsyncLocalStorage. If
+   * called outside a `scopeContext.run(...)` frame (shouldn't happen in
+   * production paths), the event is dropped with a warning to avoid
+   * cross-tenant leakage.
+   */
+  push(event: Omit<McpLogEvent, "id" | "timestamp">): McpLogEvent | null {
+    const scope = currentScope();
+    if (!scope) {
+      console.warn("[event-bus] dropping event pushed outside scope context:", event.type);
+      return null;
+    }
+
     const full: McpLogEvent = {
       ...event,
       id: randomUUID(),
       timestamp: new Date().toISOString(),
     };
 
+    const key = scopeKey(scope);
+
     if (redis) {
       const score = Date.now();
-      redis
-        .pipeline()
-        .zadd(REDIS_KEY, score, JSON.stringify(full))
-        .zremrangebyscore(REDIS_KEY, "-inf", score - TTL_MS)
+      const pipeline = redis.pipeline();
+      pipeline.zadd(key, { score, member: JSON.stringify(full) });
+      pipeline.zremrangebyscore(key, "-inf", score - TTL_MS);
+      pipeline
         .exec()
-        .catch((err) => console.error("[event-bus] redis write error:", err.message));
+        .catch((err: Error) => console.error("[event-bus] redis write error:", err.message));
     } else {
-      this.memory.push(full);
-      if (this.memory.length > MAX_HISTORY) this.memory.shift();
+      const bucket = this.memory.get(key) ?? [];
+      bucket.push(full);
+      if (bucket.length > MAX_HISTORY) bucket.shift();
+      this.memory.set(key, bucket);
     }
 
     this.emit("mcp-log", full);
     return full;
   }
 
-  async getHistory(): Promise<McpLogEvent[]> {
-    if (!redis) return [...this.memory];
+  async getHistory(scope: EventScope): Promise<McpLogEvent[]> {
+    const key = scopeKey(scope);
+
+    if (!redis) {
+      return [...(this.memory.get(key) ?? [])];
+    }
 
     try {
-      const members = await redis.zrange(REDIS_KEY, 0, -1);
-      return members.map((m) => JSON.parse(m) as McpLogEvent);
+      const members = (await redis.zrange(key, 0, -1)) as unknown[];
+      return members.map((m) =>
+        typeof m === "string" ? (JSON.parse(m) as McpLogEvent) : (m as McpLogEvent)
+      );
     } catch (err) {
       console.error("[event-bus] redis read error:", (err as Error).message);
       return [];
     }
   }
 
-  async clear(): Promise<void> {
+  async clear(scope: EventScope): Promise<void> {
+    const key = scopeKey(scope);
+
     if (!redis) {
-      this.memory = [];
+      this.memory.delete(key);
       return;
     }
 
     try {
-      await redis.del(REDIS_KEY);
+      await redis.del(key);
     } catch (err) {
       console.error("[event-bus] redis clear error:", (err as Error).message);
     }

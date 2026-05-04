@@ -54,8 +54,8 @@ export async function authMiddleware(c: Context, next: Next) {
   //    if (authHeader && isIdentityLinkingRoute(c.req.path)) {
   //      const token = authHeader.replace("Bearer ", "");
   //      const { payload } = await jwtVerify(token, JWKS, {
-  //        issuer: "https://stylevault.us.auth0.com/",
-  //        audience: "https://api.stylevault.com"
+  //        issuer: "https://retailzero.us.auth0.com/",
+  //        audience: "https://app.retailzero.mvbuilt.com/api"
   //      });
   //      c.set("tokenPayload", payload);
   //    }

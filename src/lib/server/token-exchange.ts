@@ -3,7 +3,7 @@ import { eventBus } from "./event-bus";
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN || "";
 const AUTH0_MCP_CLIENT_ID = process.env.AUTH0_MCP_CLIENT_ID || "";
 const AUTH0_MCP_CLIENT_SECRET = process.env.AUTH0_MCP_CLIENT_SECRET || "";
-const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE || "https://api.stylevault.com";
+const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE || "https://app.retailzero.mvbuilt.com/api";
 
 export interface TokenExchangeResult {
   access_token: string;

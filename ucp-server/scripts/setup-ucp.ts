@@ -26,7 +26,7 @@ import { banner, step, done, info, warn, fail, spin, ask, askPassword, confirm, 
 // ── Constants ───────────────────────────────────────────────
 
 const API_NAME = "RetailZero MCP API";
-const API_IDENTIFIER = "https://api.stylevault.com";
+const API_IDENTIFIER = "https://app.retailzero.mvbuilt.com/api";
 const UCP_APP_NAME = "RetailZero UCP Identity Linking";
 const TEST_USER_EMAIL = "alex@example.com";
 const TEST_USER_PASSWORD = "Demo-Pass-2026!";
@@ -42,7 +42,7 @@ const SCOPES = [
 
 const BOUNDED_AUTHORITY_ACTION_CODE = `
 exports.onExecutePostLogin = async (event, api) => {
-  const namespace = "https://api.stylevault.com";
+  const namespace = "https://app.retailzero.mvbuilt.com/api";
   api.accessToken.setCustomClaim(\`\${namespace}/max_purchase_amount\`, 250);
   api.accessToken.setCustomClaim(\`\${namespace}/currency\`, "USD");
 };
@@ -88,7 +88,7 @@ async function main() {
     info("  create:users, create:actions, update:actions, update:clients");
     console.log();
 
-    domain = await ask("Auth0 domain (e.g. stylevault.us.auth0.com):");
+    domain = await ask("Auth0 domain (e.g. retailzero.us.auth0.com):");
   } else {
     info(`Using domain: ${c.key(domain!)}`);
   }

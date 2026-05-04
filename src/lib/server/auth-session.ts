@@ -81,6 +81,7 @@ export function clearSessionCookie() {
 export interface PkceState {
   codeVerifier: string;
   state: string;
+  returnTo?: string;
 }
 
 export async function setPkceState(data: PkceState): Promise<string> {
