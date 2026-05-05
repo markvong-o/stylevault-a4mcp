@@ -277,8 +277,8 @@ function ResultPanel({ result }: { result: unknown }) {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="shrink-0 flex items-center justify-between mb-2">
         <h3 className="text-xs font-medium text-foreground/40 uppercase tracking-wider">Result</h3>
         <div className="flex items-center gap-2">
           {showToggle && (
@@ -313,9 +313,9 @@ function ResultPanel({ result }: { result: unknown }) {
           </button>
         </div>
       </div>
-      <div className="rounded-lg border border-foreground/[0.06]">
+      <div className="flex-1 min-h-0 rounded-lg border border-foreground/[0.06] overflow-auto">
         {isPlainText ? (
-          <pre className="text-xs bg-black/[0.04] rounded p-3 font-mono whitespace-pre-wrap break-words leading-relaxed text-foreground/70">
+          <pre className="text-xs bg-black/[0.04] p-3 font-mono whitespace-pre-wrap break-words leading-relaxed text-foreground/70">
             {code}
           </pre>
         ) : (
@@ -668,19 +668,21 @@ export function LiveMCPPlayground({ accessToken, user }: LiveMCPPlaygroundProps)
                   </span>
                   <ColumnHeaderControls controls={centerControls} />
                 </div>
-                <div className="flex-1 overflow-auto px-6 py-5">
+                <div className="flex-1 min-h-0 flex flex-col px-6 py-5">
                   {state.selectedTool ? (
-                    <div className="space-y-4 w-full max-w-[640px] mx-auto">
-                      <ToolInputForm
-                        tool={state.selectedTool}
-                        args={state.toolArgs}
-                        onArgsChange={setToolArgs}
-                        onCall={handleCallTool}
-                        loading={state.loading}
-                      />
+                    <div className="flex flex-col flex-1 min-h-0 w-full max-w-[640px] mx-auto gap-4">
+                      <div className="shrink-0">
+                        <ToolInputForm
+                          tool={state.selectedTool}
+                          args={state.toolArgs}
+                          onArgsChange={setToolArgs}
+                          onCall={handleCallTool}
+                          loading={state.loading}
+                        />
+                      </div>
 
                       {state.error && (
-                        <p className="text-xs text-red-500">{state.error}</p>
+                        <p className="shrink-0 text-xs text-red-500">{state.error}</p>
                       )}
 
                       {state.toolResult != null && <ResultPanel result={state.toolResult} />}
